@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>OpenSoul</RootNamespace>
+    <AssemblyName>OpenSoul</AssemblyName>
+    <ApplicationIcon>Resources\opensoul.ico</ApplicationIcon>
+    <Version>0.1.0</Version>
+    <Company>OpenSoul</Company>
+    <Product>OpenSoul</Product>
+    <Description>OpenSoul Windows desktop client</Description>
+    <Copyright>Copyright (c) 2024-2026 OpenSoul Contributors</Copyright>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenSoul.Protocol\OpenSoul.Protocol.csproj" />
+    <ProjectReference Include="..\OpenSoul.Gateway\OpenSoul.Gateway.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.1.3" />
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\opensoul.ico" />
+    <Resource Include="Resources\tray-idle.ico" />
+    <Resource Include="Resources\tray-active.ico" />
+    <Resource Include="Resources\tray-paused.ico" />
+    <Resource Include="Resources\tray-error.ico" />
+  </ItemGroup>
+
+</Project>
