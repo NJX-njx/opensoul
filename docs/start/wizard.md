@@ -62,47 +62,64 @@ The wizard starts with **QuickStart** (defaults) vs **Advanced** (full control).
 
 **Local mode (default)** walks you through these steps:
 
-1. **Model/Auth** — Anthropic API key (recommended), OAuth, OpenAI, or other providers. Pick a default model.
-2. **Workspace** — Location for agent files (default `~/.opensoul/workspace`). Seeds bootstrap files.
-3. **Gateway** — Port, bind address, auth mode, Tailscale exposure.
-4. **Channels** — WhatsApp, Telegram, Discord, Google Chat, Mattermost, Signal, BlueBubbles, or iMessage.
-5. **Daemon** — Installs a LaunchAgent (macOS) or systemd user unit (Linux/WSL2).
-6. **Health check** — Starts the Gateway and verifies it's running.
-7. **Skills** — Installs recommended skills and optional dependencies.
+### 1. Model/Auth
+- **Anthropic API key (recommended)**: Uses `ANTHROPIC_API_KEY` or prompts for one, then saves it for the daemon.
+- **Anthropic OAuth (Claude Code)**: Reuses credentials from Claude Code CLI when available.
+- **OpenAI / Codex**: OAuth or API key support.
+- **Other Providers**: Support for Gemini, Z.AI, Vercel AI Gateway, MiniMax, Moonshot (Kimi), and more.
+- **Auth Profiles**: Credentials are stored in `~/.opensoul/agents/<agentId>/agent/auth-profiles.json`.
 
-<Note>
-Re-running the wizard does **not** wipe anything unless you explicitly choose **Reset** (or pass `--reset`).
-If the config is invalid or contains legacy keys, the wizard asks you to run `opensoul doctor` first.
-</Note>
+### 2. Workspace
+- Default location: `~/.opensoul/workspace`.
+- Seeds bootstrap files for agent initialization.
+- See [Agent Workspace](/concepts/agent-workspace) for layout details.
 
-**Remote mode** only configures the local client to connect to a Gateway elsewhere.
-It does **not** install or change anything on the remote host.
+### 3. Gateway
+- Configures port (default 18789), bind address, and auth mode.
+- **Security Tip**: Keep **Token** auth enabled even on loopback for security.
+- Optional Tailscale exposure for remote access.
 
-## Add another agent
+### 4. Channels
+- Setup for [WhatsApp](/channels/whatsapp), [Telegram](/channels/telegram), [Discord](/channels/discord), [Google Chat](/channels/googlechat), [Mattermost](/channels/mattermost), [Signal](/channels/signal), and [iMessage](/channels/imessage).
+- Configures pairing flow for secure DMs.
 
-Use `opensoul agents add <name>` to create a separate agent with its own workspace,
-sessions, and auth profiles. Running without `--workspace` launches the wizard.
+### 5. Daemon Installation
+- **macOS**: LaunchAgent (requires user session).
+- **Linux / WSL2**: systemd user unit.
+- **Lingering**: Tries to enable `loginctl enable-linger` so the gateway stays up after logout.
+- **Node vs Bun**: **Node** is recommended for WhatsApp/Telegram stability.
 
-What it sets:
+### 6. Skills
+- Installs recommended skills and checks dependencies.
+- Configuration for Node manager (`npm` or `pnpm`).
 
-- `agents.list[].name`
-- `agents.list[].workspace`
-- `agents.list[].agentDir`
+## Advanced Management
 
-Notes:
+### Add another agent
+```bash
+opensoul agents add <name>
+```
+Creates isolated workspaces and auth profiles for multi-agent setups.
 
-- Default workspaces follow `~/.opensoul/workspace-<agentId>`.
-- Add `bindings` to route inbound messages (the wizard can do this).
-- Non-interactive flags: `--model`, `--agent-dir`, `--bind`, `--non-interactive`.
+### Non-interactive Mode
+Automate setup for CI or headless environments:
 
-## Full reference
+```bash
+opensoul onboard --non-interactive \
+  --mode local \
+  --auth-choice apiKey \
+  --anthropic-api-key "$ANTHROPIC_API_KEY" \
+  --gateway-port 18789 \
+  --install-daemon \
+  --daemon-runtime node
+```
 
-For detailed step-by-step breakdowns, non-interactive scripting, Signal setup,
-RPC API, and a full list of config fields the wizard writes, see the
-[Wizard Reference](/reference/wizard).
+### Wizard RPC
+The gateway exposes the wizard flow via RPC (`wizard.start`, `wizard.next`, etc.), allowing UI clients (macOS app, Control UI) to render the setup flow.
 
 ## Related docs
 
 - CLI command reference: [`opensoul onboard`](/cli/onboard)
 - macOS app onboarding: [Onboarding](/start/onboarding)
 - Agent first-run ritual: [Agent Bootstrapping](/start/bootstrapping)
+- Configuration reference: [Gateway Configuration](/gateway/configuration)
