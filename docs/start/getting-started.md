@@ -17,104 +17,141 @@ and chat in the browser, or open `http://127.0.0.1:18789/` on the
 Docs: [Dashboard](/web/dashboard) and [Control UI](/web/control-ui).
 </Info>
 
-## Prereqs
+Recommended path: use the **CLI onboarding wizard** (`opensoul onboard`). It configures:
 
-- Node 22 or newer
+- Model/Auth (OAuth recommended)
+- Gateway settings
+- Channels (WhatsApp, Telegram, Discord, etc.)
+- Pairing defaults (secure DMs)
+- Workspace bootstrapping + Skills
+- Optional background services
 
-<Tip>
-Check your Node version with `node --version` if you are unsure.
-</Tip>
+For deeper reference, see: [Wizard](/start/wizard), [Setup](/start/setup), [Pairing](/channels/pairing), [Security](/gateway/security).
 
-## Quick setup (CLI)
+### Sandbox Note
+`agents.defaults.sandbox.mode: "non-main"` uses `session.mainKey` (default `"main"`), so group/channel sessions are sandboxed. If you want a main agent to always run on the host, set an explicit per-agent override:
 
-<Steps>
-  <Step title="Install OpenSoul (recommended)">
-    <Tabs>
-      <Tab title="macOS/Linux">
-        ```bash
-        curl -fsSL https://opensoul.ai/install.sh | bash
-        ```
-      </Tab>
-      <Tab title="Windows (PowerShell)">
-        ```powershell
-        iwr -useb https://opensoul.ai/install.ps1 | iex
-        ```
-      </Tab>
-    </Tabs>
+```json
+{
+  "routing": {
+    "agents": {
+      "main": {
+        "workspace": "~/.opensoul/workspace",
+        "sandbox": { "mode": "off" }
+      }
+    }
+  }
+}
+```
 
-    <Note>
-    Other install methods and requirements: [Install](/install).
-    </Note>
+## 0) Prereqs
 
-  </Step>
-  <Step title="Run the onboarding wizard">
+- Node `>=22`
+- `pnpm` (optional; recommended if building from source)
+- **Recommended:** Brave Search API key for web search. Easiest path: `opensoul configure --section web` (stores `tools.web.search.apiKey`). See [Web tools](/tools/web).
+
+**macOS:** If you plan to build the app, install Xcode / CLT. For CLI + Gateway only, Node is enough.
+**Windows:** Use **WSL2** (Ubuntu recommended). Native Windows is untested and has more tool compatibility issues. See [Windows (WSL2)](/platforms/windows).
+
+## 1) Install OpenSoul (CLI)
+
+<Tabs>
+  <Tab title="macOS/Linux">
     ```bash
-    opensoul onboard --install-daemon
+    curl -fsSL https://opensoul.ai/install.sh | bash
     ```
-
-    The wizard configures auth, gateway settings, and optional channels.
-    See [Onboarding Wizard](/start/wizard) for details.
-
-  </Step>
-  <Step title="Check the Gateway">
-    If you installed the service, it should already be running:
-
-    ```bash
-    opensoul gateway status
+  </Tab>
+  <Tab title="Windows (PowerShell)">
+    ```powershell
+    iwr -useb https://opensoul.ai/install.ps1 | iex
     ```
+  </Tab>
+</Tabs>
 
-  </Step>
-  <Step title="Open the Control UI">
-    ```bash
-    opensoul dashboard
-    ```
-  </Step>
-</Steps>
+<Note>
+Other install methods and requirements: [Install](/install).
+</Note>
 
-<Check>
-If the Control UI loads, your Gateway is ready for use.
-</Check>
+## 2) Run the onboarding wizard
 
-## Optional checks and extras
+```bash
+opensoul onboard --install-daemon
+```
 
-<AccordionGroup>
-  <Accordion title="Run the Gateway in the foreground">
-    Useful for quick tests or troubleshooting.
+You will choose:
+- **Local vs Remote** Gateway.
+- **Auth**: Anthropic API key (recommended) or OAuth.
+- **Providers**: WhatsApp QR login, Telegram/Discord bot tokens, etc.
+- **Daemon**: Background installation (launchd/systemd).
+- **Gateway Token**: Generated and stored in `gateway.auth.token`.
 
-    ```bash
-    opensoul gateway --port 18789
-    ```
+See [Onboarding Wizard](/start/wizard) for details.
 
-  </Accordion>
-  <Accordion title="Send a test message">
-    Requires a configured channel.
+## 3) Check the Gateway
 
-    ```bash
-    opensoul message send --target +15555550123 --message "Hello from OpenSoul"
-    ```
+If you installed the service, it should already be running:
 
-  </Accordion>
-</AccordionGroup>
+```bash
+opensoul gateway status
+```
 
-## Go deeper
+Manual run (foreground):
+```bash
+opensoul gateway --port 18789 --verbose
+```
 
-<Columns>
-  <Card title="Onboarding Wizard (details)" href="/start/wizard">
-    Full CLI wizard reference and advanced options.
-  </Card>
-  <Card title="macOS app onboarding" href="/start/onboarding">
-    First run flow for the macOS app.
-  </Card>
-</Columns>
+## 4) Pair + Connect your first chat
 
-## What you will have
+### WhatsApp (QR login)
+```bash
+opensoul channels login
+```
+Scan via WhatsApp -> Settings -> Linked Devices. See [WhatsApp](/channels/whatsapp).
 
-- A running Gateway
-- Auth configured
-- Control UI access or a connected channel
+### Telegram / Discord / Others
+The wizard can write tokens/config for you. If you prefer manual setup:
+- [Telegram](/channels/telegram)
+- [Discord](/channels/discord)
+
+**Telegram DM Tip:** Your first DM returns a pairing code. Approve it in the next step, or the bot won't respond.
+
+## 5) DM Safety (Pairing Approval)
+
+Default stance: unknown DMs get a shortcode and messages aren't processed until approved.
+
+```bash
+opensoul pairing list whatsapp
+opensoul pairing approve whatsapp <code>
+```
+See [Pairing](/channels/pairing).
+
+## From source (Dev)
+
+If you are developing OpenSoul itself:
+
+```bash
+git clone https://github.com/opensoul/opensoul.git
+cd opensoul
+pnpm install
+pnpm ui:build # auto-installs UI deps on first run
+pnpm build
+opensoul onboard --install-daemon
+```
+
+## 7) Verify end-to-end
+
+In a new terminal, send a test message:
+
+```bash
+opensoul message send --target +15555550123 --message "Hello from OpenSoul"
+```
+
+If `opensoul health` shows "Auth not configured", go back to the wizard—agents won't respond without it.
 
 ## Next steps
 
 - DM safety and approvals: [Pairing](/channels/pairing)
 - Connect more channels: [Channels](/channels)
 - Advanced workflows and from source: [Setup](/start/setup)
+- Mobile nodes (iOS/Android): [Nodes](/nodes)
+- Remote access: [Remote Access](/gateway/remote)
