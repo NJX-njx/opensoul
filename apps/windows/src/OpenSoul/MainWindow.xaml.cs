@@ -352,6 +352,48 @@ public partial class MainWindow : Window
         await LoadHistoryAsync(clearTimeline: true);
     }
 
+
+    private async void RpcExecuteButton_Click(object sender, RoutedEventArgs e)
+    {
+        var method = RpcMethodTextBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(method))
+        {
+            AppendEvent("rpc failed: method is required");
+            return;
+        }
+
+        if (!_isConnected)
+        {
+            AppendEvent($"rpc {method} failed: not connected");
+            return;
+        }
+
+        try
+        {
+            object? parameters = null;
+            var rawParams = RpcParamsTextBox.Text.Trim();
+            if (!string.IsNullOrWhiteSpace(rawParams))
+            {
+                using var doc = JsonDocument.Parse(rawParams);
+                parameters = doc.RootElement.Clone();
+            }
+
+            var response = await _controlChannel.RequestAsync<JsonElement>(method, parameters);
+            if (response.ValueKind == JsonValueKind.Undefined)
+            {
+                AppendEvent($"rpc {method} => (empty)");
+                return;
+            }
+
+            var pretty = JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true });
+            AppendEvent($"rpc {method} =>\n{pretty}");
+        }
+        catch (Exception ex)
+        {
+            AppendEvent($"rpc {method} failed: {ex.Message}");
+            _logger.LogError(ex, "rpc {Method} failed", method);
+        }
+    }
     private async Task LoadHistoryAsync(bool clearTimeline)
     {
         if (!_isConnected || _isLoadingHistory)
@@ -685,6 +727,9 @@ public partial class MainWindow : Window
         RefreshSessionsButton.IsEnabled = _isConnected && !_isLoadingSessions;
         LoadHistoryButton.IsEnabled = _isConnected && !_isLoadingHistory;
         SessionPickerComboBox.IsEnabled = _isConnected && !_isLoadingSessions;
+        RpcMethodTextBox.IsEnabled = _isConnected;
+        RpcParamsTextBox.IsEnabled = _isConnected;
+        RpcExecuteButton.IsEnabled = _isConnected;
     }
 
     private void AppendChat(string source, string content)
@@ -875,3 +920,7 @@ public partial class MainWindow : Window
         public required string DisplayName { get; init; }
     }
 }
+
+
+
+

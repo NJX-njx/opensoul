@@ -1,163 +1,333 @@
 <Window x:Class="OpenSoul.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="OpenSoul (Windows Preview)"
-        Height="820"
-        Width="1220"
-        MinHeight="680"
-        MinWidth="980">
-    <Grid Margin="16">
+        Title="OpenSoul Desktop"
+        Height="860"
+        Width="1360"
+        MinHeight="720"
+        MinWidth="1100"
+        Icon="Resources/opensoul.ico"
+        WindowStartupLocation="CenterScreen"
+        Background="#F6F8FA">
+    <Window.Resources>
+        <SolidColorBrush x:Key="BgBrush" Color="#F6F8FA" />
+        <SolidColorBrush x:Key="PanelBrush" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="PanelAltBrush" Color="#FDFDFE" />
+        <SolidColorBrush x:Key="BorderBrush" Color="#D0D7DE" />
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#0969DA" />
+        <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#0860CA" />
+        <SolidColorBrush x:Key="TextBrush" Color="#1F2328" />
+        <SolidColorBrush x:Key="MutedTextBrush" Color="#656D76" />
+
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource PanelBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="14" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+        </Style>
+
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI" />
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style TargetType="PasswordBox">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Height" Value="34" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            <Setter Property="Background" Value="#F6F8FA" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F3F4F6" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.55" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryHoverBrush}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryHoverBrush}" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.55" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="ListBox">
+            <Setter Property="Background" Value="#FCFCFD" />
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="FontFamily" Value="Cascadia Mono, Consolas" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="18" Background="{StaticResource BgBrush}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <GroupBox Grid.Row="0" Header="Gateway Connection" Padding="12">
+        <Border Grid.Row="0" Style="{StaticResource CardStyle}" Padding="16,12" Margin="0,0,0,14">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Vertical">
+                    <TextBlock FontSize="24" FontWeight="SemiBold">OpenSoul</TextBlock>
+                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Margin="0,2,0,0">
+                        Workspace-grade desktop operator client
+                    </TextBlock>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="HealthButton" Width="110" Margin="0,0,10,0" Click="HealthButton_Click">Health</Button>
+                    <Button x:Name="ClearLogsButton" Width="110" Click="ClearLogsButton_Click">Clear Logs</Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="340" />
+                <ColumnDefinition Width="14" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="14" />
+                <ColumnDefinition Width="380" />
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <Border Style="{StaticResource CardStyle}" Background="{StaticResource PanelAltBrush}">
+                    <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold">Gateway Connection</TextBlock>
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Margin="0,2,0,12">
+                            Local mode for managed gateway, remote mode for external endpoint.
+                        </TextBlock>
+
+                        <TextBlock FontWeight="SemiBold" Margin="0,2,0,6">Mode</TextBlock>
+                        <ComboBox x:Name="ModeComboBox" SelectionChanged="ModeComboBox_SelectionChanged" Margin="0,0,0,10">
+                            <ComboBoxItem Tag="local" IsSelected="True">Local</ComboBoxItem>
+                            <ComboBoxItem Tag="remote">Remote</ComboBoxItem>
+                        </ComboBox>
+
+                        <TextBlock FontWeight="SemiBold" Margin="0,2,0,6">Session Key</TextBlock>
+                        <TextBox x:Name="SessionKeyTextBox"
+                                 Text="main"
+                                 Margin="0,0,0,10"
+                                 ToolTip="Session key used by chat.send and chat.history" />
+
+                        <TextBlock FontWeight="SemiBold" Margin="0,2,0,6">Remote URL</TextBlock>
+                        <TextBox x:Name="RemoteUrlTextBox"
+                                 Text="ws://127.0.0.1:3000"
+                                 Margin="0,0,0,10"
+                                 ToolTip="Supports ws://, wss://, http://, https://" />
+
+                        <TextBlock FontWeight="SemiBold" Margin="0,2,0,6">Token</TextBlock>
+                        <TextBox x:Name="RemoteTokenTextBox"
+                                 Margin="0,0,0,10"
+                                 ToolTip="Optional. Leave empty to use environment variables." />
+
+                        <TextBlock FontWeight="SemiBold" Margin="0,2,0,6">Password</TextBlock>
+                        <PasswordBox x:Name="RemotePasswordBox"
+                                     Margin="0,0,0,10"
+                                     ToolTip="Optional. Leave empty to use environment variables." />
+
+                        <TextBlock FontWeight="SemiBold" Margin="0,2,0,6">Device Token</TextBlock>
+                        <TextBox x:Name="RemoteDeviceTokenTextBox"
+                                 Margin="0,0,0,10"
+                                 ToolTip="Optional. Device token auth for remote mode." />
+
+                        <CheckBox x:Name="AutoConnectCheckBox"
+                                  Margin="0,0,0,12"
+                                  Content="Auto-connect on launch" />
+
+                        <Separator Margin="0,2,0,12" />
+
+                        <TextBlock FontWeight="SemiBold" Margin="0,0,0,6">Session Picker</TextBlock>
+                        <ComboBox x:Name="SessionPickerComboBox"
+                                  DisplayMemberPath="DisplayName"
+                                  SelectedValuePath="Key"
+                                  SelectionChanged="SessionPickerComboBox_SelectionChanged"
+                                  Margin="0,0,0,12" />
+
+                        <UniformGrid Columns="2" Rows="2" Margin="0,0,0,0">
+                            <Button x:Name="ConnectButton"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Margin="0,0,8,8"
+                                    Click="ConnectButton_Click">Connect</Button>
+                            <Button x:Name="DisconnectButton"
+                                    Margin="0,0,0,8"
+                                    Click="DisconnectButton_Click">Disconnect</Button>
+                            <Button x:Name="RefreshSessionsButton"
+                                    Margin="0,0,8,0"
+                                    Click="RefreshSessionsButton_Click">Refresh Sessions</Button>
+                            <Button x:Name="LoadHistoryButton"
+                                    Click="LoadHistoryButton_Click">Load History</Button>
+                        </UniformGrid>
+                    </StackPanel>
+                </Border>
+            </ScrollViewer>
+
+            <Grid Grid.Column="2">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="14" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,0,8,8" VerticalAlignment="Center" Text="Mode:" />
-                <ComboBox x:Name="ModeComboBox"
-                          Grid.Row="0"
-                          Grid.Column="1"
-                          Margin="0,0,16,8"
-                          Width="180"
-                          SelectionChanged="ModeComboBox_SelectionChanged">
-                    <ComboBoxItem Tag="local" IsSelected="True">Local</ComboBoxItem>
-                    <ComboBoxItem Tag="remote">Remote</ComboBoxItem>
-                </ComboBox>
+                <Border Grid.Row="0" Style="{StaticResource CardStyle}">
+                    <DockPanel LastChildFill="True">
+                        <TextBlock DockPanel.Dock="Top" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10">Chat Timeline</TextBlock>
+                        <ListBox x:Name="ChatListBox" />
+                    </DockPanel>
+                </Border>
 
-                <TextBlock Grid.Row="0" Grid.Column="2" Margin="0,0,8,8" VerticalAlignment="Center" Text="Session:" />
-                <TextBox x:Name="SessionKeyTextBox"
-                         Grid.Row="0"
-                         Grid.Column="3"
-                         Margin="0,0,0,8"
-                         VerticalAlignment="Center"
-                         Text="main"
-                         ToolTip="Session key used by chat.send and chat.history" />
+                <Border Grid.Row="2" Style="{StaticResource CardStyle}" Background="{StaticResource PanelAltBrush}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,8">
+                            Send: Ctrl+Enter
+                        </TextBlock>
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="120" />
+                            </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,0,8,8" VerticalAlignment="Center" Text="Remote URL:" />
-                <TextBox x:Name="RemoteUrlTextBox"
-                         Grid.Row="1"
-                         Grid.Column="1"
-                         Grid.ColumnSpan="3"
-                         Margin="0,0,0,8"
-                         Text="ws://127.0.0.1:3000"
-                         ToolTip="Supports ws://, wss://, http://, https://" />
+                            <TextBox x:Name="MessageTextBox"
+                                     Grid.Column="0"
+                                     Height="110"
+                                     VerticalContentAlignment="Top"
+                                     TextWrapping="Wrap"
+                                     AcceptsReturn="True"
+                                     KeyDown="MessageTextBox_KeyDown"
+                                     ToolTip="Type message and send with Ctrl+Enter" />
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Margin="0,0,8,8" VerticalAlignment="Center" Text="Token:" />
-                <TextBox x:Name="RemoteTokenTextBox"
-                         Grid.Row="2"
-                         Grid.Column="1"
-                         Margin="0,0,16,8"
-                         ToolTip="Optional. Leave empty to use environment variables." />
-
-                <TextBlock Grid.Row="2" Grid.Column="2" Margin="0,0,8,8" VerticalAlignment="Center" Text="Password:" />
-                <PasswordBox x:Name="RemotePasswordBox"
-                             Grid.Row="2"
-                             Grid.Column="3"
-                             Margin="0,0,0,8"
-                             ToolTip="Optional. Leave empty to use environment variables." />
-
-                <TextBlock Grid.Row="3" Grid.Column="0" Margin="0,0,8,8" VerticalAlignment="Center" Text="Device token:" />
-                <TextBox x:Name="RemoteDeviceTokenTextBox"
-                         Grid.Row="3"
-                         Grid.Column="1"
-                         Margin="0,0,16,8"
-                         ToolTip="Optional. Device token auth for remote mode." />
-
-                <CheckBox x:Name="AutoConnectCheckBox"
-                          Grid.Row="3"
-                          Grid.Column="2"
-                          Grid.ColumnSpan="2"
-                          Margin="0,0,0,8"
-                          VerticalAlignment="Center"
-                          Content="Auto-connect on launch" />
-
-                <TextBlock Grid.Row="4" Grid.Column="0" Margin="0,0,8,0" VerticalAlignment="Center" Text="Sessions:" />
-                <ComboBox x:Name="SessionPickerComboBox"
-                          Grid.Row="4"
-                          Grid.Column="1"
-                          Margin="0,0,16,0"
-                          DisplayMemberPath="DisplayName"
-                          SelectedValuePath="Key"
-                          SelectionChanged="SessionPickerComboBox_SelectionChanged" />
-
-                <StackPanel Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button x:Name="RefreshSessionsButton" Width="120" Margin="0,0,8,0" Click="RefreshSessionsButton_Click">Refresh Sessions</Button>
-                    <Button x:Name="LoadHistoryButton" Width="108" Margin="0,0,8,0" Click="LoadHistoryButton_Click">Load History</Button>
-                    <Button x:Name="ConnectButton" Width="96" Margin="0,0,8,0" Click="ConnectButton_Click">Connect</Button>
-                    <Button x:Name="DisconnectButton" Width="96" Margin="0,0,8,0" Click="DisconnectButton_Click">Disconnect</Button>
-                    <Button x:Name="HealthButton" Width="96" Click="HealthButton_Click">Health</Button>
-                </StackPanel>
+                            <Button x:Name="SendButton"
+                                    Grid.Column="2"
+                                    Height="110"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Click="SendButton_Click">Send</Button>
+                        </Grid>
+                    </Grid>
+                </Border>
             </Grid>
-        </GroupBox>
 
-        <DockPanel Grid.Row="1" Margin="0,12,0,12" LastChildFill="True">
-            <Button x:Name="ClearLogsButton"
-                    DockPanel.Dock="Right"
-                    Width="100"
-                    Height="28"
-                    Margin="8,0,0,0"
-                    Click="ClearLogsButton_Click">Clear Logs</Button>
+            <Grid Grid.Column="4">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="14" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-            <Border BorderBrush="#FFCBD5E1" BorderThickness="1" CornerRadius="4" Padding="8,6">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Connection state:" FontWeight="SemiBold" />
-                    <TextBlock x:Name="StateTextBlock" Margin="8,0,0,0" Text="Disconnected" />
-                    <TextBlock Text=" | " Margin="8,0,8,0" />
-                    <TextBlock x:Name="StatusTextBlock" Text="Ready" />
-                </StackPanel>
-            </Border>
-        </DockPanel>
+                <Border Grid.Row="0" Style="{StaticResource CardStyle}" Background="{StaticResource PanelAltBrush}">
+                    <StackPanel>
+                        <TextBlock FontSize="18" FontWeight="SemiBold">Command Lab</TextBlock>
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}" Margin="0,2,0,10">
+                            Call any gateway method with optional JSON params.
+                        </TextBlock>
 
-        <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="12" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
+                        <TextBlock FontWeight="SemiBold" Margin="0,0,0,6">Method</TextBlock>
+                        <TextBox x:Name="RpcMethodTextBox" Text="health" Margin="0,0,0,10" />
 
-            <GroupBox Grid.Column="0" Header="Chat Timeline" Padding="8">
-                <ListBox x:Name="ChatListBox" FontFamily="Consolas" FontSize="13" />
-            </GroupBox>
+                        <TextBlock FontWeight="SemiBold" Margin="0,0,0,6">Params (JSON)</TextBlock>
+                        <TextBox x:Name="RpcParamsTextBox"
+                                 Height="96"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalContentAlignment="Top"
+                                 FontFamily="Cascadia Mono, Consolas"
+                                 ToolTip="Example: {&quot;sessionKey&quot;:&quot;main&quot;,&quot;limit&quot;:50}"
+                                 Margin="0,0,0,10" />
 
-            <GroupBox Grid.Column="2" Header="Gateway Events" Padding="8">
-                <ListBox x:Name="EventListBox" FontFamily="Consolas" FontSize="13" />
-            </GroupBox>
+                        <Button x:Name="RpcExecuteButton"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Click="RpcExecuteButton_Click">Run Method</Button>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                    <DockPanel LastChildFill="True">
+                        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+                            <TextBlock FontSize="18" FontWeight="SemiBold">Gateway Events</TextBlock>
+                            <TextBlock Foreground="{StaticResource MutedTextBrush}">Connection, health and runtime activity stream</TextBlock>
+                        </StackPanel>
+                        <ListBox x:Name="EventListBox" />
+                    </DockPanel>
+                </Border>
+            </Grid>
         </Grid>
 
-        <Grid Grid.Row="3" Margin="0,12,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-
-            <TextBox x:Name="MessageTextBox"
-                     Grid.Column="0"
-                     Height="84"
-                     Margin="0,0,8,0"
-                     VerticalContentAlignment="Top"
-                     TextWrapping="Wrap"
-                     AcceptsReturn="True"
-                     KeyDown="MessageTextBox_KeyDown"
-                     ToolTip="Type message and send with Ctrl+Enter" />
-
-            <Button x:Name="SendButton" Grid.Column="1" Width="104" Height="84" Click="SendButton_Click">Send</Button>
-        </Grid>
+        <Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,14,0,0">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Connection" FontWeight="SemiBold" />
+                <TextBlock x:Name="StateTextBlock" Margin="8,0,0,0" Text="Disconnected" />
+                <TextBlock Text="|" Margin="10,0" Foreground="{StaticResource MutedTextBrush}" />
+                <TextBlock x:Name="StatusTextBlock" Text="Ready" />
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>
+
