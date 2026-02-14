@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -637,16 +637,132 @@ public partial class MainWindow : Window
 
     private void OnExecApprovalRequested(ExecApprovalRequestParams request)
     {
-        var command = request.Command ?? "(unknown command)";
-        AppendEvent($"exec approval requested: {command}");
+        _ = Dispatcher.InvokeAsync(async () =>
+        {
+            var requestId = request.RequestId;
+            var command = request.Command ?? "(unknown command)";
+            AppendEvent($"exec approval requested: {command}");
+
+            if (string.IsNullOrWhiteSpace(requestId))
+            {
+                AppendEvent("exec approval ignored: missing requestId");
+                return;
+            }
+
+            var dialogText = new StringBuilder()
+                .AppendLine("A command requested approval.")
+                .AppendLine()
+                .AppendLine($"Command: {command}");
+
+            if (!string.IsNullOrWhiteSpace(request.Cwd))
+            {
+                dialogText.AppendLine($"Working dir: {request.Cwd}");
+            }
+            if (!string.IsNullOrWhiteSpace(request.Reason))
+            {
+                dialogText.AppendLine($"Reason: {request.Reason}");
+            }
+            if (!string.IsNullOrWhiteSpace(request.RiskLevel))
+            {
+                dialogText.AppendLine($"Risk: {request.RiskLevel}");
+            }
+
+            dialogText
+                .AppendLine()
+                .AppendLine("Click Yes to allow, No to reject.");
+
+            var approved = MessageBox.Show(
+                this,
+                dialogText.ToString(),
+                "OpenSoul - Exec Approval",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning,
+                MessageBoxResult.No) == MessageBoxResult.Yes;
+
+            try
+            {
+                await _controlChannel.RequestVoidAsync(
+                    GatewayMethod.ExecApprovalResolve,
+                    new ExecApprovalResolveParams
+                    {
+                        RequestId = requestId,
+                        Approved = approved,
+                        Remember = false,
+                    });
+                AppendEvent($"exec approval {(approved ? "approved" : "rejected")} ({ShortId(requestId)})");
+            }
+            catch (Exception ex)
+            {
+                AppendEvent($"exec approval resolve failed: {ex.Message}");
+                _logger.LogError(ex, "exec approval resolve failed");
+            }
+        });
     }
 
     private void OnDevicePairRequested(DevicePairRequestedEvent request)
     {
-        var name = request.DeviceName ?? request.DeviceId ?? "unknown";
-        AppendEvent($"device pairing requested: {name}");
-    }
+        _ = Dispatcher.InvokeAsync(async () =>
+        {
+            var requestId = request.RequestId;
+            var name = request.DeviceName ?? request.DeviceId ?? "unknown";
+            AppendEvent($"device pairing requested: {name}");
 
+            if (string.IsNullOrWhiteSpace(requestId))
+            {
+                AppendEvent("device pairing ignored: missing requestId");
+                return;
+            }
+
+            var dialogText = new StringBuilder()
+                .AppendLine("A new device requested pairing.")
+                .AppendLine()
+                .AppendLine($"Device: {name}");
+
+            if (!string.IsNullOrWhiteSpace(request.Platform))
+            {
+                dialogText.AppendLine($"Platform: {request.Platform}");
+            }
+            if (!string.IsNullOrWhiteSpace(request.Ip))
+            {
+                dialogText.AppendLine($"IP: {request.Ip}");
+            }
+
+            dialogText
+                .AppendLine()
+                .AppendLine("Click Yes to approve, No to reject.");
+
+            var approved = MessageBox.Show(
+                this,
+                dialogText.ToString(),
+                "OpenSoul - Device Pairing",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question,
+                MessageBoxResult.No) == MessageBoxResult.Yes;
+
+            try
+            {
+                if (approved)
+                {
+                    await _controlChannel.RequestVoidAsync(
+                        GatewayMethod.DevicePairApprove,
+                        new DevicePairApproveParams { RequestId = requestId });
+                }
+                else
+                {
+                    await _controlChannel.RequestVoidAsync(
+                        GatewayMethod.DevicePairReject,
+                        new DevicePairRejectParams { RequestId = requestId });
+                }
+
+                AppendEvent($"device pairing {(approved ? "approved" : "rejected")} ({ShortId(requestId)})");
+            }
+            catch (Exception ex)
+            {
+                AppendEvent($"device pairing resolve failed: {ex.Message}");
+                _logger.LogError(ex, "device pairing resolve failed");
+            }
+        });
+    }
     private async Task SaveSettingsAsync()
     {
         _settings.ConnectionMode = SelectedMode.ToString();
@@ -920,6 +1036,7 @@ public partial class MainWindow : Window
         public required string DisplayName { get; init; }
     }
 }
+
 
 
 
