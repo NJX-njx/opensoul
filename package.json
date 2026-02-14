@@ -1,6 +1,6 @@
 {
-  "name": "opensoul",
-  "version": "0.1.0",
+  "name": "@njx-njx/opensoul",
+  "version": "0.1.1",
   "description": "Your AI Soul Companion — Chat, Collaborate, Create. Self-hosted AI agent across 30+ messaging channels.",
   "keywords": [
     "ai",
@@ -26,6 +26,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/NJX-njx/opensoul.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "bin": {
     "opensoul": "opensoul.mjs"
