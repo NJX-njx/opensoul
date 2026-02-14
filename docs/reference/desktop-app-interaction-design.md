@@ -6,7 +6,7 @@ read_when:
 title: "Desktop App Interaction Design"
 ---
 
-# Desktop App Interaction Design (v1)
+# Desktop App Interaction Design (v1.1)
 
 ## 1) Product Frame
 
@@ -52,6 +52,7 @@ Use a hybrid of:
 
 Direction rules:
 
+- Dark-first visual language with light-theme parity as secondary.
 - Keep information density high but scannable.
 - Preserve keyboard-first flows for daily operations.
 - Use semantic status colors and explicit state labeling.
@@ -62,7 +63,7 @@ Direction rules:
 ## 4.1 Surface model
 
 - Surface A: `Menu Quick Surface` (status + immediate controls).
-- Surface B: `Desktop Workbench` (primary operational window).
+- Surface B: `Desktop Workbench` (power-user operational window).
 - Surface C: `Settings Center` (stable system configuration).
 - Surface D: `Control UI` (browser parity + remote operations).
 
@@ -111,6 +112,19 @@ Group settings by user intent, while preserving all existing controls:
 8. `About`
    - Version/update/license.
 
+## 4.4 Feature-to-surface mapping (implementation baseline)
+
+| Existing capability | Primary surface | Secondary surface |
+| --- | --- | --- |
+| Quick status and toggles | Menu Quick Surface | Settings Center |
+| Daily assistant chat | Menu chat panel | Desktop Workbench (Assist) |
+| Channel operations | Desktop Workbench (Operate) | Control UI `/channels` |
+| Sessions and usage analysis | Desktop Workbench (Operate) | Control UI `/sessions`, `/usage` |
+| Cron management | Desktop Workbench (Operate) | Control UI `/cron` |
+| Skills and agents | Desktop Workbench (Build) | Control UI `/skills`, `/agents` |
+| Node and pairing operations | Desktop Workbench (Build/System) | Control UI `/nodes` |
+| Config editing and debug tools | Settings Center (Advanced) | Control UI `/config`, `/debug`, `/logs` |
+
 ## 5) Key Screen Specs
 
 ## 5.1 Screen A: Menu Quick Surface
@@ -130,7 +144,7 @@ Group settings by user intent, while preserving all existing controls:
 ## 5.2 Screen B: Desktop Workbench Home
 
 - Purpose:
-  - Become the default daily control center for desktop users.
+  - Serve as the power-user control center while keeping menu-first onboarding.
 - Layout:
   - Left rail: four domains.
   - Top bar: connection state, active session, global command input.
@@ -194,7 +208,20 @@ Group settings by user intent, while preserving all existing controls:
   - Use SF Pro for UI text, SF Mono for technical values (paths, ids, commands).
   - 3-level hierarchy: title, section, compact body.
 - Color:
-  - Neutral base for structure.
+  - Dark-first neutral base for structure.
+  - Suggested core palette:
+    - `bg.app` `#0D1117`
+    - `bg.panel` `#161B22`
+    - `bg.elevated` `#1F2630`
+    - `border.default` `#30363D`
+    - `text.primary` `#E6EDF3`
+    - `text.secondary` `#9DA7B3`
+    - `accent.primary` `#2F81F7`
+    - `accent.muted` `#1F6FEB`
+    - `success` `#3FB950`
+    - `warning` `#D29922`
+    - `danger` `#F85149`
+  - Keep contrast and spacing calm like Notion; keep status semantics explicit like GitHub.
   - Semantic tokens only for state (success/warn/error/info).
   - Do not encode status with color alone; always add text/icon.
 - Spacing:
@@ -229,9 +256,9 @@ Group settings by user intent, while preserving all existing controls:
 4. Phase 4: Cross-surface consistency
    - Align labels and states between menu, settings, and dashboard.
 
-## 10) Decision Gates (Need Product Owner Confirmation)
+## 10) Final Product Decisions
 
-- Should `Desktop Workbench` become the default window after onboarding, or stay menu-first?
-- Should Debug remain hidden by default for non-advanced users?
-- Should Control UI stay browser-only, or be embedded as a desktop tab?
-- Should we optimize visual tone for dark-first, light-first, or equal parity?
+- Keep menu-first as the default entry mode; `Desktop Workbench` is an advanced/power surface.
+- Keep `Debug` hidden by default for non-advanced users.
+- Keep `Control UI` browser-first; desktop app provides deep links and state parity, not full embed in v1.
+- Use dark-first visual strategy with GitHub + Notion interaction tone.

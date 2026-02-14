@@ -1,13 +1,13 @@
 import type { IconName } from "./icons.js";
 
 export const TAB_GROUPS = [
-  { label: "Chat", tabs: ["chat"] },
+  { label: "Assist", tabs: ["chat"] },
   {
-    label: "Control",
-    tabs: ["overview", "channels", "instances", "sessions", "usage", "cron"],
+    label: "Operate",
+    tabs: ["channels", "instances", "sessions", "usage", "cron"],
   },
-  { label: "Agent", tabs: ["agents", "skills", "nodes"] },
-  { label: "Settings", tabs: ["config", "debug", "logs"] },
+  { label: "Build", tabs: ["agents", "skills", "nodes"] },
+  { label: "System", tabs: ["overview", "config", "logs", "debug"] },
 ] as const;
 
 export type Tab =
@@ -191,31 +191,31 @@ export function titleForTab(tab: Tab) {
 export function subtitleForTab(tab: Tab) {
   switch (tab) {
     case "agents":
-      return "Manage agent workspaces, tools, and identities.";
+      return "Build and manage agent workspaces, tools, and identities.";
     case "overview":
-      return "Gateway status, entry points, and a fast health read.";
+      return "System health, entry points, and fast operational diagnostics.";
     case "channels":
-      return "Manage channels and settings.";
+      return "Operate and monitor channel connectivity and settings.";
     case "instances":
-      return "Presence beacons from connected clients and nodes.";
+      return "Live presence beacons from connected clients and nodes.";
     case "sessions":
-      return "Inspect active sessions and adjust per-session defaults.";
+      return "Inspect active sessions and adjust per-session behavior.";
     case "usage":
       return "";
     case "cron":
-      return "Schedule wakeups and recurring agent runs.";
+      return "Schedule wakeups and recurring automated agent runs.";
     case "skills":
-      return "Manage skill availability and API key injection.";
+      return "Manage skill availability and API key injection across agents.";
     case "nodes":
-      return "Paired devices, capabilities, and command exposure.";
+      return "Manage paired devices, capabilities, and command exposure.";
     case "chat":
-      return "Direct gateway chat session for quick interventions.";
+      return "Direct assistant workspace for fast interventions and control.";
     case "config":
-      return "Edit ~/.opensoul/opensoul.json safely.";
+      return "Edit ~/.opensoul/opensoul.json with schema-aware safeguards.";
     case "debug":
-      return "Gateway snapshots, events, and manual RPC calls.";
+      return "Advanced snapshots, event inspection, and manual RPC calls.";
     case "logs":
-      return "Live tail of the gateway file logs.";
+      return "Live tail of gateway file logs with operational filtering.";
     default:
       return "";
   }

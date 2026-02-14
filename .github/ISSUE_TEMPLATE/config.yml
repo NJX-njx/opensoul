@@ -1,8 +1,5 @@
 blank_issues_enabled: true
 contact_links:
-  - name: Onboarding
-    url: https://discord.gg/clawd
-    about: New to opensoul? Join Discord for setup guidance from Krill in \#help.
-  - name: Support
-    url: https://discord.gg/clawd
-    about: Get help from Krill and the community on Discord in \#help.
+  - name: Discussions
+    url: https://github.com/NJX-njx/opensoul/discussions
+    about: Ask questions, share ideas, and get help from the community.

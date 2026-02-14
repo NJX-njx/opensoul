@@ -1,55 +1,268 @@
-# OpenSoul
+<p align="center">
+  <h1 align="center">OpenSoul</h1>
+  <p align="center">
+    <strong>Your AI Soul Companion — Chat, Collaborate, Create</strong>
+  </p>
+  <p align="center">
+    A self-hosted AI agent that lives across all your apps — WhatsApp, Telegram, Discord, Slack, and 30+ more channels. Your personal AI companion for life and work.
+  </p>
+</p>
 
-> 一个智能体形态的灵魂伴侣
+<p align="center">
+  <a href="https://github.com/NJX-njx/opensoul/actions/workflows/ci.yml"><img src="https://github.com/NJX-njx/opensoul/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/NJX-njx/opensoul/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/node-%3E%3D22-brightgreen.svg" alt="Node.js >= 22">
+  <img src="https://img.shields.io/badge/TypeScript-ESM-blue.svg" alt="TypeScript ESM">
+  <a href="https://github.com/NJX-njx/opensoul/stargazers"><img src="https://img.shields.io/github/stars/NJX-njx/opensoul?style=social" alt="GitHub Stars"></a>
+</p>
 
-## 简介
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#supported-channels">Channels</a> •
+  <a href="#skills">Skills</a> •
+  <a href="#cross-platform-apps">Apps</a> •
+  <a href="#documentation">Docs</a> •
+  <a href="#contributing">Contributing</a> •
+  <a href="#中文简介">中文</a>
+</p>
 
-OpenSoul 是一个基于 AI 的智能体伴侣项目，支持多渠道消息集成，可以通过 WhatsApp、Telegram、Slack、Discord 等渠道与你交互。
+---
 
-本项目基于 [OpenSoul](https://github.com/opensoul/opensoul)（MIT 许可证）构建。
+## Why OpenSoul?
 
-## 安装
+Most AI assistants are locked inside a single app. **OpenSoul breaks that boundary** — it's a self-hosted AI companion that integrates into the messaging apps you already use, runs on your own infrastructure, and keeps your data private.
 
-运行环境要求：**Node ≥ 22**
+Whether you need an **emotional companion** for daily life or a **productivity collaborator** for work, OpenSoul adapts to your needs across every platform.
+
+## Features
+
+### 🌐 30+ Messaging Channels
+Connect your AI companion to the apps you already use — no new app to install.
+
+| Category | Channels |
+|----------|----------|
+| **Messaging** | WhatsApp · Telegram · Signal · iMessage · Matrix · Mattermost · Zalo |
+| **Collaboration** | Slack · Discord · Microsoft Teams · Lark (Feishu) · LINE |
+| **Voice** | Voice Call (built-in TTS/STT) |
+| **Web** | Web Control UI · REST API · WebSocket |
+
+### 🧠 Intelligent Agent Core
+- **Multi-model support** — OpenAI, Anthropic, AWS Bedrock, Ollama (local), and more
+- **Memory system** — Long-term memory with vector search (LanceDB)
+- **Multi-agent routing** — Session isolation and intelligent routing
+- **Tool use** — Agents can browse the web, run code, manage files, and more
+
+### 🛠️ 50+ Built-in Skills
+Pre-built skills for real-world tasks:
+
+| Category | Skills |
+|----------|--------|
+| **Developer** | GitHub · Git · Docker · tmux · Shell |
+| **Productivity** | Notion · Obsidian · Canvas · 1Password |
+| **Communication** | Email · Calendar · Contacts |
+| **Media** | Image generation · PDF processing · Web scraping |
+| **And more...** | 50+ skills with an extensible plugin SDK |
+
+### 📱 Cross-Platform Apps
+Native apps for every major platform:
+
+- **macOS** — Native Swift app with menu bar integration
+- **iOS** — iPhone & iPad companion
+- **Android** — Full-featured Android app
+- **Windows** — Native Windows desktop app
+- **Web** — Browser-based control dashboard
+- **CLI / TUI** — Terminal interface for power users
+
+### 🔒 Privacy-First & Self-Hosted
+- **Your data stays yours** — runs on your own server or machine
+- **No cloud dependency** — works with local models via Ollama
+- **Open source** — MIT licensed, fully transparent
+
+## Quick Start
+
+### Prerequisites
+- **Node.js** ≥ 22
+- **pnpm** (comes with the repo's `packageManager` field)
+
+### Installation
 
 ```bash
-# 克隆仓库
+# Clone the repository
 git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
 
-# 安装依赖
+# Install dependencies
 pnpm install
 
-# 构建
+# Build the project
 pnpm build
+
+# Start OpenSoul
+pnpm start
 ```
 
-## 开发
+### Development
 
 ```bash
-# 开发模式运行
+# Run in development mode (hot reload)
 pnpm dev
 
-# 类型检查 + 格式化 + Lint
+# Type-check + lint + format
 pnpm check
 
-# 运行测试
+# Run tests
 pnpm test
+
+# Launch the Web UI
+pnpm ui:dev
 ```
 
-## 项目结构
+### Docker
 
-```
-src/          - 源代码
-extensions/   - 插件/扩展
-apps/         - 移动端 & 桌面端应用
-docs/         - 文档
-scripts/      - 构建脚本
-ui/           - Web UI
+```bash
+# Build and run with Docker
+docker build -t opensoul .
+docker run -d --name opensoul opensoul
 ```
 
-## 许可证
+## Architecture
 
-MIT License — 详见 [LICENSE](LICENSE)
+```
+opensoul/
+├── src/              # Core agent engine
+├── extensions/       # 30+ channel & feature plugins
+│   ├── whatsapp/     #   WhatsApp integration
+│   ├── telegram/     #   Telegram bot
+│   ├── discord/      #   Discord bot
+│   ├── slack/        #   Slack app
+│   ├── memory-core/  #   Memory system
+│   ├── voice-call/   #   Voice calling
+│   └── ...           #   And many more
+├── skills/           # 50+ built-in skills
+│   ├── github/       #   GitHub operations
+│   ├── notion/       #   Notion integration
+│   ├── obsidian/     #   Obsidian vault access
+│   └── ...           #   And many more
+├── apps/             # Native platform apps
+│   ├── macos/        #   macOS (Swift)
+│   ├── ios/          #   iOS (Swift)
+│   ├── android/      #   Android (Kotlin)
+│   ├── windows/      #   Windows (C#/.NET)
+│   └── shared/       #   Shared OpenSoulKit
+├── ui/               # Web Control UI (Lit)
+├── packages/         # Internal packages
+├── docs/             # Documentation
+└── scripts/          # Build & utility scripts
+```
 
-本项目基于 [OpenSoul](https://github.com/opensoul/opensoul) 构建，原始许可证见 [LICENSE-ORIGINAL](LICENSE-ORIGINAL)。
+## Supported Channels
+
+<table>
+<tr>
+<td><strong>WhatsApp</strong></td>
+<td><strong>Telegram</strong></td>
+<td><strong>Discord</strong></td>
+<td><strong>Slack</strong></td>
+<td><strong>Signal</strong></td>
+</tr>
+<tr>
+<td><strong>iMessage</strong></td>
+<td><strong>Matrix</strong></td>
+<td><strong>Mattermost</strong></td>
+<td><strong>LINE</strong></td>
+<td><strong>Lark</strong></td>
+</tr>
+<tr>
+<td><strong>Zalo</strong></td>
+<td><strong>Voice Call</strong></td>
+<td><strong>Web UI</strong></td>
+<td><strong>REST API</strong></td>
+<td><strong>WebSocket</strong></td>
+</tr>
+</table>
+
+Each channel is implemented as an independent extension under `extensions/`, making it easy to add new channels or customize existing ones.
+
+## Skills
+
+OpenSoul comes with 50+ built-in skills that give your AI companion real-world capabilities:
+
+- **github** — Create issues, PRs, review code
+- **notion** — Read and write Notion pages
+- **obsidian** — Access your Obsidian vault
+- **canvas** — Visual canvas interactions
+- **1password** — Secure credential access
+- **tmux** — Terminal session management
+- And [many more](skills/)...
+
+Skills are modular and can be enabled/disabled per session. Build your own skills using the plugin SDK.
+
+## Documentation
+
+Comprehensive documentation is available in the [`docs/`](docs/) directory:
+
+- [Getting Started](docs/start/)
+- [Platform Guides](docs/platforms/) — macOS, iOS, Android, Windows, Linux
+- [Channel Setup](docs/channels/) — Configure each messaging channel
+- [Skills & Tools](docs/tools/)
+- [Plugin Development](docs/plugins/)
+- [Gateway Architecture](docs/gateway/)
+- [API Reference](docs/reference/)
+
+## Contributing
+
+We welcome contributions of all kinds! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
+
+- Setting up the development environment
+- Code style and conventions
+- Submitting pull requests
+- Reporting bugs and requesting features
+
+## License
+
+[MIT License](LICENSE) — see [LICENSE](LICENSE) for details.
+
+This project is built upon [OpenClaw](https://github.com/nicepkg/openclaw) (MIT). Original license: [LICENSE-ORIGINAL](LICENSE-ORIGINAL).
+
+## Acknowledgments
+
+- Built on the foundation of [OpenClaw](https://github.com/nicepkg/openclaw) by Peter Steinberger
+- Powered by open-source AI models and frameworks
+
+---
+
+## 中文简介
+
+**OpenSoul** — 你的 AI 灵魂伴侣，聊天、协作、创造。
+
+OpenSoul 是一个自托管的 AI 智能体伴侣，可以集成到你日常使用的 30+ 消息应用中（WhatsApp、Telegram、Discord、Slack 等），既能提供生活情感陪伴，也能作为工作中的高效协作者。
+
+### 核心特性
+
+- **30+ 消息渠道** — 连接你已有的沟通工具，无需安装新应用
+- **50+ 内置技能** — GitHub、Notion、Obsidian 等实用技能开箱即用
+- **跨平台应用** — macOS、iOS、Android、Windows 原生应用
+- **多模型支持** — OpenAI、Anthropic、Ollama（本地模型）等
+- **记忆系统** — 长期记忆 + 向量搜索，真正记住你
+- **隐私优先** — 自托管，数据完全属于你
+- **开源免费** — MIT 许可证，代码完全透明
+
+### 快速开始
+
+```bash
+git clone https://github.com/NJX-njx/opensoul.git
+cd opensoul
+pnpm install
+pnpm build
+pnpm start
+```
+
+需要 **Node.js ≥ 22**。详细文档请参阅 [`docs/`](docs/) 目录。
+
+---
+
+<p align="center">
+  <sub>If you find OpenSoul useful, please consider giving it a ⭐ on GitHub!</sub>
+</p>
