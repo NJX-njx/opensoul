@@ -6,8 +6,8 @@
         Title="OpenSoul"
         Height="860"
         Width="1360"
-        MinHeight="720"
-        MinWidth="1100"
+        MinHeight="600"
+        MinWidth="480"
         Icon="Resources/opensoul.ico"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
@@ -24,7 +24,7 @@
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="36"
                       ResizeBorderThickness="6"
-                      GlassFrameThickness="0"
+                      GlassFrameThickness="1"
                       CornerRadius="8"
                       UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
@@ -257,8 +257,32 @@
 
         <!-- ═══════════ MAIN CONTENT: WebView2 ═══════════ -->
         <Grid Grid.Row="1">
-            <!-- Splash overlay (shown while WebView2 loads, fades out when ready) -->
-            <Grid x:Name="SplashOverlay"
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="8" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="8" />
+            </Grid.RowDefinitions>
+
+            <!-- Left resize border: pass hit test to WindowChrome for horizontal resize -->
+            <Border Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
+                    Background="Transparent"
+                    Cursor="SizeWE"
+                    WindowChrome.IsHitTestVisibleInChrome="True" />
+
+            <!-- Right resize border: pass hit test to WindowChrome for horizontal resize -->
+            <Border Grid.Column="2" Grid.Row="0" Grid.RowSpan="2"
+                    Background="Transparent"
+                    Cursor="SizeWE"
+                    WindowChrome.IsHitTestVisibleInChrome="True" />
+
+            <!-- Content Area (Center) -->
+            <Grid Grid.Column="1" Grid.Row="0">
+                <!-- Splash overlay (shown while WebView2 loads, fades out when ready) -->
+                <Grid x:Name="SplashOverlay"
                   ZIndex="10"
                   Background="{DynamicResource ShellBgBrush}">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -363,6 +387,7 @@
                         </Button>
                     </StackPanel>
                 </StackPanel>
+            </Grid>
             </Grid>
         </Grid>
     </Grid>
