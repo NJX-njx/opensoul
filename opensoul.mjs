@@ -52,5 +52,22 @@ if (await tryImport("./dist/entry.js")) {
 } else if (await tryImport("./dist/entry.mjs")) {
   // OK
 } else {
-  throw new Error("opensoul: missing dist/entry.(m)js (build output).");
+  console.error(`
+❌ OpenSoul build output not found.
+
+The CLI could not find:
+  dist/entry.js
+
+This usually means the project has not been built.
+
+Fix it by running:
+
+  pnpm install
+  pnpm build
+
+Then retry:
+
+  node opensoul.mjs
+`);
+  process.exit(1);
 }
