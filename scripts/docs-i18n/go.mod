@@ -1,6 +1,6 @@
 module github.com/opensoul/opensoul/scripts/docs-i18n
 
-go 1.22
+go 1.23.0
 
 require (
 	github.com/joshp123/pi-golang v0.0.4
