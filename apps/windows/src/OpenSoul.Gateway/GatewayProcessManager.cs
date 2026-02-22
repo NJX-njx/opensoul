@@ -248,7 +248,10 @@ public sealed class GatewayProcessManager : IAsyncDisposable
     {
         using var tcp = new TcpClient();
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        timeoutCts.CancelAfter(TimeSpan.FromSeconds(1.5));
+        // 500ms is generous for a loopback connection; under normal conditions
+        // it completes in <5ms. Keep this tight so health probes and startup
+        // detection feel instant even when VPN/proxy software adds latency.
+        timeoutCts.CancelAfter(TimeSpan.FromMilliseconds(500));
 
         try
         {
@@ -432,8 +435,9 @@ public sealed class GatewayProcessManager : IAsyncDisposable
 
     private async Task<bool> WaitForHealthyAsync(int port, CancellationToken ct)
     {
-        const int maxWaitMs = 10_000;
-        const int pollIntervalMs = 250;
+        const int maxWaitMs = 12_000;
+        // Start polling aggressively (100ms) then relax to 250ms after 2s.
+        // The gateway typically starts in 1-3s so fast initial polling matters.
         var elapsed = 0;
 
         while (elapsed < maxWaitMs)
@@ -446,6 +450,7 @@ public sealed class GatewayProcessManager : IAsyncDisposable
             if (await IsPortAcceptingConnectionsAsync(port, ct))
                 return true;
 
+            var pollIntervalMs = elapsed < 2000 ? 100 : 250;
             await Task.Delay(pollIntervalMs, ct);
             elapsed += pollIntervalMs;
         }
@@ -629,5 +634,3 @@ public enum GatewayStatus
     Running,
     Failed,
 }
-
-

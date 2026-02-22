@@ -70,7 +70,7 @@ export class GatewayBrowserClient {
   private connectNonce: string | null = null;
   private connectSent = false;
   private connectTimer: number | null = null;
-  private backoffMs = 800;
+  private backoffMs = 200;
 
   constructor(private opts: GatewayBrowserClientOptions) {}
 
@@ -114,7 +114,7 @@ export class GatewayBrowserClient {
       return;
     }
     const delay = this.backoffMs;
-    this.backoffMs = Math.min(this.backoffMs * 1.7, 15_000);
+    this.backoffMs = Math.min(this.backoffMs * 1.5, 10_000);
     window.setTimeout(() => this.connect(), delay);
   }
 
@@ -224,7 +224,7 @@ export class GatewayBrowserClient {
             scopes: hello.auth.scopes ?? [],
           });
         }
-        this.backoffMs = 800;
+        this.backoffMs = 200;
         this.opts.onHello?.(hello);
       })
       .catch(() => {
@@ -305,8 +305,12 @@ export class GatewayBrowserClient {
     if (this.connectTimer !== null) {
       window.clearTimeout(this.connectTimer);
     }
+    // Send connect handshake quickly. The 750ms delay was excessive for local
+    // connections where challenge-based auth is uncommon. If a challenge arrives
+    // before this fires, sendConnect() will be called from the event handler and
+    // this timer becomes a no-op (connectSent guard).
     this.connectTimer = window.setTimeout(() => {
       void this.sendConnect();
-    }, 750);
+    }, 50);
   }
 }

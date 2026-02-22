@@ -31,7 +31,9 @@ public sealed class GatewayChannel : IAsyncDisposable
     // Reconnect state
     private int _reconnectAttempt;
     private const int MaxReconnectDelay = 30_000;
-    private static readonly int[] BackoffMs = [150, 400, 900, 2000, 5000, 10_000, 20_000, 30_000];
+    // Aggressive initial reconnect: loopback connections are instant when the
+    // gateway is alive, so we retry quickly at first and ramp up gradually.
+    private static readonly int[] BackoffMs = [100, 250, 500, 1000, 2000, 5000, 10_000, 20_000];
 
     public GatewayChannel(ILogger<GatewayChannel> logger)
     {
@@ -597,4 +599,3 @@ public sealed class GatewayRequestException : Exception
         ErrorShape = error;
     }
 }
-
