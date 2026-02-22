@@ -62,6 +62,7 @@ const debouncedLoadUsage = (state: UsageState) => {
   }
   usageDateDebounceTimeout = window.setTimeout(() => void loadUsage(state), 400);
 };
+import type { OnboardingWizardState } from "./views/onboarding/types.ts";
 import { renderAgents } from "./views/agents.ts";
 import { renderChannels } from "./views/channels.ts";
 import { renderChat } from "./views/chat.ts";
@@ -73,13 +74,12 @@ import { renderGatewayUrlConfirmation } from "./views/gateway-url-confirmation.t
 import { renderInstances } from "./views/instances.ts";
 import { renderLogs } from "./views/logs.ts";
 import { renderNodes } from "./views/nodes.ts";
+import { renderOnboardingWizard } from "./views/onboarding/onboarding-wizard.ts";
 import { renderOverview } from "./views/overview.ts";
 import { renderSessions } from "./views/sessions.ts";
 import { renderSettingsPanel } from "./views/settings-panel.ts";
 import { renderSkills } from "./views/skills.ts";
 import { renderUsage } from "./views/usage.ts";
-import { renderOnboardingWizard } from "./views/onboarding/onboarding-wizard.ts";
-import type { OnboardingWizardState } from "./views/onboarding/types.ts";
 
 const AVATAR_DATA_RE = /^data:/i;
 const AVATAR_HTTP_RE = /^https?:\/\//i;
@@ -106,6 +106,12 @@ export function renderApp(state: AppViewState) {
     const wizardState: OnboardingWizardState = {
       step: state.onboardingStep,
       locale: state.onboardingLocale,
+      loginStatus: state.onboardingLoginStatus,
+      loginDisplayName: state.onboardingLoginDisplayName,
+      loginAvatarUrl: state.onboardingLoginAvatarUrl,
+      loginEmail: state.onboardingLoginEmail,
+      loginError: state.onboardingLoginError,
+      isExistingAccount: state.onboardingIsExistingAccount,
       selectedProvider: state.onboardingSelectedProvider,
       providerApiKey: state.onboardingProviderApiKey,
       providerSearchQuery: state.onboardingProviderSearchQuery,
@@ -117,22 +123,34 @@ export function renderApp(state: AppViewState) {
       onProviderSearchChange: (q) => state.setOnboardingProviderSearchQuery(q),
       onChannelSelect: (id) => state.setOnboardingChannel(id),
       onChannelTokenChange: (token) => state.setOnboardingChannelToken(token),
+      onGoogleLogin: () => state.onboardingGoogleLogin(),
+      onGithubLogin: () => state.onboardingGithubLogin(),
+      onLogout: () => state.onboardingLogout(),
       onNext: () => {
-        const next = Math.min(state.onboardingStep + 1, 4) as 1 | 2 | 3 | 4;
+        // If login step and existing account, skip to finish
+        if (
+          state.onboardingStep === 1 &&
+          state.onboardingIsExistingAccount &&
+          state.onboardingLoginStatus === "success"
+        ) {
+          state.finishOnboarding();
+          return;
+        }
+        const next = Math.min(state.onboardingStep + 1, 5) as 1 | 2 | 3 | 4 | 5;
         state.setOnboardingStep(next);
       },
       onBack: () => {
-        const prev = Math.max(state.onboardingStep - 1, 1) as 1 | 2 | 3 | 4;
+        const prev = Math.max(state.onboardingStep - 1, 1) as 1 | 2 | 3 | 4 | 5;
         state.setOnboardingStep(prev);
       },
       onSkip: () => {
         // Clear current step's selection and advance
-        if (state.onboardingStep === 2) {
+        if (state.onboardingStep === 3) {
           state.setOnboardingProvider(null);
-        } else if (state.onboardingStep === 3) {
+        } else if (state.onboardingStep === 4) {
           state.setOnboardingChannel(null);
         }
-        const next = Math.min(state.onboardingStep + 1, 4) as 1 | 2 | 3 | 4;
+        const next = Math.min(state.onboardingStep + 1, 5) as 1 | 2 | 3 | 4 | 5;
         state.setOnboardingStep(next);
       },
       onFinish: () => state.finishOnboarding(),

@@ -23,8 +23,16 @@ export type OnboardingChannel = {
 
 /** Full wizard state. */
 export type OnboardingWizardState = {
-  step: 1 | 2 | 3 | 4;
+  step: 1 | 2 | 3 | 4 | 5;
   locale: Locale;
+
+  /** Login state */
+  loginStatus: "idle" | "loading" | "success" | "error";
+  loginDisplayName: string | null;
+  loginAvatarUrl: string | null;
+  loginEmail: string | null;
+  loginError: string | null;
+  isExistingAccount: boolean;
 
   /** Selected provider group id, or null if skipped. */
   selectedProvider: string | null;
@@ -45,6 +53,9 @@ export type OnboardingWizardState = {
   onProviderSearchChange: (query: string) => void;
   onChannelSelect: (channelId: string | null) => void;
   onChannelTokenChange: (token: string) => void;
+  onGoogleLogin: () => void;
+  onGithubLogin: () => void;
+  onLogout: () => void;
   onNext: () => void;
   onBack: () => void;
   onSkip: () => void;

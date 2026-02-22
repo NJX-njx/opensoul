@@ -1,31 +1,35 @@
 /**
  * Main onboarding wizard — renders the full-screen setup overlay.
  *
- * The wizard has 4 steps:
- *  1. Language selection
- *  2. AI provider selection (skippable)
- *  3. Channel connection (skippable)
- *  4. Confirm & Launch
+ * The wizard has 5 steps:
+ *  1. Login (Google / GitHub, skippable)
+ *  2. Language selection
+ *  3. AI provider selection (skippable)
+ *  4. Channel connection (skippable)
+ *  5. Confirm & Launch
  */
 import { html, nothing } from "lit";
+import type { OnboardingWizardState } from "./types.ts";
 import { getMessages } from "./i18n.ts";
 import { renderStepChannel } from "./step-channel.ts";
 import { renderStepConfirm } from "./step-confirm.ts";
 import { renderStepLanguage } from "./step-language.ts";
+import { renderStepLogin } from "./step-login.ts";
 import { renderStepProvider } from "./step-provider.ts";
-import type { OnboardingWizardState } from "./types.ts";
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 function renderStepContent(state: OnboardingWizardState) {
   switch (state.step) {
     case 1:
-      return renderStepLanguage(state);
+      return renderStepLogin(state);
     case 2:
-      return renderStepProvider(state);
+      return renderStepLanguage(state);
     case 3:
-      return renderStepChannel(state);
+      return renderStepProvider(state);
     case 4:
+      return renderStepChannel(state);
+    case 5:
       return renderStepConfirm(state);
   }
 }
@@ -34,12 +38,14 @@ function stepTitle(state: OnboardingWizardState): string {
   const t = getMessages(state.locale);
   switch (state.step) {
     case 1:
-      return t.langTitle;
+      return t.loginTitle;
     case 2:
-      return t.providerTitle;
+      return t.langTitle;
     case 3:
-      return t.channelTitle;
+      return t.providerTitle;
     case 4:
+      return t.channelTitle;
+    case 5:
       return t.confirmTitle;
   }
 }
@@ -48,12 +54,14 @@ function stepSubtitle(state: OnboardingWizardState): string {
   const t = getMessages(state.locale);
   switch (state.step) {
     case 1:
-      return t.langSubtitle;
+      return t.loginSubtitle;
     case 2:
-      return t.providerSubtitle;
+      return t.langSubtitle;
     case 3:
-      return t.channelSubtitle;
+      return t.providerSubtitle;
     case 4:
+      return t.channelSubtitle;
+    case 5:
       return t.confirmSubtitle;
   }
 }
@@ -62,7 +70,8 @@ export function renderOnboardingWizard(state: OnboardingWizardState) {
   const t = getMessages(state.locale);
   const isFirstStep = state.step === 1;
   const isLastStep = state.step === TOTAL_STEPS;
-  const canSkip = state.step === 2 || state.step === 3;
+  // Login (1), Provider (3), Channel (4) are skippable
+  const canSkip = state.step === 1 || state.step === 3 || state.step === 4;
 
   return html`
     <div class="onboarding-wizard">
@@ -98,33 +107,39 @@ export function renderOnboardingWizard(state: OnboardingWizardState) {
         <!-- Footer -->
         <div class="onboarding-footer">
           <div class="onboarding-footer__left">
-            ${isFirstStep
-              ? nothing
-              : html`
+            ${
+              isFirstStep
+                ? nothing
+                : html`
                   <button class="onboarding-btn onboarding-btn--ghost" @click=${state.onBack}>
                     ${t.back}
                   </button>
-                `}
+                `
+            }
           </div>
           <div class="onboarding-footer__right">
-            ${canSkip
-              ? html`
+            ${
+              canSkip
+                ? html`
                   <button class="onboarding-btn" @click=${state.onSkip}>
-                    ${t.skip}
+                    ${state.step === 1 ? t.loginSkip : t.skip}
                   </button>
                 `
-              : nothing}
-            ${isLastStep
-              ? html`
+                : nothing
+            }
+            ${
+              isLastStep
+                ? html`
                   <button class="onboarding-btn onboarding-btn--primary" @click=${state.onFinish}>
                     ${t.confirmLaunch} →
                   </button>
                 `
-              : html`
+                : html`
                   <button class="onboarding-btn onboarding-btn--primary" @click=${state.onNext}>
                     ${t.next} →
                   </button>
-                `}
+                `
+            }
           </div>
         </div>
       </div>

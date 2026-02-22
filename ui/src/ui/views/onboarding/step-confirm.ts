@@ -1,5 +1,5 @@
 /**
- * Step 4: Confirm and launch.
+ * Step 5: Confirm and launch.
  */
 import { html } from "lit";
 import { AVAILABLE_LOCALES, getMessages } from "./i18n.ts";
@@ -13,6 +13,7 @@ export function renderStepConfirm(state: OnboardingWizardState) {
     ONBOARDING_PROVIDERS.find((p) => p.id === state.selectedProvider)?.label ?? null;
   const channelName =
     ONBOARDING_CHANNELS.find((ch) => ch.id === state.selectedChannel)?.label ?? null;
+  const loginName = state.loginStatus === "success" ? state.loginDisplayName : null;
 
   return html`
     <div class="onboarding-confirm-hero">
@@ -20,6 +21,12 @@ export function renderStepConfirm(state: OnboardingWizardState) {
     </div>
 
     <div class="onboarding-confirm-list">
+      <div class="onboarding-confirm-row">
+        <span class="onboarding-confirm-row__label">${t.confirmLogin}</span>
+        <span class="onboarding-confirm-row__value ${loginName ? "" : "onboarding-confirm-row__value--muted"}">
+          ${loginName ?? t.confirmLoginNone}
+        </span>
+      </div>
       <div class="onboarding-confirm-row">
         <span class="onboarding-confirm-row__label">${t.confirmLanguage}</span>
         <span class="onboarding-confirm-row__value">${localeName}</span>

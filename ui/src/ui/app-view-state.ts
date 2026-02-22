@@ -291,19 +291,28 @@ export type AppViewState = {
 
   // Onboarding wizard state
   showOnboardingWizard: boolean;
-  onboardingStep: 1 | 2 | 3 | 4;
+  onboardingStep: 1 | 2 | 3 | 4 | 5;
   onboardingLocale: Locale;
+  onboardingLoginStatus: "idle" | "loading" | "success" | "error";
+  onboardingLoginDisplayName: string | null;
+  onboardingLoginAvatarUrl: string | null;
+  onboardingLoginEmail: string | null;
+  onboardingLoginError: string | null;
+  onboardingIsExistingAccount: boolean;
   onboardingSelectedProvider: string | null;
   onboardingProviderApiKey: string;
   onboardingProviderSearchQuery: string;
   onboardingSelectedChannel: string | null;
   onboardingChannelToken: string;
-  setOnboardingStep: (step: 1 | 2 | 3 | 4) => void;
+  setOnboardingStep: (step: 1 | 2 | 3 | 4 | 5) => void;
   setOnboardingLocale: (locale: Locale) => void;
   setOnboardingProvider: (providerId: string | null) => void;
   setOnboardingProviderApiKey: (key: string) => void;
   setOnboardingProviderSearchQuery: (query: string) => void;
   setOnboardingChannel: (channelId: string | null) => void;
   setOnboardingChannelToken: (token: string) => void;
+  onboardingGoogleLogin: () => void;
+  onboardingGithubLogin: () => void;
+  onboardingLogout: () => void;
   finishOnboarding: () => void;
 };

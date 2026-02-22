@@ -336,9 +336,15 @@ export class OpenSoulApp extends LitElement {
   @state() settingsSection: import("./navigation.ts").SettingsTab | "general" = "general";
 
   // Onboarding wizard state
-  @state() showOnboardingWizard = !localStorage.getItem("opensoul.onboarding.done");
-  @state() onboardingStep: 1 | 2 | 3 | 4 = 1;
+  @state() showOnboardingWizard = true; // TODO: restore to !localStorage.getItem("opensoul.onboarding.done")
+  @state() onboardingStep: 1 | 2 | 3 | 4 | 5 = 1;
   @state() onboardingLocale: Locale = detectLocale();
+  @state() onboardingLoginStatus: "idle" | "loading" | "success" | "error" = "idle";
+  @state() onboardingLoginDisplayName: string | null = null;
+  @state() onboardingLoginAvatarUrl: string | null = null;
+  @state() onboardingLoginEmail: string | null = null;
+  @state() onboardingLoginError: string | null = null;
+  @state() onboardingIsExistingAccount = false;
   @state() onboardingSelectedProvider: string | null = null;
   @state() onboardingProviderApiKey = "";
   @state() onboardingProviderSearchQuery = "";
@@ -628,7 +634,7 @@ export class OpenSoulApp extends LitElement {
   }
 
   // Onboarding wizard methods
-  setOnboardingStep(step: 1 | 2 | 3 | 4) {
+  setOnboardingStep(step: 1 | 2 | 3 | 4 | 5) {
     this.onboardingStep = step;
   }
 
@@ -660,6 +666,43 @@ export class OpenSoulApp extends LitElement {
 
   setOnboardingChannelToken(token: string) {
     this.onboardingChannelToken = token;
+  }
+
+  onboardingGoogleLogin() {
+    this.onboardingLoginStatus = "loading";
+    this.onboardingLoginError = null;
+    // TODO: Replace with real Google OAuth flow.
+    // For now, simulate a successful login after a short delay.
+    setTimeout(() => {
+      this.onboardingLoginStatus = "success";
+      this.onboardingLoginDisplayName = "Google User";
+      this.onboardingLoginEmail = "user@gmail.com";
+      this.onboardingLoginAvatarUrl = null;
+      this.onboardingIsExistingAccount = false;
+    }, 1200);
+  }
+
+  onboardingGithubLogin() {
+    this.onboardingLoginStatus = "loading";
+    this.onboardingLoginError = null;
+    // TODO: Replace with real GitHub OAuth flow.
+    // For now, simulate a successful login after a short delay.
+    setTimeout(() => {
+      this.onboardingLoginStatus = "success";
+      this.onboardingLoginDisplayName = "GitHub User";
+      this.onboardingLoginEmail = "user@github.com";
+      this.onboardingLoginAvatarUrl = null;
+      this.onboardingIsExistingAccount = false;
+    }, 1200);
+  }
+
+  onboardingLogout() {
+    this.onboardingLoginStatus = "idle";
+    this.onboardingLoginDisplayName = null;
+    this.onboardingLoginAvatarUrl = null;
+    this.onboardingLoginEmail = null;
+    this.onboardingLoginError = null;
+    this.onboardingIsExistingAccount = false;
   }
 
   finishOnboarding() {
