@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import type { VoiceCallConfig } from "./config.js";
 import type { VoiceCallRuntime } from "./runtime.js";
-import { resolveUserPath } from "./utils.js";
+import { resolveUserPath } from "opensoul/plugin-sdk";
 import {
   cleanupTailscaleExposureRoute,
   getTailscaleSelfInfo,

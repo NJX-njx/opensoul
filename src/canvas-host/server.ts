@@ -18,6 +18,7 @@ import {
   handleA2uiHttpRequest,
   injectCanvasLiveReload,
 } from "./a2ui.js";
+import { normalizeUrlPath } from "./url-path.js";
 
 export type CanvasHostOpts = {
   runtime: RuntimeEnv;
@@ -147,12 +148,6 @@ function defaultIndexHTML() {
 })();
 </script>
 `;
-}
-
-function normalizeUrlPath(rawPath: string): string {
-  const decoded = decodeURIComponent(rawPath || "/");
-  const normalized = path.posix.normalize(decoded);
-  return normalized.startsWith("/") ? normalized : `/${normalized}`;
 }
 
 async function resolveFilePath(rootReal: string, urlPath: string) {

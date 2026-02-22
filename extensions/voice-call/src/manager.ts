@@ -16,7 +16,7 @@ import {
   TerminalStates,
   type TranscriptEntry,
 } from "./types.js";
-import { resolveUserPath } from "./utils.js";
+import { resolveUserPath } from "opensoul/plugin-sdk";
 import { escapeXml, mapVoiceToPolly } from "./voice-mapping.js";
 
 function resolveDefaultStoreBase(config: VoiceCallConfig, storePath?: string): string {
