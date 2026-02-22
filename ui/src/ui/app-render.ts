@@ -78,6 +78,8 @@ import { renderSessions } from "./views/sessions.ts";
 import { renderSettingsPanel } from "./views/settings-panel.ts";
 import { renderSkills } from "./views/skills.ts";
 import { renderUsage } from "./views/usage.ts";
+import { renderOnboardingWizard } from "./views/onboarding/onboarding-wizard.ts";
+import type { OnboardingWizardState } from "./views/onboarding/types.ts";
 
 const AVATAR_DATA_RE = /^data:/i;
 const AVATAR_HTTP_RE = /^https?:\/\//i;
@@ -99,6 +101,46 @@ function resolveAssistantAvatarUrl(state: AppViewState): string | undefined {
 }
 
 export function renderApp(state: AppViewState) {
+  // --- Onboarding Wizard (first-launch) ---
+  if (state.showOnboardingWizard) {
+    const wizardState: OnboardingWizardState = {
+      step: state.onboardingStep,
+      locale: state.onboardingLocale,
+      selectedProvider: state.onboardingSelectedProvider,
+      providerApiKey: state.onboardingProviderApiKey,
+      providerSearchQuery: state.onboardingProviderSearchQuery,
+      selectedChannel: state.onboardingSelectedChannel,
+      channelToken: state.onboardingChannelToken,
+      onLocaleChange: (locale) => state.setOnboardingLocale(locale),
+      onProviderSelect: (id) => state.setOnboardingProvider(id),
+      onProviderApiKeyChange: (key) => state.setOnboardingProviderApiKey(key),
+      onProviderSearchChange: (q) => state.setOnboardingProviderSearchQuery(q),
+      onChannelSelect: (id) => state.setOnboardingChannel(id),
+      onChannelTokenChange: (token) => state.setOnboardingChannelToken(token),
+      onNext: () => {
+        const next = Math.min(state.onboardingStep + 1, 4) as 1 | 2 | 3 | 4;
+        state.setOnboardingStep(next);
+      },
+      onBack: () => {
+        const prev = Math.max(state.onboardingStep - 1, 1) as 1 | 2 | 3 | 4;
+        state.setOnboardingStep(prev);
+      },
+      onSkip: () => {
+        // Clear current step's selection and advance
+        if (state.onboardingStep === 2) {
+          state.setOnboardingProvider(null);
+        } else if (state.onboardingStep === 3) {
+          state.setOnboardingChannel(null);
+        }
+        const next = Math.min(state.onboardingStep + 1, 4) as 1 | 2 | 3 | 4;
+        state.setOnboardingStep(next);
+      },
+      onFinish: () => state.finishOnboarding(),
+    };
+    return renderOnboardingWizard(wizardState);
+  }
+
+  // --- Normal app render ---
   const presenceCount = state.presenceEntries.length;
   const sessionsCount = state.sessionsResult?.count ?? null;
   const cronNext = state.cronStatus?.nextWakeAtMs ?? null;

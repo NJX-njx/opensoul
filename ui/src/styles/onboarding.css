@@ -1,0 +1,538 @@
+/* ===========================================
+   Onboarding Wizard
+   Full-screen first-launch setup flow
+   =========================================== */
+
+/* Overlay container — covers the entire viewport */
+.onboarding-wizard {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* Animated background gradient */
+.onboarding-wizard::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background: radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 60%);
+  animation: onboarding-bg-drift 20s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes onboarding-bg-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(2%, -2%) scale(1.05);
+  }
+}
+
+/* Main card container */
+.onboarding-card {
+  position: relative;
+  width: min(640px, 90vw);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+  animation: onboarding-card-enter 0.5s var(--ease-out);
+}
+
+@keyframes onboarding-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Step progress bar */
+.onboarding-progress {
+  display: flex;
+  gap: 6px;
+  padding: 20px 32px 0;
+}
+
+.onboarding-progress__step {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border);
+  transition: background 0.3s ease;
+}
+
+.onboarding-progress__step--active {
+  background: var(--accent);
+}
+
+.onboarding-progress__step--done {
+  background: var(--ok);
+}
+
+/* Header */
+.onboarding-header {
+  padding: 24px 32px 0;
+  text-align: center;
+}
+
+.onboarding-header__step-label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.onboarding-header__title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-strong);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.onboarding-header__subtitle {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
+/* Scrollable body */
+.onboarding-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 32px;
+  min-height: 0;
+}
+
+/* Footer with nav buttons */
+.onboarding-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px 24px;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.onboarding-footer__left {
+  display: flex;
+  gap: 8px;
+}
+
+.onboarding-footer__right {
+  display: flex;
+  gap: 8px;
+}
+
+/* Buttons */
+.onboarding-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.onboarding-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.onboarding-btn--primary {
+  background: var(--accent);
+  color: var(--accent-foreground);
+  border-color: transparent;
+}
+
+.onboarding-btn--primary:hover {
+  background: var(--accent-hover);
+}
+
+.onboarding-btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.onboarding-btn--ghost:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+
+/* ===========================================
+   Step 1: Language Picker
+   =========================================== */
+
+.onboarding-lang-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.onboarding-lang-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.onboarding-lang-option:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.onboarding-lang-option--selected {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.onboarding-lang-option__native {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.onboarding-lang-option__label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ===========================================
+   Step 2: Provider Picker
+   =========================================== */
+
+.onboarding-provider-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.onboarding-provider-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.onboarding-provider-item:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.onboarding-provider-item--selected {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.onboarding-provider-item__check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.onboarding-provider-item--selected .onboarding-provider-item__check {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.onboarding-provider-item__check-icon {
+  width: 12px;
+  height: 12px;
+  color: var(--accent-foreground);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.onboarding-provider-item--selected .onboarding-provider-item__check-icon {
+  opacity: 1;
+}
+
+.onboarding-provider-item__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.onboarding-provider-item__name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.onboarding-provider-item__hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* API Key input that appears when a provider is selected */
+.onboarding-provider-input {
+  margin-top: 8px;
+  padding: 8px 12px;
+  width: 100%;
+  font-size: 13px;
+  font-family: "JetBrains Mono", monospace;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.onboarding-provider-input:focus {
+  border-color: var(--accent);
+}
+
+.onboarding-provider-input::placeholder {
+  color: var(--muted);
+}
+
+/* Search input */
+.onboarding-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+
+.onboarding-search__icon {
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.onboarding-search__icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.onboarding-search__input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+}
+
+.onboarding-search__input::placeholder {
+  color: var(--muted);
+}
+
+/* ===========================================
+   Step 3: Channel Picker
+   =========================================== */
+
+.onboarding-channel-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.onboarding-channel-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.onboarding-channel-item:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+
+.onboarding-channel-item--selected {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+.onboarding-channel-item__icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.onboarding-channel-item__name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.onboarding-channel-item__difficulty {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Token input section below the channel grid */
+.onboarding-channel-token {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+
+.onboarding-channel-token__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-strong);
+  margin-bottom: 8px;
+}
+
+.onboarding-channel-token__hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+/* ===========================================
+   Step 4: Confirm
+   =========================================== */
+
+.onboarding-confirm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.onboarding-confirm-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+
+.onboarding-confirm-row__label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.onboarding-confirm-row__value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.onboarding-confirm-row__value--muted {
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* Launch illustration */
+.onboarding-confirm-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.onboarding-confirm-hero__icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--accent-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+/* ===========================================
+   Light theme overrides
+   =========================================== */
+
+[data-theme="light"] .onboarding-wizard {
+  background: var(--bg);
+}
+
+[data-theme="light"] .onboarding-wizard::before {
+  background: radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 80%, rgba(168, 85, 247, 0.04) 0%, transparent 60%);
+}
+
+/* ===========================================
+   Responsive
+   =========================================== */
+
+@media (max-width: 600px) {
+  .onboarding-card {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .onboarding-lang-grid,
+  .onboarding-channel-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .onboarding-header,
+  .onboarding-body,
+  .onboarding-footer,
+  .onboarding-progress {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}

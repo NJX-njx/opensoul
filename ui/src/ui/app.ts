@@ -86,6 +86,7 @@ import { loadDebug as loadDebugInternal } from "./controllers/debug.ts";
 import { loadLogs as loadLogsInternal } from "./controllers/logs.ts";
 import { loadSettings, type UiSettings } from "./storage.ts";
 import { type ChatAttachment, type ChatQueueItem, type CronFormState } from "./ui-types.ts";
+import { detectLocale, type Locale } from "./views/onboarding/i18n.ts";
 
 declare global {
   interface Window {
@@ -333,6 +334,16 @@ export class OpenSoulApp extends LitElement {
   // Settings panel state
   @state() settingsOpen = false;
   @state() settingsSection: import("./navigation.ts").SettingsTab | "general" = "general";
+
+  // Onboarding wizard state
+  @state() showOnboardingWizard = !localStorage.getItem("opensoul.onboarding.done");
+  @state() onboardingStep: 1 | 2 | 3 | 4 = 1;
+  @state() onboardingLocale: Locale = detectLocale();
+  @state() onboardingSelectedProvider: string | null = null;
+  @state() onboardingProviderApiKey = "";
+  @state() onboardingProviderSearchQuery = "";
+  @state() onboardingSelectedChannel: string | null = null;
+  @state() onboardingChannelToken = "";
 
   client: GatewayBrowserClient | null = null;
   private chatScrollFrame: number | null = null;
@@ -614,6 +625,46 @@ export class OpenSoulApp extends LitElement {
     const newRatio = Math.max(0.4, Math.min(0.7, ratio));
     this.splitRatio = newRatio;
     this.applySettings({ ...this.settings, splitRatio: newRatio });
+  }
+
+  // Onboarding wizard methods
+  setOnboardingStep(step: 1 | 2 | 3 | 4) {
+    this.onboardingStep = step;
+  }
+
+  setOnboardingLocale(locale: Locale) {
+    this.onboardingLocale = locale;
+  }
+
+  setOnboardingProvider(providerId: string | null) {
+    this.onboardingSelectedProvider = providerId;
+    if (!providerId) {
+      this.onboardingProviderApiKey = "";
+    }
+  }
+
+  setOnboardingProviderApiKey(key: string) {
+    this.onboardingProviderApiKey = key;
+  }
+
+  setOnboardingProviderSearchQuery(query: string) {
+    this.onboardingProviderSearchQuery = query;
+  }
+
+  setOnboardingChannel(channelId: string | null) {
+    this.onboardingSelectedChannel = channelId;
+    if (!channelId) {
+      this.onboardingChannelToken = "";
+    }
+  }
+
+  setOnboardingChannelToken(token: string) {
+    this.onboardingChannelToken = token;
+  }
+
+  finishOnboarding() {
+    localStorage.setItem("opensoul.onboarding.done", "1");
+    this.showOnboardingWizard = false;
   }
 
   render() {

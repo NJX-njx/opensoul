@@ -33,6 +33,7 @@ import type {
 } from "./types.ts";
 import type { ChatAttachment, ChatQueueItem, CronFormState } from "./ui-types.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
+import type { Locale } from "./views/onboarding/i18n.ts";
 import type { SessionLogEntry } from "./views/usage.ts";
 
 export type AppViewState = {
@@ -287,4 +288,22 @@ export type AppViewState = {
   handleOpenSidebar: (content: string) => void;
   handleCloseSidebar: () => void;
   handleSplitRatioChange: (ratio: number) => void;
+
+  // Onboarding wizard state
+  showOnboardingWizard: boolean;
+  onboardingStep: 1 | 2 | 3 | 4;
+  onboardingLocale: Locale;
+  onboardingSelectedProvider: string | null;
+  onboardingProviderApiKey: string;
+  onboardingProviderSearchQuery: string;
+  onboardingSelectedChannel: string | null;
+  onboardingChannelToken: string;
+  setOnboardingStep: (step: 1 | 2 | 3 | 4) => void;
+  setOnboardingLocale: (locale: Locale) => void;
+  setOnboardingProvider: (providerId: string | null) => void;
+  setOnboardingProviderApiKey: (key: string) => void;
+  setOnboardingProviderSearchQuery: (query: string) => void;
+  setOnboardingChannel: (channelId: string | null) => void;
+  setOnboardingChannelToken: (token: string) => void;
+  finishOnboarding: () => void;
 };
