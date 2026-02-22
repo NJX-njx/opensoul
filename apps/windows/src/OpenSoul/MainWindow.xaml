@@ -23,7 +23,7 @@
     <!-- Custom window chrome for borderless but resizable window -->
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="36"
-                      ResizeBorderThickness="6"
+                      ResizeBorderThickness="8"
                       GlassFrameThickness="1"
                       CornerRadius="8"
                       UseAeroCaptionButtons="False" />
@@ -267,17 +267,17 @@
                 <RowDefinition Height="8" />
             </Grid.RowDefinitions>
 
-            <!-- Left resize border: pass hit test to WindowChrome for horizontal resize -->
+            <!-- Left resize border: let WindowChrome handle horizontal resize -->
             <Border Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
-                    Background="Transparent"
-                    Cursor="SizeWE"
-                    WindowChrome.IsHitTestVisibleInChrome="True" />
+                    Background="Transparent" />
 
-            <!-- Right resize border: pass hit test to WindowChrome for horizontal resize -->
+            <!-- Right resize border: let WindowChrome handle horizontal resize -->
             <Border Grid.Column="2" Grid.Row="0" Grid.RowSpan="2"
-                    Background="Transparent"
-                    Cursor="SizeWE"
-                    WindowChrome.IsHitTestVisibleInChrome="True" />
+                    Background="Transparent" />
+
+            <!-- Bottom resize border: let WindowChrome handle vertical resize -->
+            <Border Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3"
+                    Background="Transparent" />
 
             <!-- Content Area (Center) -->
             <Grid Grid.Column="1" Grid.Row="0">
