@@ -71,7 +71,7 @@ import fsSync from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { resetLogger, setLoggerOverride } from "../logging.js";
+import { resetLogger, setLoggerOverride } from "../logging/logger.js";
 import { monitorWebInbox, resetWebInboundDedupe } from "./inbound.js";
 
 const _ACCOUNT_ID = "default";

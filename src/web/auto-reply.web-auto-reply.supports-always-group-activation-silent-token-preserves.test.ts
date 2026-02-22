@@ -16,7 +16,7 @@ vi.mock("../agents/pi-embedded.js", () => ({
 
 import { expectInboundContextContract } from "../../test/helpers/inbound-contract.js";
 import { resetInboundDedupe } from "../auto-reply/reply/inbound-dedupe.js";
-import { resetLogger, setLoggerOverride } from "../logging.js";
+import { resetLogger, setLoggerOverride } from "../logging/logger.js";
 import { monitorWebChannel, SILENT_REPLY_TOKEN } from "./auto-reply.js";
 import { resetBaileysMocks, resetLoadConfigMock, setLoadConfigMock } from "./test-helpers.js";
 

@@ -10,7 +10,7 @@ import { logVerbose } from "../../globals.js";
 import { formatDurationPrecise } from "../../infra/format-time/format-duration.ts";
 import { enqueueSystemEvent } from "../../infra/system-events.js";
 import { registerUnhandledRejectionHandler } from "../../infra/unhandled-rejections.js";
-import { getChildLogger } from "../../logging.js";
+import { getChildLogger } from "../../logging/logger.js";
 import { resolveAgentRoute } from "../../routing/resolve-route.js";
 import { defaultRuntime, type RuntimeEnv } from "../../runtime.js";
 import { resolveWhatsAppAccount } from "../accounts.js";

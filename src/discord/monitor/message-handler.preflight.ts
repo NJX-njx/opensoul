@@ -20,7 +20,7 @@ import { resolveMentionGatingWithBypass } from "../../channels/mention-gating.js
 import { logVerbose, shouldLogVerbose } from "../../globals.js";
 import { recordChannelActivity } from "../../infra/channel-activity.js";
 import { enqueueSystemEvent } from "../../infra/system-events.js";
-import { getChildLogger } from "../../logging.js";
+import { getChildLogger } from "../../logging/logger.js";
 import { buildPairingReply } from "../../pairing/pairing-messages.js";
 import {
   readChannelAllowFromStore,

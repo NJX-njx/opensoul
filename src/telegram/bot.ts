@@ -24,7 +24,7 @@ import { loadSessionStore, resolveStorePath } from "../config/sessions.js";
 import { danger, logVerbose, shouldLogVerbose } from "../globals.js";
 import { formatUncaughtError } from "../infra/errors.js";
 import { enqueueSystemEvent } from "../infra/system-events.js";
-import { getChildLogger } from "../logging.js";
+import { getChildLogger } from "../logging/logger.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
 import { resolveAgentRoute } from "../routing/resolve-route.js";
 import { resolveTelegramAccount } from "./accounts.js";

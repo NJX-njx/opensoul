@@ -31,7 +31,7 @@ import {
   TELEGRAM_COMMAND_NAME_PATTERN,
 } from "../config/telegram-custom-commands.js";
 import { danger, logVerbose } from "../globals.js";
-import { getChildLogger } from "../logging.js";
+import { getChildLogger } from "../logging/logger.js";
 import { readChannelAllowFromStore } from "../pairing/pairing-store.js";
 import {
   executePluginCommand,

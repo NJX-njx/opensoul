@@ -11,7 +11,7 @@ import {
   renderSystemdUnavailableHints,
 } from "../daemon/systemd-hints.js";
 import { isWSLEnv } from "../infra/wsl.js";
-import { getResolvedLoggerSettings } from "../logging.js";
+import { getResolvedLoggerSettings } from "../logging/logger.js";
 
 type RuntimeHintOptions = {
   platform?: NodeJS.Platform;

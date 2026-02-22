@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { GatewayRequestHandlers } from "./types.js";
-import { getResolvedLoggerSettings } from "../../logging.js";
+import { getResolvedLoggerSettings } from "../../logging/logger.js";
 import {
   ErrorCodes,
   errorShape,

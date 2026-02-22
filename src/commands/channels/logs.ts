@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import { listChannelPlugins } from "../../channels/plugins/index.js";
-import { getResolvedLoggerSettings } from "../../logging.js";
+import { getResolvedLoggerSettings } from "../../logging/logger.js";
 import { parseLogLine } from "../../logging/parse-log-line.js";
 import { defaultRuntime, type RuntimeEnv } from "../../runtime.js";
 import { theme } from "../../terminal/theme.js";

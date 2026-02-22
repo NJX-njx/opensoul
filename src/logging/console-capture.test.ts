@@ -2,13 +2,8 @@ import crypto from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  enableConsoleCapture,
-  resetLogger,
-  routeLogsToStderr,
-  setConsoleTimestampPrefix,
-  setLoggerOverride,
-} from "../logging.js";
+import { enableConsoleCapture, routeLogsToStderr, setConsoleTimestampPrefix } from "./console.js";
+import { resetLogger, setLoggerOverride } from "./logger.js";
 import { loggingState } from "./state.js";
 
 type ConsoleSnapshot = {

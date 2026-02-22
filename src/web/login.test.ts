@@ -1,6 +1,6 @@
 import { EventEmitter } from "node:events";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { resetLogger, setLoggerOverride } from "../logging.js";
+import { resetLogger, setLoggerOverride } from "../logging/logger.js";
 
 vi.mock("./session.js", () => {
   const ev = new EventEmitter();
