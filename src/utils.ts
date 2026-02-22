@@ -3,6 +3,15 @@ import os from "node:os";
 import path from "node:path";
 import { resolveOAuthDir } from "./config/paths.js";
 import { logVerbose, shouldLogVerbose } from "./globals.js";
+// Re-export WhatsApp E.164 utilities from their canonical location.
+// Existing callers that import from ./utils.js continue to work.
+export {
+  isSelfChatMode,
+  normalizeE164,
+  toWhatsappJid,
+  withWhatsAppPrefix,
+} from "./whatsapp/e164.js";
+import { normalizeE164 } from "./whatsapp/e164.js";
 
 export async function ensureDir(dir: string) {
   await fs.promises.mkdir(dir, { recursive: true });
@@ -29,57 +38,6 @@ export function normalizePath(p: string): string {
     return `/${p}`;
   }
   return p;
-}
-
-export function withWhatsAppPrefix(number: string): string {
-  return number.startsWith("whatsapp:") ? number : `whatsapp:${number}`;
-}
-
-export function normalizeE164(number: string): string {
-  const withoutPrefix = number.replace(/^whatsapp:/, "").trim();
-  const digits = withoutPrefix.replace(/[^\d+]/g, "");
-  if (digits.startsWith("+")) {
-    return `+${digits.slice(1)}`;
-  }
-  return `+${digits}`;
-}
-
-/**
- * "Self-chat mode" heuristic (single phone): the gateway is logged in as the owner's own WhatsApp account,
- * and `channels.whatsapp.allowFrom` includes that same number. Used to avoid side-effects that make no sense when the
- * "bot" and the human are the same WhatsApp identity (e.g. auto read receipts, @mention JID triggers).
- */
-export function isSelfChatMode(
-  selfE164: string | null | undefined,
-  allowFrom?: Array<string | number> | null,
-): boolean {
-  if (!selfE164) {
-    return false;
-  }
-  if (!Array.isArray(allowFrom) || allowFrom.length === 0) {
-    return false;
-  }
-  const normalizedSelf = normalizeE164(selfE164);
-  return allowFrom.some((n) => {
-    if (n === "*") {
-      return false;
-    }
-    try {
-      return normalizeE164(String(n)) === normalizedSelf;
-    } catch {
-      return false;
-    }
-  });
-}
-
-export function toWhatsappJid(number: string): string {
-  const withoutPrefix = number.replace(/^whatsapp:/, "").trim();
-  if (withoutPrefix.includes("@")) {
-    return withoutPrefix;
-  }
-  const e164 = normalizeE164(withoutPrefix);
-  const digits = e164.replace(/\D/g, "");
-  return `${digits}@s.whatsapp.net`;
 }
 
 export type JidToE164Options = {
