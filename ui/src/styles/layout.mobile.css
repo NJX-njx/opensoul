@@ -299,6 +299,11 @@
     width: 12px;
     height: 12px;
   }
+
+  /* Override collapsed shell grid for tablet/mobile */
+  .shell--nav-collapsed {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Small mobile */

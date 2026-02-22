@@ -6,6 +6,7 @@
   --shell-pad: 16px;
   --shell-gap: 16px;
   --shell-nav-width: 220px;
+  --shell-nav-width-collapsed: 68px;
   --shell-topbar-height: 56px;
   --shell-focus-duration: 200ms;
   --shell-focus-ease: var(--ease-out);
@@ -41,7 +42,7 @@
 }
 
 .shell--nav-collapsed {
-  grid-template-columns: 0px minmax(0, 1fr);
+  grid-template-columns: var(--shell-nav-width-collapsed) minmax(0, 1fr);
 }
 
 .shell--chat-focus {
@@ -132,6 +133,19 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
+  overflow: hidden;
+  max-width: 200px;
+  opacity: 1;
+  transition:
+    opacity var(--shell-focus-duration) var(--shell-focus-ease),
+    max-width var(--shell-focus-duration) var(--shell-focus-ease);
+}
+
+.shell--nav-collapsed .brand-text {
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .brand-title {
@@ -224,13 +238,13 @@
 }
 
 .nav--collapsed {
-  width: 0;
+  width: auto;
   min-width: 0;
-  padding: 0;
-  overflow: hidden;
-  border: none;
-  opacity: 0;
-  pointer-events: none;
+  padding: 16px 8px;
+  overflow-x: hidden;
+  border-right: 1px solid var(--border);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Nav collapse toggle */
@@ -402,11 +416,19 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 300px;
+  opacity: 1;
+  transition:
+    opacity var(--shell-focus-duration) var(--shell-focus-ease),
+    max-width var(--shell-focus-duration) var(--shell-focus-ease);
 }
 
 /* Collapsed nav: hide settings text */
 .nav--collapsed .nav-settings-btn__text {
-  display: none;
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .nav--collapsed .nav-settings-btn {
@@ -459,6 +481,12 @@
   font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
+  opacity: 1;
+  max-width: 300px;
+  overflow: hidden;
+  transition:
+    opacity var(--shell-focus-duration) var(--shell-focus-ease),
+    max-width var(--shell-focus-duration) var(--shell-focus-ease);
 }
 
 .nav-item:hover {
@@ -481,6 +509,104 @@
   color: var(--text-strong);
 }
 
+/* Collapsed nav overrides */
+.nav--collapsed .nav-item {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.nav--collapsed .nav-item__text {
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.nav--collapsed .nav-label {
+  justify-content: center;
+  padding: 0;
+  height: 1px;
+  overflow: hidden;
+  margin: 12px 4px;
+  background: var(--border);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.nav--collapsed .nav-label__text,
+.nav--collapsed .nav-label__chevron {
+  display: none;
+}
+
+/* Zoom Control */
+.nav-zoom-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 8px;
+  margin: 8px 4px 0 4px;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+}
+
+:root[data-theme="dark"] .nav-zoom-control {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-zoom-control__slider {
+  flex: 1;
+  margin: 0 8px;
+  cursor: pointer;
+  height: 4px;
+  -webkit-appearance: none;
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.nav-zoom-control__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text);
+  cursor: pointer;
+}
+
+.nav-zoom-control__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.nav-zoom-control__btn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.nav-zoom-control__value {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  min-width: 32px;
+  text-align: center;
+  margin-left: 4px;
+}
+
+.nav--collapsed .nav-zoom-control {
+  display: none;
+}
+
 /* ===========================================
    Content Area
    =========================================== */
@@ -492,6 +618,8 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  transform-origin: top left;
+  transition: transform 0.2s var(--ease-out);
 }
 
 .content > * + * {
