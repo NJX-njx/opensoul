@@ -1,64 +1,28 @@
-# OpenSoul Codebase Patterns
+# OpenSoul — VS Code Copilot Chat Instructions
 
-**Always reuse existing code - no redundancy!**
+> Full AI agent instructions: see `.github/copilot-instructions.md`
+> This file supplements those instructions with VS Code-specific guidance.
 
-## Tech Stack
+## Key Reminders
 
-- **Runtime**: Node 22+ (Bun also supported for dev/scripts)
-- **Language**: TypeScript (ESM, strict mode)
-- **Package Manager**: pnpm (keep `pnpm-lock.yaml` in sync)
-- **Lint/Format**: Oxlint, Oxfmt (`pnpm check`)
-- **Tests**: Vitest with V8 coverage
-- **CLI Framework**: Commander + clack/prompts
-- **Build**: tsdown (outputs to `dist/`)
+- **Always reuse existing code — no redundancy!** Search before creating any utility.
+- **No barrel/re-export files.** Import directly from the source module.
+- Use `.js` extension in relative imports (ESM requirement).
+- Use `import type { X }` for type-only imports.
+- File LOC hard limit: **500 lines** (enforced by `pnpm check:loc`).
 
-## Anti-Redundancy Rules
+## CLI Framework
 
-- Avoid files that just re-export from another file. Import directly from the original source.
-- If a function already exists, import it - do NOT create a duplicate in another file.
-- Before creating any formatter, utility, or helper, search for existing implementations first.
-
-## Source of Truth Locations
-
-### Formatting Utilities (`src/infra/`)
-
-- **Time formatting**: `src\infra\format-time`
-
-**NEVER create local `formatAge`, `formatDuration`, `formatElapsedTime` functions - import from centralized modules.**
-
-### Terminal Output (`src/terminal/`)
-
-- Tables: `src/terminal/table.ts` (`renderTable`)
-- Themes/colors: `src/terminal/theme.ts` (`theme.success`, `theme.muted`, etc.)
-- Progress: `src/cli/progress.ts` (spinners, progress bars)
-
-### CLI Patterns
-
+- Commander + clack/prompts
 - CLI option wiring: `src/cli/`
 - Commands: `src/commands/`
-- Dependency injection via `createDefaultDeps`
+- Dependency injection via `createDefaultDeps` in `src/cli/deps.ts`
 
-## Import Conventions
+## Interactive Coding
 
-- Use `.js` extension for cross-package imports (ESM)
-- Direct imports only - no re-export wrapper files
-- Types: `import type { X }` for type-only imports
+If you are coding together with a human, do NOT use `scripts/committer` — use git directly and run the quality commands manually:
 
-## Code Quality
-
-- TypeScript (ESM), strict typing, avoid `any`
-- Keep files under ~700 LOC - extract helpers when larger
-- Colocated tests: `*.test.ts` next to source files
-- Run `pnpm check` before commits (lint + format)
-- Run `pnpm tsgo` for type checking
-
-## Stack & Commands
-
-- **Package manager**: pnpm (`pnpm install`)
-- **Dev**: `pnpm dev`
-- **Type-check**: `pnpm tsgo`
-- **Lint/format**: `pnpm check`
-- **Tests**: `pnpm test`
-- **Build**: `pnpm build`
-
-If you are coding together with a human, do NOT use scripts/committer, but git directly and run the above commands manually to ensure quality.
+- `pnpm check` — lint + format
+- `pnpm tsgo` — type-check
+- `pnpm test` — run tests
+- `pnpm build` — build

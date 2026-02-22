@@ -5,7 +5,7 @@ import {
 } from "../../daemon/constants.js";
 import { resolveGatewayLogPaths } from "../../daemon/launchd.js";
 import { pickPrimaryLanIPv4 } from "../../gateway/net.js";
-import { getResolvedLoggerSettings } from "../../logging.js";
+import { getResolvedLoggerSettings } from "../../logging/logger.js";
 import { formatCliCommand } from "../command-format.js";
 
 export function parsePort(raw: unknown): number | null {

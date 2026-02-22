@@ -9,7 +9,7 @@ import { resolveCronStorePath } from "../cron/store.js";
 import { runHeartbeatOnce } from "../infra/heartbeat-runner.js";
 import { requestHeartbeatNow } from "../infra/heartbeat-wake.js";
 import { enqueueSystemEvent } from "../infra/system-events.js";
-import { getChildLogger } from "../logging.js";
+import { getChildLogger } from "../logging/logger.js";
 import { normalizeAgentId } from "../routing/session-key.js";
 import { defaultRuntime } from "../runtime.js";
 

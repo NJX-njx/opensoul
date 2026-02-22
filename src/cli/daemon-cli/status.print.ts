@@ -10,7 +10,7 @@ import {
   renderSystemdUnavailableHints,
 } from "../../daemon/systemd-hints.js";
 import { isWSLEnv } from "../../infra/wsl.js";
-import { getResolvedLoggerSettings } from "../../logging.js";
+import { getResolvedLoggerSettings } from "../../logging/logger.js";
 import { defaultRuntime } from "../../runtime.js";
 import { colorize, isRich, theme } from "../../terminal/theme.js";
 import { shortenHomePath } from "../../utils.js";

@@ -8,7 +8,7 @@ import { formatAllowlistMatchMeta } from "../../channels/allowlist-match.js";
 import { resolveSessionKey, type SessionScope } from "../../config/sessions.js";
 import { logVerbose } from "../../globals.js";
 import { createDedupeCache } from "../../infra/dedupe.js";
-import { getChildLogger } from "../../logging.js";
+import { getChildLogger } from "../../logging/logger.js";
 import { normalizeAllowList, normalizeAllowListLower, normalizeSlackSlug } from "./allow-list.js";
 import { resolveSlackChannelConfig } from "./channel-config.js";
 import { isSlackChannelAllowedByPolicy } from "./policy.js";

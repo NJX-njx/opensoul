@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { RuntimeEnv } from "./runtime.js";
 import { setVerbose } from "./globals.js";
 import { logDebug, logError, logInfo, logSuccess, logWarn } from "./logger.js";
-import { DEFAULT_LOG_DIR, resetLogger, setLoggerOverride } from "./logging.js";
+import { DEFAULT_LOG_DIR, resetLogger, setLoggerOverride } from "./logging/logger.js";
 
 describe("logger helpers", () => {
   afterEach(() => {

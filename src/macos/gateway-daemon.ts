@@ -60,7 +60,7 @@ async function main() {
     import("../infra/gateway-lock.js"),
     import("../infra/restart.js"),
     import("../runtime.js"),
-    import("../logging.js"),
+    import("../logging/console.js"),
   ] as const);
 
   enableConsoleCapture();

@@ -16,7 +16,7 @@ import {
 } from "../../config/sessions.js";
 import { emitHeartbeatEvent, resolveIndicatorType } from "../../infra/heartbeat-events.js";
 import { resolveHeartbeatVisibility } from "../../infra/heartbeat-visibility.js";
-import { getChildLogger } from "../../logging.js";
+import { getChildLogger } from "../../logging/logger.js";
 import { normalizeMainKey } from "../../routing/session-key.js";
 import { sendMessageWhatsApp } from "../outbound.js";
 import { newConnectionId } from "../reconnect.js";

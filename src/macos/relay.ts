@@ -52,7 +52,7 @@ async function main() {
   const { ensureOpenSoulCliOnPath } = await import("../infra/path-env.js");
   ensureOpenSoulCliOnPath();
 
-  const { enableConsoleCapture } = await import("../logging.js");
+  const { enableConsoleCapture } = await import("../logging/console.js");
   enableConsoleCapture();
 
   const { assertSupportedRuntime } = await import("../infra/runtime-guard.js");

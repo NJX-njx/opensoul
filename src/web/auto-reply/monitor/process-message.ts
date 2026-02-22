@@ -1,7 +1,7 @@
 import type { getReplyFromConfig } from "../../../auto-reply/reply.js";
 import type { ReplyPayload } from "../../../auto-reply/types.js";
 import type { loadConfig } from "../../../config/config.js";
-import type { getChildLogger } from "../../../logging.js";
+import type { getChildLogger } from "../../../logging/logger.js";
 import type { resolveAgentRoute } from "../../../routing/resolve-route.js";
 import type { WebInboundMsg } from "../types.js";
 import { resolveIdentityNamePrefix } from "../../../agents/identity.js";

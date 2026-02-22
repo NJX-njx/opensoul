@@ -1,7 +1,7 @@
 import type { PluginLogger } from "../plugins/types.js";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { loadConfig } from "../config/config.js";
-import { createSubsystemLogger } from "../logging.js";
+import { createSubsystemLogger } from "../logging/subsystem.js";
 import { loadOpenSoulPlugins } from "../plugins/loader.js";
 
 const log = createSubsystemLogger("plugins");

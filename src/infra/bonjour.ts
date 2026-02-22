@@ -1,5 +1,5 @@
 import { logDebug, logWarn } from "../logger.js";
-import { getLogger } from "../logging.js";
+import { getLogger } from "../logging/logger.js";
 import { ignoreCiaoCancellationRejection } from "./bonjour-ciao.js";
 import { formatBonjourError } from "./bonjour-errors.js";
 import { isTruthyEnvValue } from "./env.js";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { stripRedundantSubsystemPrefixForConsole } from "../logging.js";
+import { stripRedundantSubsystemPrefixForConsole } from "./subsystem.js";
 
 describe("stripRedundantSubsystemPrefixForConsole", () => {
   it("drops '<subsystem>:' prefix", () => {
