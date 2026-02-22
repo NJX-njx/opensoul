@@ -16,6 +16,18 @@ const EN = {
   langSubtitle: "Choose your preferred language to get started.",
   langLabel: "Language",
 
+  // Step 2: Login
+  loginTitle: "Sign In",
+  loginSubtitle: "Sign in to sync your settings and unlock all features.",
+  loginWithGoogle: "Continue with Google",
+  loginWithGithub: "Continue with GitHub",
+  loginOrDivider: "or",
+  loginSkipHint: "You can skip this step and sign in later from Settings.",
+  loginSkip: "Skip for now",
+  loginLogout: "Sign out",
+  loginSuccess: "Signed in",
+  loginError: "Sign-in failed. Please try again.",
+
   // Step 2: AI Provider
   providerTitle: "Choose an AI Provider",
   providerSubtitle:
@@ -33,9 +45,11 @@ const EN = {
   channelSkip: "Skip for now",
   channelTokenPlaceholder: "Paste bot token…",
 
-  // Step 4: Confirm
+  // Step 5: Confirm
   confirmTitle: "You're All Set!",
   confirmSubtitle: "Review your choices and launch OpenSoul.",
+  confirmLogin: "Account",
+  confirmLoginNone: "Not signed in (sign in later)",
   confirmLanguage: "Language",
   confirmProvider: "AI Provider",
   confirmProviderNone: "None (configure later)",
@@ -57,6 +71,17 @@ const ZH_CN: I18nMessages = {
   langSubtitle: "选择你偏好的语言以开始设置。",
   langLabel: "语言",
 
+  loginTitle: "登录",
+  loginSubtitle: "登录以同步你的设置并解锁所有功能。",
+  loginWithGoogle: "使用 Google 登录",
+  loginWithGithub: "使用 GitHub 登录",
+  loginOrDivider: "或者",
+  loginSkipHint: "你可以跳过此步骤，稍后在设置中登录。",
+  loginSkip: "暂时跳过",
+  loginLogout: "退出登录",
+  loginSuccess: "已登录",
+  loginError: "登录失败，请重试。",
+
   providerTitle: "选择 AI 提供商",
   providerSubtitle: "选择一个或多个 AI 模型提供商。你随时可以在设置中更改。",
   providerSearch: "搜索提供商…",
@@ -72,6 +97,8 @@ const ZH_CN: I18nMessages = {
 
   confirmTitle: "一切就绪！",
   confirmSubtitle: "检查你的选择，然后启动 OpenSoul。",
+  confirmLogin: "账号",
+  confirmLoginNone: "未登录（稍后登录）",
   confirmLanguage: "语言",
   confirmProvider: "AI 提供商",
   confirmProviderNone: "无（稍后配置）",
@@ -92,6 +119,17 @@ const ZH_TW: I18nMessages = {
   langSubtitle: "選擇你偏好的語言以開始設定。",
   langLabel: "語言",
 
+  loginTitle: "登入",
+  loginSubtitle: "登入以同步你的設定並解鎖所有功能。",
+  loginWithGoogle: "使用 Google 登入",
+  loginWithGithub: "使用 GitHub 登入",
+  loginOrDivider: "或者",
+  loginSkipHint: "你可以跳過此步驟，稍後在設定中登入。",
+  loginSkip: "暫時跳過",
+  loginLogout: "登出",
+  loginSuccess: "已登入",
+  loginError: "登入失敗，請重試。",
+
   providerTitle: "選擇 AI 提供商",
   providerSubtitle: "選擇一個或多個 AI 模型提供商。你隨時可以在設定中更改。",
   providerSearch: "搜尋提供商…",
@@ -107,6 +145,8 @@ const ZH_TW: I18nMessages = {
 
   confirmTitle: "一切就緒！",
   confirmSubtitle: "檢查你的選擇，然後啟動 OpenSoul。",
+  confirmLogin: "帳號",
+  confirmLoginNone: "未登入（稍後登入）",
   confirmLanguage: "語言",
   confirmProvider: "AI 提供商",
   confirmProviderNone: "無（稍後設定）",
@@ -127,9 +167,19 @@ const JA: I18nMessages = {
   langSubtitle: "お好みの言語を選択してください。",
   langLabel: "言語",
 
+  loginTitle: "サインイン",
+  loginSubtitle: "サインインして設定を同期し、すべての機能を利用しましょう。",
+  loginWithGoogle: "Google で続ける",
+  loginWithGithub: "GitHub で続ける",
+  loginOrDivider: "または",
+  loginSkipHint: "このステップをスキップして、後で設定からサインインできます。",
+  loginSkip: "スキップ",
+  loginLogout: "サインアウト",
+  loginSuccess: "サインイン済み",
+  loginError: "サインインに失敗しました。もう一度お試しください。",
+
   providerTitle: "AI プロバイダーを選択",
-  providerSubtitle:
-    "1つ以上のAIモデルプロバイダーを選択してください。設定でいつでも変更できます。",
+  providerSubtitle: "1つ以上のAIモデルプロバイダーを選択してください。設定でいつでも変更できます。",
   providerSearch: "プロバイダーを検索…",
   providerNoneSelected: "プロバイダーが選択されていません。",
   providerSkip: "スキップ",
@@ -164,8 +214,20 @@ const KO: I18nMessages = {
   langSubtitle: "원하는 언어를 선택하세요.",
   langLabel: "언어",
 
+  loginTitle: "로그인",
+  loginSubtitle: "로그인하여 설정을 동기화하고 모든 기능을 잠금 해제하세요.",
+  loginWithGoogle: "Google로 계속",
+  loginWithGithub: "GitHub로 계속",
+  loginOrDivider: "또는",
+  loginSkipHint: "이 단계를 건너뛰고 나중에 설정에서 로그인할 수 있습니다.",
+  loginSkip: "건너뛰기",
+  loginLogout: "로그아웃",
+  loginSuccess: "로그인됨",
+  loginError: "로그인에 실패했습니다. 다시 시도해 주세요.",
+
   providerTitle: "AI 제공자 선택",
-  providerSubtitle: "하나 이상의 AI 모델 제공자를 선택하세요. 설정에서 언제든지 변경할 수 있습니다.",
+  providerSubtitle:
+    "하나 이상의 AI 모델 제공자를 선택하세요. 설정에서 언제든지 변경할 수 있습니다.",
   providerSearch: "제공자 검색…",
   providerNoneSelected: "선택된 제공자가 없습니다.",
   providerSkip: "건너뛰기",
@@ -173,8 +235,7 @@ const KO: I18nMessages = {
   providerConnected: "연결됨",
 
   channelTitle: "채널 연결",
-  channelSubtitle:
-    "메시징 플랫폼을 연결하여 AI 동반자와 대화하세요. 나중에 설정할 수도 있습니다.",
+  channelSubtitle: "메시징 플랫폼을 연결하여 AI 동반자와 대화하세요. 나중에 설정할 수도 있습니다.",
   channelSkip: "건너뛰기",
   channelTokenPlaceholder: "봇 토큰 붙여넣기…",
 
@@ -207,8 +268,7 @@ const ES: I18nMessages = {
   providerApiKeyPlaceholder: "Pega tu API key…",
   providerConnected: "Conectado",
   channelTitle: "Conectar un canal",
-  channelSubtitle:
-    "Vincula una plataforma de mensajería. Puedes configurarlo después.",
+  channelSubtitle: "Vincula una plataforma de mensajería. Puedes configurarlo después.",
   channelSkip: "Omitir por ahora",
   channelTokenPlaceholder: "Pega el token del bot…",
   confirmTitle: "¡Todo listo!",
@@ -239,8 +299,7 @@ const FR: I18nMessages = {
   providerApiKeyPlaceholder: "Collez votre clé API…",
   providerConnected: "Connecté",
   channelTitle: "Connecter un canal",
-  channelSubtitle:
-    "Liez une plateforme de messagerie. Vous pouvez configurer plus tard.",
+  channelSubtitle: "Liez une plateforme de messagerie. Vous pouvez configurer plus tard.",
   channelSkip: "Passer pour l'instant",
   channelTokenPlaceholder: "Collez le token du bot…",
   confirmTitle: "Tout est prêt !",
@@ -262,6 +321,20 @@ const DE: I18nMessages = {
   langTitle: "Willkommen bei OpenSoul",
   langSubtitle: "Wähle deine bevorzugte Sprache.",
   langLabel: "Sprache",
+
+  loginTitle: "Anmelden",
+  loginSubtitle:
+    "Melde dich an, um deine Einstellungen zu synchronisieren und alle Funktionen freizuschalten.",
+  loginWithGoogle: "Weiter mit Google",
+  loginWithGithub: "Weiter mit GitHub",
+  loginOrDivider: "oder",
+  loginSkipHint:
+    "Du kannst diesen Schritt überspringen und dich später in den Einstellungen anmelden.",
+  loginSkip: "Vorerst überspringen",
+  loginLogout: "Abmelden",
+  loginSuccess: "Angemeldet",
+  loginError: "Anmeldung fehlgeschlagen. Bitte versuche es erneut.",
+
   providerTitle: "KI-Anbieter wählen",
   providerSubtitle:
     "Wähle einen oder mehrere KI-Modellanbieter. Du kannst dies jederzeit in den Einstellungen ändern.",
@@ -271,8 +344,7 @@ const DE: I18nMessages = {
   providerApiKeyPlaceholder: "API-Schlüssel einfügen…",
   providerConnected: "Verbunden",
   channelTitle: "Kanal verbinden",
-  channelSubtitle:
-    "Verbinde eine Messaging-Plattform. Du kannst dies später konfigurieren.",
+  channelSubtitle: "Verbinde eine Messaging-Plattform. Du kannst dies später konfigurieren.",
   channelSkip: "Vorerst überspringen",
   channelTokenPlaceholder: "Bot-Token einfügen…",
   confirmTitle: "Alles bereit!",
@@ -294,6 +366,18 @@ const PT_BR: I18nMessages = {
   langTitle: "Bem-vindo ao OpenSoul",
   langSubtitle: "Escolha seu idioma preferido para começar.",
   langLabel: "Idioma",
+
+  loginTitle: "Entrar",
+  loginSubtitle: "Entre para sincronizar suas configurações e desbloquear todos os recursos.",
+  loginWithGoogle: "Continuar com Google",
+  loginWithGithub: "Continuar com GitHub",
+  loginOrDivider: "ou",
+  loginSkipHint: "Você pode pular esta etapa e entrar mais tarde nas configurações.",
+  loginSkip: "Pular por enquanto",
+  loginLogout: "Sair",
+  loginSuccess: "Conectado",
+  loginError: "Falha ao entrar. Tente novamente.",
+
   providerTitle: "Escolha um provedor de IA",
   providerSubtitle:
     "Selecione um ou mais provedores de modelos de IA. Você pode alterar nas configurações.",
@@ -303,8 +387,7 @@ const PT_BR: I18nMessages = {
   providerApiKeyPlaceholder: "Cole sua chave API…",
   providerConnected: "Conectado",
   channelTitle: "Conectar um canal",
-  channelSubtitle:
-    "Vincule uma plataforma de mensagens. Você pode configurar depois.",
+  channelSubtitle: "Vincule uma plataforma de mensagens. Você pode configurar depois.",
   channelSkip: "Pular por enquanto",
   channelTokenPlaceholder: "Cole o token do bot…",
   confirmTitle: "Tudo pronto!",
@@ -335,8 +418,7 @@ const RU: I18nMessages = {
   providerApiKeyPlaceholder: "Вставьте API ключ…",
   providerConnected: "Подключено",
   channelTitle: "Подключить канал",
-  channelSubtitle:
-    "Подключите мессенджер. Вы можете настроить это позже.",
+  channelSubtitle: "Подключите мессенджер. Вы можете настроить это позже.",
   channelSkip: "Пропустить",
   channelTokenPlaceholder: "Вставьте токен бота…",
   confirmTitle: "Всё готово!",
