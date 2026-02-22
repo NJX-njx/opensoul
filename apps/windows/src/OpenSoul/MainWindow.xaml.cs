@@ -1,9 +1,11 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using Microsoft.Extensions.Logging;
@@ -40,6 +42,10 @@ public partial class MainWindow : Window
     private bool _closeToTray = true;
     private bool _hasShownCloseToTrayNotice;
     private string _connectionState = "disconnected";
+
+    // --- Win32 resize border constants ---
+    /// <summary>Width in device-independent pixels of the resize grip at window edges.</summary>
+    private const int RESIZE_BORDER = 8;
 
     public MainWindow()
     {
@@ -114,6 +120,9 @@ public partial class MainWindow : Window
 
     private async void Window_Loaded(object sender, RoutedEventArgs e)
     {
+        // Install Win32 message hook for edge resize (fixes WebView2 swallowing hit-test)
+        InstallResizeHook();
+
         // Load and apply settings
         _settings = await _settingsStore.LoadAsync();
         _closeToTray = true;
@@ -1441,5 +1450,85 @@ public partial class MainWindow : Window
         {
             _logger.LogError(ex, "Failed to open WebView2 download URL");
         }
+    }
+
+    // ═══════════ WIN32 EDGE-RESIZE HOOK ═══════════
+    // WebView2 hosts its own HWND which swallows WM_NCHITTEST, preventing
+    // WindowChrome resize grips from working at the left, right and bottom
+    // edges. We hook WM_NCHITTEST on the top-level window and manually return
+    // the correct HT* value when the cursor is within the resize border.
+
+    private const int WM_NCHITTEST = 0x0084;
+
+    // HT values from WinUser.h
+    private const int HTCLIENT = 1;
+    private const int HTLEFT = 10;
+    private const int HTRIGHT = 11;
+    private const int HTTOP = 12;
+    private const int HTTOPLEFT = 13;
+    private const int HTTOPRIGHT = 14;
+    private const int HTBOTTOM = 15;
+    private const int HTBOTTOMLEFT = 16;
+    private const int HTBOTTOMRIGHT = 17;
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr DefWindowProc(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+    /// <summary>Install the WndProc hook on this window's HWND.</summary>
+    private void InstallResizeHook()
+    {
+        var source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
+        source?.AddHook(ResizeHookWndProc);
+    }
+
+    /// <summary>
+    /// WndProc hook that intercepts WM_NCHITTEST and returns resize HT values
+    /// when the cursor is within the RESIZE_BORDER zone at any window edge.
+    /// This overrides the default hit-test which WebView2 would otherwise consume.
+    /// </summary>
+    private IntPtr ResizeHookWndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (msg != WM_NCHITTEST)
+            return IntPtr.Zero;
+
+        // Do not override resize when maximized (no resize borders visible)
+        if (WindowState == WindowState.Maximized)
+            return IntPtr.Zero;
+
+        // Get cursor position in screen pixels (lParam = MAKELPARAM(x, y))
+        var screenX = (short)(lParam.ToInt64() & 0xFFFF);
+        var screenY = (short)((lParam.ToInt64() >> 16) & 0xFFFF);
+
+        // Get window rect in screen coordinates
+        var windowPoint = PointFromScreen(new Point(screenX, screenY));
+
+        // Convert the RESIZE_BORDER from DIPs to the current DPI-aware value
+        var dpi = VisualTreeHelper.GetDpi(this);
+        var border = RESIZE_BORDER * dpi.DpiScaleX;
+
+        var w = ActualWidth;
+        var h = ActualHeight;
+
+        var isLeft = windowPoint.X < border;
+        var isRight = windowPoint.X > w - border;
+        var isTop = windowPoint.Y < border;
+        var isBottom = windowPoint.Y > h - border;
+
+        // Only handle edges — return early if cursor is in the interior
+        if (!isLeft && !isRight && !isTop && !isBottom)
+            return IntPtr.Zero;
+
+        int hitResult;
+        if (isTop && isLeft) hitResult = HTTOPLEFT;
+        else if (isTop && isRight) hitResult = HTTOPRIGHT;
+        else if (isBottom && isLeft) hitResult = HTBOTTOMLEFT;
+        else if (isBottom && isRight) hitResult = HTBOTTOMRIGHT;
+        else if (isLeft) hitResult = HTLEFT;
+        else if (isRight) hitResult = HTRIGHT;
+        else if (isTop) hitResult = HTTOP;
+        else hitResult = HTBOTTOM;
+
+        handled = true;
+        return new IntPtr(hitResult);
     }
 }
