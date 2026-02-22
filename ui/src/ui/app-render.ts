@@ -100,6 +100,50 @@ function resolveAssistantAvatarUrl(state: AppViewState): string | undefined {
   return identity?.avatarUrl;
 }
 
+function renderZoomControl(state: AppViewState) {
+  const currentZoom = state.settings.operateZoomLevel ?? 1.0;
+
+  const updateZoom = (newZoom: number) => {
+    // Clamp between 0.5 and 3.0
+    const clamped = Math.max(0.5, Math.min(3.0, Number(newZoom.toFixed(1))));
+    state.applySettings({
+      ...state.settings,
+      operateZoomLevel: clamped,
+    });
+  };
+
+  return html`
+    <div class="nav-zoom-control" @click=${(e: Event) => e.stopPropagation()}>
+      <button
+        class="nav-zoom-control__btn"
+        @click=${() => updateZoom(currentZoom - 0.1)}
+        title="Zoom Out"
+      >−</button>
+      <input
+        type="range"
+        class="nav-zoom-control__slider"
+        min="0.5"
+        max="3.0"
+        step="0.1"
+        .value=${String(currentZoom)}
+        @input=${(e: Event) => updateZoom(parseFloat((e.target as HTMLInputElement).value))}
+        @wheel=${(e: WheelEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const delta = e.deltaY > 0 ? -0.1 : 0.1;
+          updateZoom(currentZoom + delta);
+        }}
+      />
+      <button
+        class="nav-zoom-control__btn"
+        @click=${() => updateZoom(currentZoom + 0.1)}
+        title="Zoom In"
+      >+</button>
+      <div class="nav-zoom-control__value">${Math.round(currentZoom * 100)}%</div>
+    </div>
+  `;
+}
+
 export function renderApp(state: AppViewState) {
   // --- Onboarding Wizard (first-launch) ---
   if (state.showOnboardingWizard) {
@@ -236,6 +280,7 @@ export function renderApp(state: AppViewState) {
               <div class="nav-group__items">
                 ${group.tabs.map((tab) => renderTab(state, tab))}
               </div>
+              ${group.label === "Operate" && !isGroupCollapsed ? renderZoomControl(state) : nothing}
             </div>
           `;
         })}
@@ -250,7 +295,17 @@ export function renderApp(state: AppViewState) {
           </button>
         </div>
       </aside>
-      <main class="content ${isChat ? "content--chat" : ""}">
+      <main
+        class="content ${isChat ? "content--chat" : ""}"
+        style=${
+          ["channels", "instances", "sessions", "usage", "cron"].includes(state.tab) &&
+          (state.settings.operateZoomLevel ?? 1.0) !== 1.0
+            ? `transform: scale(${state.settings.operateZoomLevel ?? 1.0}); width: ${
+                100 / (state.settings.operateZoomLevel ?? 1.0)
+              }%; height: ${100 / (state.settings.operateZoomLevel ?? 1.0)}%;`
+            : nothing
+        }
+      >
         <section class="content-header">
           <div>
             ${state.tab === "usage" ? nothing : html`<div class="page-title">${titleForTab(state.tab)}</div>`}
