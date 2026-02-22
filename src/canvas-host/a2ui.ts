@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { detectMime } from "../media/mime.js";
+import { normalizeUrlPath } from "./url-path.js";
 
 export const A2UI_PATH = "/__opensoul__/a2ui";
 
@@ -54,12 +55,6 @@ async function resolveA2uiRootReal(): Promise<string | null> {
     })();
   }
   return resolvingA2uiRoot;
-}
-
-function normalizeUrlPath(rawPath: string): string {
-  const decoded = decodeURIComponent(rawPath || "/");
-  const normalized = path.posix.normalize(decoded);
-  return normalized.startsWith("/") ? normalized : `/${normalized}`;
 }
 
 async function resolveA2uiFilePath(rootReal: string, urlPath: string) {
