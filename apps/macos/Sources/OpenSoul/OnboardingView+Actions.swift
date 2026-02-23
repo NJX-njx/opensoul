@@ -121,6 +121,100 @@ extension OnboardingView {
         }
     }
 
+    @MainActor
+    func saveAnthropicApiKey() async {
+        guard !self.anthropicApiKeySaving else { return }
+        let trimmed = self.anthropicApiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            self.anthropicApiKeyStatus = "API key is required."
+            return
+        }
+        if self.state.connectionMode != .local {
+            self.anthropicApiKeyStatus = "Gateway is remote. Save the API key on the gateway host."
+            return
+        }
+        self.anthropicApiKeySaving = true
+        defer { self.anthropicApiKeySaving = false }
+
+        do {
+            let storeURL = self.authProfileStoreURL()
+            try FileManager().createDirectory(
+                at: storeURL.deletingLastPathComponent(),
+                withIntermediateDirectories: true)
+            var payload: [String: Any] = [:]
+            if FileManager().fileExists(atPath: storeURL.path) {
+                let data = try Data(contentsOf: storeURL)
+                if let root = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    payload = root
+                }
+            }
+            var profiles = payload["profiles"] as? [String: Any] ?? [:]
+            profiles["anthropic:default"] = [
+                "type": "api_key",
+                "provider": "anthropic",
+                "key": trimmed,
+            ]
+            payload["version"] = payload["version"] ?? 1
+            payload["profiles"] = profiles
+
+            let data = try JSONSerialization.data(
+                withJSONObject: payload,
+                options: [.prettyPrinted, .sortedKeys])
+            try data.write(to: storeURL, options: [.atomic])
+            self.anthropicApiKey = ""
+            self.anthropicApiKeyStatus = "Saved API key to \(storeURL.path)."
+        } catch {
+            self.anthropicApiKeyStatus = "Failed to save API key: \(error.localizedDescription)"
+        }
+    }
+
+    func authProfileStoreURL() -> URL {
+        let root = OpenSoulConfigFile.loadDict()
+        let agentId = self.resolveDefaultAgentId(root: root)
+        let agentDir = self.resolveAgentDir(root: root, agentId: agentId)
+        return agentDir.appendingPathComponent("auth-profiles.json")
+    }
+
+    private func resolveDefaultAgentId(root: [String: Any]) -> String {
+        let agents = root["agents"] as? [String: Any]
+        let list = agents?["list"] as? [[String: Any]] ?? []
+        if list.isEmpty {
+            return "main"
+        }
+        if let preferred = list.first(where: { ($0["default"] as? Bool) == true }),
+           let raw = preferred["id"] as? String
+        {
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? "main" : trimmed.lowercased()
+        }
+        if let raw = list.first?["id"] as? String {
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? "main" : trimmed.lowercased()
+        }
+        return "main"
+    }
+
+    private func resolveAgentDir(root: [String: Any], agentId: String) -> URL {
+        let agents = root["agents"] as? [String: Any]
+        let list = agents?["list"] as? [[String: Any]] ?? []
+        if let match = list.first(where: { entry in
+            guard let raw = entry["id"] as? String else { return false }
+            return raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == agentId.lowercased()
+        }) {
+            if let rawDir = match["agentDir"] as? String {
+                let trimmed = rawDir.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmed.isEmpty {
+                    let expanded = NSString(string: trimmed).expandingTildeInPath
+                    return URL(fileURLWithPath: expanded, isDirectory: true)
+                }
+            }
+        }
+        return OpenSoulPaths.stateDirURL
+            .appendingPathComponent("agents", isDirectory: true)
+            .appendingPathComponent(agentId.lowercased(), isDirectory: true)
+            .appendingPathComponent("agent", isDirectory: true)
+    }
+
     func pollAnthropicClipboardIfNeeded() {
         guard self.currentPage == self.anthropicAuthPageIndex else { return }
         guard self.anthropicAuthPKCE != nil else { return }
