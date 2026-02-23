@@ -1,6 +1,6 @@
 import { html, nothing, type TemplateResult } from "lit";
 import type { ConfigUiHints } from "../types.ts";
-import { configText } from "./config-i18n.ts";
+import { configText, localizeConfigText } from "./config-i18n.ts";
 import {
   defaultValue,
   hintForPath,
@@ -113,8 +113,10 @@ export function renderNode(params: {
   const showLabel = params.showLabel ?? true;
   const type = schemaType(schema);
   const hint = hintForPath(path, hints);
-  const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
-  const help = hint?.help ?? schema.description;
+  const rawLabel = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
+  const label = localizeConfigText(locale, rawLabel);
+  const rawHelp = hint?.help ?? schema.description;
+  const help = rawHelp ? localizeConfigText(locale, rawHelp) : rawHelp;
   const key = pathKey(path);
 
   if (unsupported.has(key)) {
@@ -317,16 +319,18 @@ function renderTextInput(params: {
   const t = (english: string, chinese: string) => configText(locale, english, chinese);
   const showLabel = params.showLabel ?? true;
   const hint = hintForPath(path, hints);
-  const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
-  const help = hint?.help ?? schema.description;
+  const rawLabel = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
+  const label = localizeConfigText(locale, rawLabel);
+  const rawHelp = hint?.help ?? schema.description;
+  const help = rawHelp ? localizeConfigText(locale, rawHelp) : rawHelp;
   const isSensitive = hint?.sensitive ?? isSensitivePath(path);
   const placeholder =
     hint?.placeholder ??
     // oxlint-disable typescript/no-base-to-string
     (isSensitive
-      ? "••••"
+      ? "********"
       : schema.default !== undefined
-        ? `Default: ${String(schema.default)}`
+        ? t(`Default: ${String(schema.default)}`, `\u9ed8\u8ba4\uff1a${String(schema.default)}`)
         : "");
   const displayValue = value ?? "";
 
@@ -368,10 +372,13 @@ function renderTextInput(params: {
           <button
             type="button"
             class="cfg-input__reset"
-            title="Reset to default"
+            title=${t("Reset to default", "\u91cd\u7f6e\u4e3a\u9ed8\u8ba4\u503c")}
+            aria-label=${t("Reset to default", "\u91cd\u7f6e\u4e3a\u9ed8\u8ba4\u503c")}
             ?disabled=${disabled}
             @click=${() => onPatch(path, schema.default)}
-          >↺</button>
+          >
+            \u21ba
+          </button>
         `
             : nothing
         }
@@ -390,11 +397,13 @@ function renderNumberInput(params: {
   showLabel?: boolean;
   onPatch: (path: Array<string | number>, value: unknown) => void;
 }): TemplateResult {
-  const { schema, value, path, hints, disabled, onPatch } = params;
+  const { locale, schema, value, path, hints, disabled, onPatch } = params;
   const showLabel = params.showLabel ?? true;
   const hint = hintForPath(path, hints);
-  const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
-  const help = hint?.help ?? schema.description;
+  const rawLabel = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
+  const label = localizeConfigText(locale, rawLabel);
+  const rawHelp = hint?.help ?? schema.description;
+  const help = rawHelp ? localizeConfigText(locale, rawHelp) : rawHelp;
   const displayValue = value ?? schema.default ?? "";
   const numValue = typeof displayValue === "number" ? displayValue : 0;
 
@@ -446,8 +455,10 @@ function renderSelect(params: {
   const t = (english: string, chinese: string) => configText(locale, english, chinese);
   const showLabel = params.showLabel ?? true;
   const hint = hintForPath(path, hints);
-  const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
-  const help = hint?.help ?? schema.description;
+  const rawLabel = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
+  const label = localizeConfigText(locale, rawLabel);
+  const rawHelp = hint?.help ?? schema.description;
+  const help = rawHelp ? localizeConfigText(locale, rawHelp) : rawHelp;
   const resolvedValue = value ?? schema.default;
   const currentIndex = options.findIndex(
     (opt) => opt === resolvedValue || String(opt) === String(resolvedValue),
@@ -491,8 +502,10 @@ function renderObject(params: {
 }): TemplateResult {
   const { locale, schema, value, path, hints, unsupported, disabled, onPatch } = params;
   const hint = hintForPath(path, hints);
-  const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
-  const help = hint?.help ?? schema.description;
+  const rawLabel = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
+  const label = localizeConfigText(locale, rawLabel);
+  const rawHelp = hint?.help ?? schema.description;
+  const help = rawHelp ? localizeConfigText(locale, rawHelp) : rawHelp;
 
   const fallback = value ?? schema.default;
   const obj =
@@ -522,6 +535,7 @@ function renderObject(params: {
       <div class="cfg-fields">
         ${sorted.map(([propKey, node]) =>
           renderNode({
+            locale,
             schema: node,
             value: obj[propKey],
             path: [...path, propKey],
@@ -561,6 +575,7 @@ function renderObject(params: {
       <div class="cfg-object__content">
         ${sorted.map(([propKey, node]) =>
           renderNode({
+            locale,
             schema: node,
             value: obj[propKey],
             path: [...path, propKey],
@@ -605,8 +620,10 @@ function renderArray(params: {
   const t = (english: string, chinese: string) => configText(locale, english, chinese);
   const showLabel = params.showLabel ?? true;
   const hint = hintForPath(path, hints);
-  const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
-  const help = hint?.help ?? schema.description;
+  const rawLabel = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
+  const label = localizeConfigText(locale, rawLabel);
+  const rawHelp = hint?.help ?? schema.description;
+  const help = rawHelp ? localizeConfigText(locale, rawHelp) : rawHelp;
 
   const itemsSchema = Array.isArray(schema.items) ? schema.items[0] : schema.items;
   if (!itemsSchema) {
@@ -717,7 +734,7 @@ function renderMapField(params: {
   return html`
     <div class="cfg-map">
       <div class="cfg-map__header">
-        <span class="cfg-map__label">Custom entries</span>
+        <span class="cfg-map__label">${t("Custom entries", "\u81ea\u5b9a\u4e49\u6761\u76ee")}</span>
         <button
           type="button"
           class="cfg-map__add"
@@ -735,14 +752,17 @@ function renderMapField(params: {
           }}
         >
           <span class="cfg-map__add-icon">${icons.plus}</span>
-          Add Entry
+          ${t("Add Entry", "\u6dfb\u52a0\u6761\u76ee")}
         </button>
       </div>
 
       ${
         entries.length === 0
           ? html`
-              <div class="cfg-map__empty">No custom entries.</div>
+              <div class="cfg-map__empty">${t(
+                "No custom entries.",
+                "\u6682\u65e0\u81ea\u5b9a\u4e49\u6761\u76ee\u3002",
+              )}</div>
             `
           : html`
         <div class="cfg-map__items">
@@ -755,7 +775,7 @@ function renderMapField(params: {
                   <input
                     type="text"
                     class="cfg-input cfg-input--sm"
-                    placeholder="Key"
+                    placeholder=${t("Key", "\u952e")}
                     .value=${key}
                     ?disabled=${disabled}
                     @change=${(e: Event) => {
@@ -779,7 +799,7 @@ function renderMapField(params: {
                       ? html`
                         <textarea
                           class="cfg-textarea cfg-textarea--sm"
-                          placeholder="JSON value"
+                          placeholder=${t("JSON value", "JSON \u503c")}
                           rows="2"
                           .value=${fallback}
                           ?disabled=${disabled}
@@ -799,6 +819,7 @@ function renderMapField(params: {
                         ></textarea>
                       `
                       : renderNode({
+                          locale,
                           schema,
                           value: entryValue,
                           path: valuePath,
@@ -813,7 +834,8 @@ function renderMapField(params: {
                 <button
                   type="button"
                   class="cfg-map__item-remove"
-                  title="Remove entry"
+                  title=${t("Remove entry", "\u79fb\u9664\u6761\u76ee")}
+                  aria-label=${t("Remove entry", "\u79fb\u9664\u6761\u76ee")}
                   ?disabled=${disabled}
                   @click=${() => {
                     const next = { ...value };

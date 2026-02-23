@@ -66,4 +66,16 @@ describe("Settings language sync", () => {
     expect(app.onboardingLocale).toBe("zh-CN");
     expect(localStorage.getItem(UI_LOCALE_STORAGE_KEY)).toBe("zh-CN");
   });
+
+  it("uses ui locale as the source of truth for settings selector", async () => {
+    const app = await mountMainUi("/chat");
+    app.uiLocale = "zh-CN";
+    app.onboardingLocale = "en";
+    app.openSettings("general");
+    await app.updateComplete;
+
+    const select = app.querySelector<HTMLSelectElement>("#settings-system-language");
+    expect(select).not.toBeNull();
+    expect(select?.value).toBe("zh-CN");
+  });
 });

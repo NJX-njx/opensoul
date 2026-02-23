@@ -4,6 +4,7 @@ import { hintForPath, humanize, schemaType, type JsonSchema } from "./config-for
 import { analyzeConfigSchema, renderConfigForm, SECTION_META } from "./config-form.ts";
 import {
   configText,
+  localizeConfigText,
   localizeConfigSectionDescription,
   localizeConfigSectionLabel,
 } from "./config-i18n.ts";
@@ -322,18 +323,21 @@ function resolveSectionMeta(
 }
 
 function resolveSubsections(params: {
+  locale: Locale;
   key: string;
   schema: JsonSchema | undefined;
   uiHints: ConfigUiHints;
 }): SubsectionEntry[] {
-  const { key, schema, uiHints } = params;
+  const { locale, key, schema, uiHints } = params;
   if (!schema || schemaType(schema) !== "object" || !schema.properties) {
     return [];
   }
   const entries = Object.entries(schema.properties).map(([subKey, node]) => {
     const hint = hintForPath([key, subKey], uiHints);
-    const label = hint?.label ?? node.title ?? humanize(subKey);
-    const description = hint?.help ?? node.description ?? "";
+    const rawLabel = hint?.label ?? node.title ?? humanize(subKey);
+    const label = localizeConfigText(locale, rawLabel);
+    const rawDescription = hint?.help ?? node.description ?? "";
+    const description = rawDescription ? localizeConfigText(locale, rawDescription) : rawDescription;
     const order = hint?.order ?? 50;
     return { key: subKey, label, description, order };
   });
@@ -429,6 +433,7 @@ export function renderConfig(props: ConfigProps) {
     : null;
   const subsections = props.activeSection
     ? resolveSubsections({
+        locale: props.locale,
         key: props.activeSection,
         schema: activeSectionSchema,
         uiHints: props.uiHints,

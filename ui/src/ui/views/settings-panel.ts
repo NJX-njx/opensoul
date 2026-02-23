@@ -82,7 +82,12 @@ function renderGeneralSection(state: AppViewState) {
           >
             ${AVAILABLE_LOCALES.map(
               (locale) =>
-                html`<option value=${locale.value}>${locale.nativeLabel} - ${locale.label}</option>`,
+                html`<option
+                  value=${locale.value}
+                  ?selected=${locale.value === selectedLocale}
+                >
+                  ${locale.nativeLabel} - ${locale.label}
+                </option>`,
             )}
           </select>
         </div>
