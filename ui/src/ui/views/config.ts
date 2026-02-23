@@ -1,5 +1,6 @@
 import { html, nothing } from "lit";
 import type { ConfigUiHints } from "../types.ts";
+import type { Locale } from "./onboarding/i18n.ts";
 import { hintForPath, humanize, schemaType, type JsonSchema } from "./config-form.shared.ts";
 import { analyzeConfigSchema, renderConfigForm, SECTION_META } from "./config-form.ts";
 import {
@@ -8,7 +9,6 @@ import {
   localizeConfigSectionDescription,
   localizeConfigSectionLabel,
 } from "./config-i18n.ts";
-import type { Locale } from "./onboarding/i18n.ts";
 
 export type ConfigProps = {
   locale: Locale;
@@ -270,21 +270,32 @@ const sidebarIcons = {
   `,
 };
 
-// Section definitions
-const SECTIONS: Array<{ key: string; label: string }> = [
-  { key: "env", label: "Environment" },
-  { key: "update", label: "Updates" },
-  { key: "agents", label: "Agents" },
-  { key: "auth", label: "Authentication" },
-  { key: "channels", label: "Channels" },
-  { key: "messages", label: "Messages" },
-  { key: "commands", label: "Commands" },
-  { key: "hooks", label: "Hooks" },
-  { key: "skills", label: "Skills" },
-  { key: "tools", label: "Tools" },
-  { key: "gateway", label: "Gateway" },
-  { key: "wizard", label: "Setup Wizard" },
+// Section definitions with categories for better organization
+type SectionDef = { key: string; label: string; category: "essential" | "advanced" | "developer" };
+
+const SECTIONS: SectionDef[] = [
+  // Essential - most users will use these
+  { key: "env", label: "Environment", category: "essential" },
+  { key: "agents", label: "Agents", category: "essential" },
+  { key: "channels", label: "Channels", category: "essential" },
+  { key: "messages", label: "Messages", category: "essential" },
+  // Advanced - power users
+  { key: "auth", label: "Authentication", category: "advanced" },
+  { key: "skills", label: "Skills", category: "advanced" },
+  { key: "tools", label: "Tools", category: "advanced" },
+  { key: "update", label: "Updates", category: "advanced" },
+  // Developer - technical users
+  { key: "commands", label: "Commands", category: "developer" },
+  { key: "hooks", label: "Hooks", category: "developer" },
+  { key: "gateway", label: "Gateway", category: "developer" },
+  { key: "wizard", label: "Setup Wizard", category: "developer" },
 ];
+
+const CATEGORY_LABELS: Record<string, { en: string; zh: string }> = {
+  essential: { en: "Essential", zh: "\u57fa\u7840" },
+  advanced: { en: "Advanced", zh: "\u8fdb\u9636" },
+  developer: { en: "Developer", zh: "\u5f00\u53d1\u8005" },
+};
 
 type SubsectionEntry = {
   key: string;
@@ -337,7 +348,9 @@ function resolveSubsections(params: {
     const rawLabel = hint?.label ?? node.title ?? humanize(subKey);
     const label = localizeConfigText(locale, rawLabel);
     const rawDescription = hint?.help ?? node.description ?? "";
-    const description = rawDescription ? localizeConfigText(locale, rawDescription) : rawDescription;
+    const description = rawDescription
+      ? localizeConfigText(locale, rawDescription)
+      : rawDescription;
     const order = hint?.order ?? 50;
     return { key: subKey, label, description, order };
   });
@@ -518,7 +531,7 @@ export function renderConfig(props: ConfigProps) {
           }
         </div>
 
-        <!-- Section nav -->
+        <!-- Section nav with categories -->
         <nav class="config-nav">
           <button
             class="config-nav__item ${props.activeSection === null ? "active" : ""}"
@@ -527,23 +540,34 @@ export function renderConfig(props: ConfigProps) {
             <span class="config-nav__icon">${sidebarIcons.all}</span>
             <span class="config-nav__label">${t("All Settings", "\u5168\u90e8\u8bbe\u7f6e")}</span>
           </button>
-          ${allSections.map(
-            (section) => html`
-              <button
-                class="config-nav__item ${props.activeSection === section.key ? "active" : ""}"
-                @click=${() => props.onSectionChange(section.key)}
-              >
-                <span class="config-nav__icon"
-                  >${getSectionIcon(section.key)}</span
-                >
-                <span class="config-nav__label">${localizeConfigSectionLabel(
-                  props.locale,
-                  section.key,
-                  section.label,
-                )}</span>
-              </button>
-            `,
-          )}
+          ${(["essential", "advanced", "developer"] as const).map((cat) => {
+            const catLabel = CATEGORY_LABELS[cat];
+            const catSections = allSections.filter((s) => {
+              const def = SECTIONS.find((d) => d.key === s.key);
+              return def ? def.category === cat : cat === "developer";
+            });
+            if (catSections.length === 0) return nothing;
+            return html`
+              <div class="config-nav__group">
+                <div class="config-nav__group-label">${configText(props.locale, catLabel.en, catLabel.zh)}</div>
+                ${catSections.map(
+                  (section) => html`
+                    <button
+                      class="config-nav__item ${props.activeSection === section.key ? "active" : ""}"
+                      @click=${() => props.onSectionChange(section.key)}
+                    >
+                      <span class="config-nav__icon">${getSectionIcon(section.key)}</span>
+                      <span class="config-nav__label">${localizeConfigSectionLabel(
+                        props.locale,
+                        section.key,
+                        section.label,
+                      )}</span>
+                    </button>
+                  `,
+                )}
+              </div>
+            `;
+          })}
         </nav>
 
         <!-- Mode toggle at bottom -->
@@ -596,36 +620,40 @@ export function renderConfig(props: ConfigProps) {
               ?disabled=${props.loading}
               @click=${props.onReload}
             >
-              ${props.loading
-                ? t("Loading...", "\u52a0\u8f7d\u4e2d...")
-                : t("Reload", "\u91cd\u8f7d")}
+              ${
+                props.loading
+                  ? t("Loading...", "\u52a0\u8f7d\u4e2d...")
+                  : t("Reload", "\u91cd\u8f7d")
+              }
             </button>
             <button
               class="btn btn--sm primary"
               ?disabled=${!canSave}
               @click=${props.onSave}
             >
-              ${props.saving
-                ? t("Saving...", "\u4fdd\u5b58\u4e2d...")
-                : t("Save", "\u4fdd\u5b58")}
+              ${props.saving ? t("Saving...", "\u4fdd\u5b58\u4e2d...") : t("Save", "\u4fdd\u5b58")}
             </button>
             <button
               class="btn btn--sm"
               ?disabled=${!canApply}
               @click=${props.onApply}
             >
-              ${props.applying
-                ? t("Applying...", "\u5e94\u7528\u4e2d...")
-                : t("Apply", "\u5e94\u7528")}
+              ${
+                props.applying
+                  ? t("Applying...", "\u5e94\u7528\u4e2d...")
+                  : t("Apply", "\u5e94\u7528")
+              }
             </button>
             <button
               class="btn btn--sm"
               ?disabled=${!canUpdate}
               @click=${props.onUpdate}
             >
-              ${props.updating
-                ? t("Updating...", "\u66f4\u65b0\u4e2d...")
-                : t("Update", "\u66f4\u65b0")}
+              ${
+                props.updating
+                  ? t("Updating...", "\u66f4\u65b0\u4e2d...")
+                  : t("Update", "\u66f4\u65b0")
+              }
             </button>
           </div>
         </div>
@@ -698,9 +726,9 @@ export function renderConfig(props: ConfigProps) {
         ${
           allowSubnav
             ? html`
-              <div class="config-subnav">
+              <div class="config-subnav-v2">
                 <button
-                  class="config-subnav__item ${effectiveSubsection === null ? "active" : ""}"
+                  class="config-subnav-v2__pill ${effectiveSubsection === null ? "active" : ""}"
                   @click=${() => props.onSubsectionChange(ALL_SUBSECTION)}
                 >
                   ${t("All", "\u5168\u90e8")}
@@ -708,13 +736,13 @@ export function renderConfig(props: ConfigProps) {
                 ${subsections.map(
                   (entry) => html`
                     <button
-                      class="config-subnav__item ${
+                      class="config-subnav-v2__pill ${
                         effectiveSubsection === entry.key ? "active" : ""
                       }"
-                      title=${entry.description || entry.label}
                       @click=${() => props.onSubsectionChange(entry.key)}
                     >
                       ${entry.label}
+                      ${entry.description ? html`<span class="config-subnav-v2__hint">${entry.description}</span>` : nothing}
                     </button>
                   `,
                 )}
@@ -752,7 +780,7 @@ export function renderConfig(props: ConfigProps) {
                 ${
                   formUnsafe
                     ? html`
-                        <div class="callout danger" style="margin-top: 12px">
+                        <div class="callout muted" style="margin-top: 12px">
                           ${t(
                             "Form view can't safely edit some fields. Use Raw to avoid losing config entries.",
                             "\u8868\u5355\u89c6\u56fe\u65e0\u6cd5\u5b89\u5168\u7f16\u8f91\u90e8\u5206\u5b57\u6bb5\uff0c\u8bf7\u4f7f\u7528\u539f\u59cb\u6a21\u5f0f\u907f\u514d\u914d\u7f6e\u9879\u4e22\u5931\u3002",

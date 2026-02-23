@@ -214,77 +214,114 @@ export function subtitleForTab(tab: Tab, locale?: Locale) {
     case "agents":
       return uiText(
         locale,
-        "Build and manage agent workspaces, tools, and identities.",
-        "构建和管理代理工作区、工具与身份信息。",
+        "Configure agent workspaces, tools, and personas.",
+        "配置智能体工作区、工具与人设。",
       );
     case "overview":
       return uiText(
         locale,
-        "System health, entry points, and fast operational diagnostics.",
-        "系统健康状态、入口与快速运维诊断。",
+        "Quick health check and entry points at a glance.",
+        "一览系统状态与快捷入口。",
       );
     case "channels":
       return uiText(
         locale,
-        "Operate and monitor channel connectivity and settings.",
-        "运营并监控渠道连接与配置。",
+        "See which messaging channels are connected and healthy.",
+        "查看消息渠道的连接与健康状态。",
       );
     case "instances":
       return uiText(
         locale,
-        "Live presence beacons from connected clients and nodes.",
-        "来自已连接客户端与节点的在线状态信标。",
+        "See which clients and nodes are currently online.",
+        "查看当前在线的客户端与节点。",
       );
     case "sessions":
       return uiText(
         locale,
-        "Inspect active sessions and adjust per-session behavior.",
-        "查看活跃会话并调整每个会话的行为。",
+        "Browse active conversations and fine-tune each session.",
+        "浏览活跃对话并微调每个会话。",
       );
     case "usage":
-      return "";
+      return uiText(
+        locale,
+        "Track token usage, costs, and trends over time.",
+        "追踪 Token 用量、费用及趋势变化。",
+      );
     case "cron":
       return uiText(
         locale,
-        "Schedule wakeups and recurring automated agent runs.",
-        "安排唤醒与周期性自动代理执行。",
+        "Set up scheduled tasks and recurring agent runs.",
+        "设置定时任务与周期性智能体执行。",
       );
     case "skills":
       return uiText(
         locale,
-        "Manage skill availability and API key injection across agents.",
-        "管理技能可用性与跨代理 API Key 注入。",
+        "Manage available skills and API keys for your agents.",
+        "管理智能体可用技能与 API Key。",
       );
     case "nodes":
       return uiText(
         locale,
-        "Manage paired devices, capabilities, and command exposure.",
-        "管理配对设备、能力与命令暴露。",
+        "Pair devices and control which commands are exposed.",
+        "配对设备并控制暴露的命令。",
       );
     case "chat":
       return uiText(
         locale,
-        "Direct assistant workspace for fast interventions and control.",
-        "直接与助手交互的工作区，用于快速控制与干预。",
+        "Start a chat session and interact with your assistant directly.",
+        "开始对话，直接与助手交互。",
       );
     case "config":
       return uiText(
         locale,
-        "Edit ~/.opensoul/opensoul.json with schema-aware safeguards.",
-        "以 schema 感知保护编辑 ~/.opensoul/opensoul.json。",
+        "Edit opensoul.json configuration with built-in validation.",
+        "编辑 opensoul.json 配置，内置校验保护。",
       );
     case "debug":
       return uiText(
         locale,
-        "Advanced snapshots, event inspection, and manual RPC calls.",
-        "高级快照、事件检查与手动 RPC 调用。",
+        "Inspect events, snapshots, and make manual RPC calls.",
+        "检查事件、快照与手动 RPC 调用。",
       );
     case "logs":
       return uiText(
         locale,
-        "Live tail of gateway file logs with operational filtering.",
-        "网关文件日志实时追踪与运维过滤。",
+        "Stream live gateway logs with filtering.",
+        "实时查看网关日志并过滤。",
       );
+    default:
+      return "";
+  }
+}
+
+export function navHintForTab(tab: Tab, locale?: Locale) {
+  switch (tab) {
+    case "chat":
+      return uiText(locale, "Ask and act quickly", "快速提问与操作");
+    case "channels":
+      return uiText(locale, "Connect apps", "连接应用");
+    case "instances":
+      return uiText(locale, "Live clients", "在线客户端");
+    case "sessions":
+      return uiText(locale, "Per-session control", "会话管控");
+    case "usage":
+      return uiText(locale, "Cost and tokens", "费用与 Token");
+    case "cron":
+      return uiText(locale, "Scheduled runs", "定时执行");
+    case "agents":
+      return uiText(locale, "Workspaces and tools", "工作区与工具");
+    case "skills":
+      return uiText(locale, "Capabilities", "能力管理");
+    case "nodes":
+      return uiText(locale, "Devices and approvals", "设备与审批");
+    case "overview":
+      return uiText(locale, "Health and quick actions", "健康与快捷操作");
+    case "config":
+      return uiText(locale, "Gateway config", "网关配置");
+    case "debug":
+      return uiText(locale, "Diagnostics", "诊断工具");
+    case "logs":
+      return uiText(locale, "Runtime logs", "运行日志");
     default:
       return "";
   }

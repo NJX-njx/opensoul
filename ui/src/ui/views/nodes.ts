@@ -130,7 +130,7 @@ function renderDevices(props: NodesProps) {
 
 function renderPendingDevice(req: PendingDevice, props: NodesProps) {
   const name = req.displayName?.trim() || req.deviceId;
-  const age = typeof req.ts === "number" ? formatRelativeTimestamp(req.ts) : "n/a";
+  const age = typeof req.ts === "number" ? formatRelativeTimestamp(req.ts) : "—";
   const role = req.role?.trim() ? `role: ${req.role}` : "role: -";
   const repair = req.isRepair ? " · repair" : "";
   const ip = req.remoteIp ? ` · ${req.remoteIp}` : "";

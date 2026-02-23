@@ -1,0 +1,239 @@
+import { html, nothing } from "lit";
+import { uiText } from "../i18n.ts";
+import type { LogEntry, LogLevel } from "../types.ts";
+import type { Locale } from "./onboarding/i18n.ts";
+
+const LEVELS: LogLevel[] = ["trace", "debug", "info", "warn", "error", "fatal"];
+
+export type LogsProps = {
+  locale: Locale;
+  loading: boolean;
+  error: string | null;
+  file: string | null;
+  entries: LogEntry[];
+  filterText: string;
+  levelFilters: Record<LogLevel, boolean>;
+  autoFollow: boolean;
+  truncated: boolean;
+  onFilterTextChange: (next: string) => void;
+  onLevelToggle: (level: LogLevel, enabled: boolean) => void;
+  onToggleAutoFollow: (next: boolean) => void;
+  onRefresh: () => void;
+  onExport: (lines: string[], label: string) => void;
+  onScroll: (event: Event) => void;
+};
+
+function formatTime(value?: string | null) {
+  if (!value) {
+    return "";
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toLocaleTimeString();
+}
+
+function matchesFilter(entry: LogEntry, needle: string) {
+  if (!needle) {
+    return true;
+  }
+  const haystack = [entry.message, entry.subsystem, entry.raw]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(needle);
+}
+
+function countByLevel(entries: LogEntry[]) {
+  const counts: Record<LogLevel, number> = {
+    trace: 0,
+    debug: 0,
+    info: 0,
+    warn: 0,
+    error: 0,
+    fatal: 0,
+  };
+  for (const entry of entries) {
+    if (entry.level && entry.level in counts) {
+      counts[entry.level] += 1;
+    }
+  }
+  return counts;
+}
+
+export function renderLogs(props: LogsProps) {
+  const t = (english: string, chinese: string) => uiText(props.locale, english, chinese);
+  const needle = props.filterText.trim().toLowerCase();
+  const levelFiltered = LEVELS.some((level) => !props.levelFilters[level]);
+  const filtered = props.entries.filter((entry) => {
+    if (entry.level && !props.levelFilters[entry.level]) {
+      return false;
+    }
+    return matchesFilter(entry, needle);
+  });
+
+  const counts = countByLevel(props.entries);
+  const issueCount = filtered.filter((entry) => entry.level === "warn" || entry.level === "error" || entry.level === "fatal").length;
+  const exportLabel = needle || levelFiltered ? "filtered" : "visible";
+
+  return html`
+    <section class="settings-page settings-page--logs">
+      <header class="settings-page__header">
+        <div>
+          <h3 class="settings-page__title">${t("Runtime Logs", "������־")}</h3>
+          <p class="settings-page__desc">
+            ${t(
+              "Filter by level or keyword, then inspect entries in a readable timeline.",
+              "�ɰ�����͹ؼ���ɸѡ�����ڸ��׶���ʱ������鿴��־��",
+            )}
+          </p>
+        </div>
+      </header>
+
+      <div class="settings-surface logs-toolbar">
+        <div class="logs-toolbar__top">
+          <label class="field logs-toolbar__search">
+            <span>${t("Search", "����")}</span>
+            <input
+              .value=${props.filterText}
+              @input=${(e: Event) => props.onFilterTextChange((e.target as HTMLInputElement).value)}
+              placeholder=${t("Search logs", "������־")}
+            />
+          </label>
+
+          <label class="logs-toggle">
+            <input
+              type="checkbox"
+              .checked=${props.autoFollow}
+              @change=${(e: Event) =>
+                props.onToggleAutoFollow((e.target as HTMLInputElement).checked)}
+            />
+            <span class="logs-toggle__label">${t("Auto-follow new entries", "�Զ���������־")}</span>
+          </label>
+
+          <div class="logs-toolbar__actions">
+            <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
+              ${props.loading ? t("Loading...", "������...") : t("Refresh", "ˢ��")}
+            </button>
+            <button
+              class="btn"
+              ?disabled=${filtered.length === 0}
+              @click=${() =>
+                props.onExport(
+                  filtered.map((entry) => entry.raw),
+                  exportLabel,
+                )}
+            >
+              ${t("Export", "����")} ${exportLabel}
+            </button>
+          </div>
+        </div>
+
+        <div class="chip-row logs-level-row">
+          ${LEVELS.map(
+            (level) => html`
+              <label class="chip log-chip ${level}">
+                <input
+                  type="checkbox"
+                  .checked=${props.levelFilters[level]}
+                  @change=${(e: Event) =>
+                    props.onLevelToggle(level, (e.target as HTMLInputElement).checked)}
+                />
+                <span>${level}</span>
+                <span class="logs-level-count">${counts[level]}</span>
+              </label>
+            `,
+          )}
+        </div>
+
+        <div class="logs-summary-grid">
+          <div class="logs-summary-card">
+            <div class="logs-summary-card__label">${t("Visible", "��ǰ�ɼ�")}</div>
+            <div class="logs-summary-card__value">${filtered.length}</div>
+          </div>
+          <div class="logs-summary-card">
+            <div class="logs-summary-card__label">${t("All entries", "����Ŀ")}</div>
+            <div class="logs-summary-card__value">${props.entries.length}</div>
+          </div>
+          <div class="logs-summary-card">
+            <div class="logs-summary-card__label">${t("Issues", "�澯/����")}</div>
+            <div class="logs-summary-card__value">${issueCount}</div>
+          </div>
+          <div class="logs-summary-card">
+            <div class="logs-summary-card__label">${t("Active levels", "���ü���")}</div>
+            <div class="logs-summary-card__value">${activeLevels}/${LEVELS.length}</div>
+          </div>
+        </div>
+      </div>
+
+      ${
+        props.file
+          ? html`<div class="callout logs-callout">${t("Source file", "��־�ļ�")}: ${props.file}</div>`
+          : nothing
+      }
+      ${
+        props.truncated
+          ? html`
+              <div class="callout warn logs-callout">
+                ${t(
+                  "Output is truncated. Showing the most recent chunk.",
+                  "��־��������ǰ��չʾ���һ�����ݡ�",
+                )}
+              </div>
+            `
+          : nothing
+      }
+      ${
+        props.error
+          ? html`<div class="callout danger logs-callout">${props.error}</div>`
+          : nothing
+      }
+
+      <div class="settings-surface logs-stream-shell">
+        <div class="log-stream log-stream--friendly" @scroll=${props.onScroll}>
+          ${
+            filtered.length === 0
+              ? html`
+                  <div class="logs-empty-state">
+                    <div class="logs-empty-state__title">${t("No matching logs", "û��ƥ�����־")}</div>
+                    <div class="logs-empty-state__desc">
+                      ${t(
+                        "Try a different keyword, or re-enable log levels above.",
+                        "�ɳ��Ը����ؼ��ʣ������������Ϸ���־����",
+                      )}
+                    </div>
+                  </div>
+                `
+              : filtered.map(
+                  (entry) => html`
+                    <article class="log-row log-row--friendly">
+                      <div class="log-row__meta">
+                        <span class="log-time mono">${formatTime(entry.time)}</span>
+                        ${
+                          entry.level
+                            ? html`<span class="log-level ${entry.level}">${entry.level}</span>`
+                            : nothing
+                        }
+                        <span class="log-subsystem mono">${entry.subsystem ?? t("general", "ͨ��")}</span>
+                      </div>
+                      <div class="log-message">${entry.message ?? entry.raw}</div>
+                      ${
+                        entry.raw && entry.message && entry.raw !== entry.message
+                          ? html`
+                              <details class="log-row__raw">
+                                <summary>${t("View raw JSON", "�鿴ԭʼ JSON")}</summary>
+                                <pre class="code-block">${entry.raw}</pre>
+                              </details>
+                            `
+                          : nothing
+                      }
+                    </article>
+                  `,
+                )
+          }
+        </div>
+      </div>
+    </section>
+  `;
+}

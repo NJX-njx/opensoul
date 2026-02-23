@@ -109,26 +109,62 @@ function resolveThinkLevelPatchValue(value: string, isBinary: boolean): string |
 
 export function renderSessions(props: SessionsProps) {
   const rows = props.result?.sessions ?? [];
+  const globalCount = rows.filter((row) => row.kind === "global").length;
+  const linkedCount = rows.length - globalCount;
+  const customizedCount = rows.filter((row) => {
+    return Boolean(
+      row.label?.trim() ||
+      row.thinkingLevel?.trim() ||
+      row.verboseLevel?.trim() ||
+      row.reasoningLevel?.trim(),
+    );
+  }).length;
+
   return html`
     <section class="card">
-      <div class="row" style="justify-content: space-between;">
+      <div class="section-header">
         <div>
-          <div class="card-title">Sessions</div>
-          <div class="card-sub">Active session keys and per-session overrides.</div>
+          <div class="card-title">Sessions · 会话管理</div>
+          <div class="card-sub">View active conversations and customize behavior per session.</div>
         </div>
-        <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-          ${props.loading ? "Loading…" : "Refresh"}
-        </button>
+        <div class="section-header__meta">
+          <button class="btn btn--sm" ?disabled=${props.loading} @click=${props.onRefresh}>
+            ${props.loading ? "Refreshing…" : "↻ Refresh"}
+          </button>
+        </div>
       </div>
 
-      <div class="filters" style="margin-top: 14px;">
+      <div class="page-summary-grid" style="margin-top: 18px;">
+        <div class="page-summary-card">
+          <div class="page-summary-label">Total · 总数</div>
+          <div class="page-summary-value">${rows.length}</div>
+          <div class="page-summary-sub">Matching current filters</div>
+        </div>
+        <div class="page-summary-card">
+          <div class="page-summary-label">Scoped · 独立会话</div>
+          <div class="page-summary-value">${linkedCount}</div>
+          <div class="page-summary-sub">Click to open in chat</div>
+        </div>
+        <div class="page-summary-card">
+          <div class="page-summary-label">Global · 全局默认</div>
+          <div class="page-summary-value">${globalCount}</div>
+          <div class="page-summary-sub">Shared default sessions</div>
+        </div>
+        <div class="page-summary-card">
+          <div class="page-summary-label">Customized · 已自定义</div>
+          <div class="page-summary-value">${customizedCount}</div>
+          <div class="page-summary-sub">Has behavior overrides</div>
+        </div>
+      </div>
+
+      <div class="filters" style="margin-top: 18px;">
         <label class="field">
-          <span>Active within (minutes)</span>
+          <span>Active within (min)</span>
           <input
             .value=${props.activeMinutes}
-            @input=${(e: Event) =>
+            @input=${(event: Event) =>
               props.onFiltersChange({
-                activeMinutes: (e.target as HTMLInputElement).value,
+                activeMinutes: (event.target as HTMLInputElement).value,
                 limit: props.limit,
                 includeGlobal: props.includeGlobal,
                 includeUnknown: props.includeUnknown,
@@ -139,58 +175,59 @@ export function renderSessions(props: SessionsProps) {
           <span>Limit</span>
           <input
             .value=${props.limit}
-            @input=${(e: Event) =>
+            @input=${(event: Event) =>
               props.onFiltersChange({
                 activeMinutes: props.activeMinutes,
-                limit: (e.target as HTMLInputElement).value,
+                limit: (event.target as HTMLInputElement).value,
                 includeGlobal: props.includeGlobal,
                 includeUnknown: props.includeUnknown,
               })}
           />
         </label>
         <label class="field checkbox">
-          <span>Include global</span>
+          <span>Show global</span>
           <input
             type="checkbox"
             .checked=${props.includeGlobal}
-            @change=${(e: Event) =>
+            @change=${(event: Event) =>
               props.onFiltersChange({
                 activeMinutes: props.activeMinutes,
                 limit: props.limit,
-                includeGlobal: (e.target as HTMLInputElement).checked,
+                includeGlobal: (event.target as HTMLInputElement).checked,
                 includeUnknown: props.includeUnknown,
               })}
           />
         </label>
         <label class="field checkbox">
-          <span>Include unknown</span>
+          <span>Show unknown</span>
           <input
             type="checkbox"
             .checked=${props.includeUnknown}
-            @change=${(e: Event) =>
+            @change=${(event: Event) =>
               props.onFiltersChange({
                 activeMinutes: props.activeMinutes,
                 limit: props.limit,
                 includeGlobal: props.includeGlobal,
-                includeUnknown: (e.target as HTMLInputElement).checked,
+                includeUnknown: (event.target as HTMLInputElement).checked,
               })}
           />
         </label>
       </div>
 
+      ${props.error ? html`<div class="callout danger" style="margin-top: 14px;">${props.error}</div>` : nothing}
+
       ${
-        props.error
-          ? html`<div class="callout danger" style="margin-top: 12px;">${props.error}</div>`
+        props.result?.path
+          ? html`<details class="collapsible" style="margin-top: 12px;">
+        <summary>Storage path</summary>
+        <div class="mono" style="margin-top: 6px; font-size: 12px;">${props.result.path}</div>
+      </details>`
           : nothing
       }
 
-      <div class="muted" style="margin-top: 12px;">
-        ${props.result ? `Store: ${props.result.path}` : ""}
-      </div>
-
-      <div class="table" style="margin-top: 16px;">
+      <div class="table" style="margin-top: 20px;">
         <div class="table-head">
-          <div>Key</div>
+          <div>Session Key</div>
           <div>Label</div>
           <div>Kind</div>
           <div>Updated</div>
@@ -198,12 +235,18 @@ export function renderSessions(props: SessionsProps) {
           <div>Thinking</div>
           <div>Verbose</div>
           <div>Reasoning</div>
-          <div>Actions</div>
+          <div></div>
         </div>
         ${
           rows.length === 0
             ? html`
-                <div class="muted">No sessions found.</div>
+                <div class="empty-state">
+                  <div class="empty-state-icon">💬</div>
+                  <div class="empty-state-title">No sessions found</div>
+                  <div class="empty-state-desc">
+                    Try adjusting the filters above, or start a conversation to create a session.
+                  </div>
+                </div>
               `
             : rows.map((row) =>
                 renderRow(row, props.basePath, props.onPatch, props.onDelete, props.loading),
@@ -221,7 +264,7 @@ function renderRow(
   onDelete: SessionsProps["onDelete"],
   disabled: boolean,
 ) {
-  const updated = row.updatedAt ? formatRelativeTimestamp(row.updatedAt) : "n/a";
+  const updated = row.updatedAt ? formatRelativeTimestamp(row.updatedAt) : "—";
   const rawThinking = row.thinkingLevel ?? "";
   const isBinaryThinking = isBinaryThinkingProvider(row.modelProvider);
   const thinking = resolveThinkLevelDisplay(rawThinking, isBinaryThinking);
@@ -251,9 +294,9 @@ function renderRow(
         <input
           .value=${row.label ?? ""}
           ?disabled=${disabled}
-          placeholder="(optional)"
-          @change=${(e: Event) => {
-            const value = (e.target as HTMLInputElement).value.trim();
+          placeholder="Add label…"
+          @change=${(event: Event) => {
+            const value = (event.target as HTMLInputElement).value.trim();
             onPatch(row.key, { label: value || null });
           }}
         />
@@ -264,8 +307,8 @@ function renderRow(
       <div>
         <select
           ?disabled=${disabled}
-          @change=${(e: Event) => {
-            const value = (e.target as HTMLSelectElement).value;
+          @change=${(event: Event) => {
+            const value = (event.target as HTMLSelectElement).value;
             onPatch(row.key, {
               thinkingLevel: resolveThinkLevelPatchValue(value, isBinaryThinking),
             });
@@ -282,8 +325,8 @@ function renderRow(
       <div>
         <select
           ?disabled=${disabled}
-          @change=${(e: Event) => {
-            const value = (e.target as HTMLSelectElement).value;
+          @change=${(event: Event) => {
+            const value = (event.target as HTMLSelectElement).value;
             onPatch(row.key, { verboseLevel: value || null });
           }}
         >
@@ -298,8 +341,8 @@ function renderRow(
       <div>
         <select
           ?disabled=${disabled}
-          @change=${(e: Event) => {
-            const value = (e.target as HTMLSelectElement).value;
+          @change=${(event: Event) => {
+            const value = (event.target as HTMLSelectElement).value;
             onPatch(row.key, { reasoningLevel: value || null });
           }}
         >

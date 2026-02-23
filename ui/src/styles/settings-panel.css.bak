@@ -411,7 +411,360 @@
   opacity: 0.65;
 }
 
-/* Logs and Debug page styles are in settings-logs.css and settings-debug.css */
+/* ===========================================
+   Logs page
+   =========================================== */
+
+.logs-toolbar {
+  display: grid;
+  gap: 12px;
+}
+
+.logs-toolbar__top {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.logs-toolbar__search {
+  min-width: 0;
+}
+
+.logs-toggle {
+  height: 38px;
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-elevated) 80%, transparent);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.logs-toggle input {
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.logs-toggle__label {
+  white-space: nowrap;
+}
+
+.logs-toolbar__actions {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.logs-level-row {
+  gap: 6px;
+}
+
+.logs-level-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--bg-elevated) 76%, transparent);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.logs-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.logs-summary-card {
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-elevated) 86%, transparent);
+  padding: 10px 12px;
+  min-width: 0;
+}
+
+.logs-summary-card__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.logs-summary-card__value {
+  margin-top: 5px;
+  font-size: 17px;
+  font-weight: 640;
+  color: var(--text-strong);
+  letter-spacing: -0.02em;
+}
+
+.logs-callout {
+  margin-top: 10px;
+}
+
+.logs-stream-shell {
+  padding: 10px;
+}
+
+.log-stream--friendly {
+  max-height: min(52vh, 560px);
+  border: none;
+  background: transparent;
+  display: grid;
+  gap: 8px;
+}
+
+.log-row--friendly {
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--bg-elevated) 90%, transparent);
+  display: grid;
+  gap: 8px;
+}
+
+.log-row--friendly .log-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.log-row--friendly .log-time {
+  font-size: 11px;
+}
+
+.log-row--friendly .log-level {
+  padding: 1px 7px;
+  font-size: 10px;
+}
+
+.log-row--friendly .log-subsystem {
+  font-size: 12px;
+  opacity: 0.92;
+}
+
+.log-row--friendly .log-message {
+  font-size: 13px;
+  line-height: 1.55;
+  font-family: var(--font-body);
+  color: var(--text);
+}
+
+.log-row__raw {
+  border-top: 1px dashed color-mix(in srgb, var(--border) 72%, transparent);
+  padding-top: 8px;
+}
+
+.log-row__raw summary {
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.logs-empty-state {
+  border: 1px dashed color-mix(in srgb, var(--border) 80%, transparent);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.logs-empty-state__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.logs-empty-state__desc {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ===========================================
+   Debug page
+   =========================================== */
+
+.debug-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.debug-metric-card {
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+  padding: 10px 12px;
+}
+
+.debug-metric-card__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.debug-metric-card__value {
+  margin-top: 5px;
+  font-size: 16px;
+  font-weight: 640;
+  color: var(--text-strong);
+}
+
+.debug-metric-card__value--ok {
+  color: var(--ok);
+}
+
+.debug-metric-card__value--warn {
+  color: var(--warn);
+}
+
+.debug-metric-card__value--danger {
+  color: var(--danger);
+}
+
+.debug-metric-card__value--muted {
+  color: var(--muted);
+}
+
+.debug-callout {
+  margin-top: 2px;
+}
+
+.debug-snapshot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.debug-snapshot-card {
+  border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+  overflow: hidden;
+}
+
+.debug-snapshot-card__summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 12px;
+}
+
+.debug-snapshot-card__summary::-webkit-details-marker {
+  display: none;
+}
+
+.debug-snapshot-card__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.debug-snapshot-card__sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.debug-snapshot-card__body {
+  padding: 0 12px 12px;
+}
+
+.debug-nested-details {
+  margin-top: 8px;
+}
+
+.debug-nested-details summary {
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.debug-events-shell {
+  margin-top: 2px;
+}
+
+.debug-events-list {
+  display: grid;
+  gap: 8px;
+}
+
+.debug-event-item {
+  border: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+  overflow: hidden;
+}
+
+.debug-event-item__summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+}
+
+.debug-event-item__summary::-webkit-details-marker {
+  display: none;
+}
+
+.debug-event-item__main {
+  min-width: 0;
+}
+
+.debug-event-item__event {
+  font-size: 13px;
+  font-weight: 560;
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+}
+
+.debug-event-item__time {
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.debug-event-item__hint {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.debug-event-item .code-block {
+  margin: 0 12px 12px;
+}
+
+.debug-advanced-shell,
+.debug-models-shell {
+  margin-top: 2px;
+}
+
+.debug-advanced-shell__summary,
+.debug-models-shell__summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.debug-advanced-shell__summary::-webkit-details-marker,
+.debug-models-shell__summary::-webkit-details-marker {
+  display: none;
+}
+
+.debug-advanced-shell__body {
+  margin-top: 6px;
+}
 
 /* ===========================================
    Config integration in settings panel
@@ -492,6 +845,20 @@
     height: calc(100% + 32px);
   }
 
+  .logs-toolbar__top {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .logs-toolbar__actions {
+    justify-content: flex-start;
+  }
+
+  .logs-summary-grid,
+  .debug-metrics-grid,
+  .debug-snapshot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
@@ -517,4 +884,9 @@
     width: 100%;
   }
 
+  .logs-summary-grid,
+  .debug-metrics-grid,
+  .debug-snapshot-grid {
+    grid-template-columns: 1fr;
+  }
 }

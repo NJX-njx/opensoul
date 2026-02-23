@@ -547,11 +547,11 @@ export function renderAgents(props: AgentsProps) {
       <section class="card agents-sidebar">
         <div class="row" style="justify-content: space-between;">
           <div>
-            <div class="card-title">Agents</div>
-            <div class="card-sub">${agents.length} configured.</div>
+            <div class="card-title">Agents · 智能体</div>
+            <div class="card-sub">${agents.length} configured</div>
           </div>
           <button class="btn btn--sm" ?disabled=${props.loading} @click=${props.onRefresh}>
-            ${props.loading ? "Loading…" : "Refresh"}
+            ${props.loading ? "Loading…" : "↻ Refresh"}
           </button>
         </div>
         ${
@@ -563,7 +563,11 @@ export function renderAgents(props: AgentsProps) {
           ${
             agents.length === 0
               ? html`
-                  <div class="muted">No agents found.</div>
+                  <div class="empty-state">
+                    <div class="empty-state-icon">🤖</div>
+                    <div class="empty-state-title">No agents yet</div>
+                    <div class="empty-state-desc">Configure an agent in your config to get started.</div>
+                  </div>
                 `
               : agents.map((agent) => {
                   const badge = agentBadgeText(agent.id, defaultId);
@@ -593,8 +597,13 @@ export function renderAgents(props: AgentsProps) {
           !selectedAgent
             ? html`
                 <div class="card">
-                  <div class="card-title">Select an agent</div>
-                  <div class="card-sub">Pick an agent to inspect its workspace and tools.</div>
+                  <div class="empty-state">
+                    <div class="empty-state-icon">👈</div>
+                    <div class="empty-state-title">Select an agent</div>
+                    <div class="empty-state-desc">
+                      Choose an agent from the sidebar to view its workspace, tools, and settings.
+                    </div>
+                  </div>
                 </div>
               `
             : html`
@@ -750,12 +759,12 @@ function renderAgentHeader(
 
 function renderAgentTabs(active: AgentsPanel, onSelect: (panel: AgentsPanel) => void) {
   const tabs: Array<{ id: AgentsPanel; label: string }> = [
-    { id: "overview", label: "Overview" },
-    { id: "files", label: "Files" },
-    { id: "tools", label: "Tools" },
-    { id: "skills", label: "Skills" },
-    { id: "channels", label: "Channels" },
-    { id: "cron", label: "Cron Jobs" },
+    { id: "overview", label: "Overview · 概览" },
+    { id: "files", label: "Files · 文件" },
+    { id: "tools", label: "Tools · 工具" },
+    { id: "skills", label: "Skills · 技能" },
+    { id: "channels", label: "Channels · 渠道" },
+    { id: "cron", label: "Cron · 定时任务" },
   ];
   return html`
     <div class="agent-tabs">
@@ -1036,7 +1045,7 @@ function resolveChannelConfigValue(
 
 function formatChannelExtraValue(raw: unknown): string {
   if (raw == null) {
-    return "n/a";
+    return "—";
   }
   if (typeof raw === "string" || typeof raw === "number" || typeof raw === "boolean") {
     return String(raw);
@@ -1044,7 +1053,7 @@ function formatChannelExtraValue(raw: unknown): string {
   try {
     return JSON.stringify(raw);
   } catch {
-    return "n/a";
+    return "—";
   }
 }
 
@@ -1224,12 +1233,12 @@ function renderAgentCron(params: {
           <div class="stat">
             <div class="stat-label">Enabled</div>
             <div class="stat-value">
-              ${params.status ? (params.status.enabled ? "Yes" : "No") : "n/a"}
+              ${params.status ? (params.status.enabled ? "Yes" : "No") : "—"}
             </div>
           </div>
           <div class="stat">
             <div class="stat-label">Jobs</div>
-            <div class="stat-value">${params.status?.jobs ?? "n/a"}</div>
+            <div class="stat-value">${params.status?.jobs ?? "—"}</div>
           </div>
           <div class="stat">
             <div class="stat-label">Next wake</div>

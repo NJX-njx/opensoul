@@ -54,6 +54,7 @@ import { loadUsage, loadSessionTimeSeries, loadSessionLogs } from "./controllers
 import { icons } from "./icons.ts";
 import { uiText } from "./i18n.ts";
 import {
+  iconForTab,
   labelForTabGroup,
   normalizeBasePath,
   TAB_GROUPS,
@@ -185,6 +186,10 @@ export function renderApp(state: AppViewState) {
     state.agentsList?.defaultId ??
     state.agentsList?.agents?.[0]?.id ??
     null;
+  const pageTitle = titleForTab(state.tab, state.uiLocale);
+  const pageSubtitle = subtitleForTab(state.tab, state.uiLocale);
+  const pageIcon = icons[iconForTab(state.tab)];
+  const pageHealthLabel = state.connected ? t("Gateway online", "Gateway online") : t("Gateway offline", "Gateway offline");
 
   return html`
     <div class="shell ${isChat ? "shell--chat" : ""} ${chatFocus ? "shell--chat-focus" : ""} ${state.settings.navCollapsed ? "shell--nav-collapsed" : ""} ${state.onboarding ? "shell--onboarding" : ""}">
@@ -266,15 +271,24 @@ export function renderApp(state: AppViewState) {
       </aside>
       <main class="content ${isChat ? "content--chat" : ""}">
         <section class="content-header">
-          <div>
-            ${state.tab === "usage"
-              ? nothing
-              : html`<div class="page-title">${titleForTab(state.tab, state.uiLocale)}</div>`}
-            ${state.tab === "usage"
-              ? nothing
-              : html`<div class="page-sub">${subtitleForTab(state.tab, state.uiLocale)}</div>`}
+          <div class="content-header__main">
+            <div class="page-title-row">
+              <span class="page-icon" aria-hidden="true">${pageIcon}</span>
+              <div>
+                <div class="page-title">${pageTitle}</div>
+                ${pageSubtitle ? html`<div class="page-sub">${pageSubtitle}</div>` : nothing}
+              </div>
+            </div>
           </div>
           <div class="page-meta">
+            ${isChat
+              ? nothing
+              : html`
+                <div class="page-health-pill">
+                  <span class="statusDot ${state.connected ? "ok" : ""}"></span>
+                  <span>${pageHealthLabel}</span>
+                </div>
+              `}
             ${state.lastError ? html`<div class="pill danger">${state.lastError}</div>` : nothing}
             ${isChat ? renderChatControls(state) : nothing}
           </div>
@@ -1246,6 +1260,7 @@ export function renderApp(state: AppViewState) {
           onUpdate: () => runUpdate(state),
         }),
         logs: renderLogs({
+          locale: state.uiLocale,
           loading: state.logsLoading,
           error: state.logsError,
           file: state.logsFile,
@@ -1264,6 +1279,7 @@ export function renderApp(state: AppViewState) {
           onScroll: (event) => state.handleLogsScroll(event),
         }),
         debug: renderDebug({
+          locale: state.uiLocale,
           loading: state.debugLoading,
           status: state.debugStatus,
           health: state.debugHealth,
