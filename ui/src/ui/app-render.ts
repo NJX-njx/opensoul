@@ -280,7 +280,11 @@ export function renderApp(state: AppViewState) {
               <div class="nav-group__items">
                 ${group.tabs.map((tab) => renderTab(state, tab))}
               </div>
-              ${group.label === "Operate" && !isGroupCollapsed ? renderZoomControl(state) : nothing}
+              ${
+                (group.label === "Operate" || group.label === "Assist") && !isGroupCollapsed
+                  ? renderZoomControl(state)
+                  : nothing
+              }
             </div>
           `;
         })}
@@ -298,7 +302,7 @@ export function renderApp(state: AppViewState) {
       <main
         class="content ${isChat ? "content--chat" : ""}"
         style=${
-          ["channels", "instances", "sessions", "usage", "cron"].includes(state.tab) &&
+          ["chat", "channels", "instances", "sessions", "usage", "cron"].includes(state.tab) &&
           (state.settings.operateZoomLevel ?? 1.0) !== 1.0
             ? `transform: scale(${state.settings.operateZoomLevel ?? 1.0}); width: ${
                 100 / (state.settings.operateZoomLevel ?? 1.0)
