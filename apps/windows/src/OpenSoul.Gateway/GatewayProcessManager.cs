@@ -334,9 +334,28 @@ public sealed class GatewayProcessManager : IAsyncDisposable
         // system can cause the Node.js process to route local traffic through the proxy.
         const string noProxyList = "localhost,127.0.0.1,::1,opensoul.localapp";
         var existingNoProxy = Environment.GetEnvironmentVariable("NO_PROXY");
-        psi.Environment["NO_PROXY"] = string.IsNullOrWhiteSpace(existingNoProxy)
-            ? noProxyList
-            : $"{existingNoProxy},{noProxyList}";
+        var existingNoProxyLower = Environment.GetEnvironmentVariable("no_proxy");
+        var mergedNoProxy = noProxyList;
+        if (!string.IsNullOrWhiteSpace(existingNoProxy))
+        {
+            mergedNoProxy = $"{existingNoProxy},{mergedNoProxy}";
+        }
+        if (!string.IsNullOrWhiteSpace(existingNoProxyLower) &&
+            !string.Equals(existingNoProxyLower, existingNoProxy, StringComparison.Ordinal))
+        {
+            mergedNoProxy = $"{existingNoProxyLower},{mergedNoProxy}";
+        }
+        psi.Environment["NO_PROXY"] = mergedNoProxy;
+        psi.Environment["no_proxy"] = mergedNoProxy;
+
+        // Explicitly clear inherited proxy vars for the local gateway process.
+        // This is process-local and does not change user/system proxy settings.
+        psi.Environment["HTTP_PROXY"] = "";
+        psi.Environment["HTTPS_PROXY"] = "";
+        psi.Environment["ALL_PROXY"] = "";
+        psi.Environment["http_proxy"] = "";
+        psi.Environment["https_proxy"] = "";
+        psi.Environment["all_proxy"] = "";
 
         _gatewayProcess = Process.Start(psi);
         if (_gatewayProcess is null)

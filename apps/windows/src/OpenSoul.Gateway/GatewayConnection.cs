@@ -14,9 +14,11 @@ public sealed class GatewayConnection : IAsyncDisposable
     private readonly ILogger<GatewayConnection> _logger;
     private readonly GatewayChannel _channel;
     private readonly SemaphoreSlim _opLock = new(1, 1);
+    private readonly object _reconnectLoopLock = new();
 
     private Func<GatewayConnectionConfig>? _configProvider;
     private CancellationTokenSource? _connectionCts;
+    private Task? _reconnectLoopTask;
     private bool _disposed;
 
     public GatewayConnection(ILogger<GatewayConnection> logger, ILogger<GatewayChannel> channelLogger)
@@ -55,6 +57,8 @@ public sealed class GatewayConnection : IAsyncDisposable
         if (_configProvider is null)
             throw new InvalidOperationException("GatewayConnection not configured. Call Configure() first.");
 
+        _connectionCts?.Cancel();
+        _connectionCts?.Dispose();
         _connectionCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         var config = _configProvider();
 
@@ -65,7 +69,7 @@ public sealed class GatewayConnection : IAsyncDisposable
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Initial connection failed, will retry");
-            _ = AutoReconnectLoopAsync(_connectionCts.Token);
+            EnsureReconnectLoopRunning(_connectionCts.Token);
         }
     }
 
@@ -75,6 +79,18 @@ public sealed class GatewayConnection : IAsyncDisposable
     public async Task StopAsync()
     {
         _connectionCts?.Cancel();
+        var reconnectTask = GetReconnectLoopTask();
+        if (reconnectTask is not null)
+        {
+            try
+            {
+                await reconnectTask;
+            }
+            catch (OperationCanceledException)
+            {
+                // expected during stop
+            }
+        }
         await _channel.DisconnectAsync();
     }
 
@@ -141,6 +157,18 @@ public sealed class GatewayConnection : IAsyncDisposable
 
         _connectionCts?.Cancel();
         _connectionCts?.Dispose();
+        var reconnectTask = GetReconnectLoopTask();
+        if (reconnectTask is not null)
+        {
+            try
+            {
+                await reconnectTask;
+            }
+            catch (OperationCanceledException)
+            {
+                // expected during dispose
+            }
+        }
         _channel.StateChanged -= OnChannelStateChanged;
         await _channel.DisposeAsync();
         _opLock.Dispose();
@@ -172,6 +200,10 @@ public sealed class GatewayConnection : IAsyncDisposable
         {
             try
             {
+                if (_channel.State == GatewayChannelState.Connected)
+                {
+                    return;
+                }
                 if (_configProvider is null) break;
                 var config = _configProvider();
                 await _channel.ReconnectAsync(config, ct);
@@ -200,7 +232,33 @@ public sealed class GatewayConnection : IAsyncDisposable
         if (state == GatewayChannelState.Disconnected && _connectionCts is { IsCancellationRequested: false })
         {
             // Auto-reconnect
-            _ = AutoReconnectLoopAsync(_connectionCts.Token);
+            EnsureReconnectLoopRunning(_connectionCts.Token);
+        }
+    }
+
+    private void EnsureReconnectLoopRunning(CancellationToken ct)
+    {
+        if (ct.IsCancellationRequested)
+        {
+            return;
+        }
+
+        lock (_reconnectLoopLock)
+        {
+            if (_reconnectLoopTask is { IsCompleted: false })
+            {
+                return;
+            }
+
+            _reconnectLoopTask = AutoReconnectLoopAsync(ct);
+        }
+    }
+
+    private Task? GetReconnectLoopTask()
+    {
+        lock (_reconnectLoopLock)
+        {
+            return _reconnectLoopTask;
         }
     }
 }

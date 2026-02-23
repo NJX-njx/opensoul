@@ -39,6 +39,18 @@ export type GatewayHelloOk = {
   policy?: { tickIntervalMs?: number };
 };
 
+export type GatewayConnectionPhase = "dialing" | "handshake" | "connected" | "reconnecting";
+
+export type GatewayCloseInfo = {
+  code: number;
+  reason: string;
+  phase: GatewayConnectionPhase;
+  url: string;
+  reconnectInMs: number | null;
+  reconnectAttempt: number;
+  failure?: string;
+};
+
 type Pending = {
   resolve: (value: unknown) => void;
   reject: (err: unknown) => void;
@@ -55,7 +67,7 @@ export type GatewayBrowserClientOptions = {
   instanceId?: string;
   onHello?: (hello: GatewayHelloOk) => void;
   onEvent?: (evt: GatewayEventFrame) => void;
-  onClose?: (info: { code: number; reason: string }) => void;
+  onClose?: (info: GatewayCloseInfo) => void;
   onGap?: (info: { expected: number; received: number }) => void;
 };
 
@@ -71,6 +83,9 @@ export class GatewayBrowserClient {
   private connectSent = false;
   private connectTimer: number | null = null;
   private backoffMs = 200;
+  private phase: GatewayConnectionPhase = "dialing";
+  private reconnectAttempt = 0;
+  private lastConnectFailure: string | null = null;
 
   constructor(private opts: GatewayBrowserClientOptions) {}
 
@@ -94,14 +109,28 @@ export class GatewayBrowserClient {
     if (this.closed) {
       return;
     }
+    this.phase = "dialing";
     this.ws = new WebSocket(this.opts.url);
     this.ws.addEventListener("open", () => this.queueConnect());
     this.ws.addEventListener("message", (ev) => this.handleMessage(String(ev.data ?? "")));
     this.ws.addEventListener("close", (ev) => {
+      const closePhase = this.phase;
+      const reconnectInMs = this.closed ? null : this.backoffMs;
+      const reconnectAttempt = this.reconnectAttempt;
+      const failure = this.lastConnectFailure ?? undefined;
+      this.lastConnectFailure = null;
       const reason = String(ev.reason ?? "");
       this.ws = null;
       this.flushPending(new Error(`gateway closed (${ev.code}): ${reason}`));
-      this.opts.onClose?.({ code: ev.code, reason });
+      this.opts.onClose?.({
+        code: ev.code,
+        reason,
+        phase: closePhase,
+        url: this.opts.url,
+        reconnectInMs,
+        reconnectAttempt,
+        failure,
+      });
       this.scheduleReconnect();
     });
     this.ws.addEventListener("error", () => {
@@ -114,6 +143,8 @@ export class GatewayBrowserClient {
       return;
     }
     const delay = this.backoffMs;
+    this.phase = "reconnecting";
+    this.reconnectAttempt += 1;
     this.backoffMs = Math.min(this.backoffMs * 1.5, 10_000);
     window.setTimeout(() => this.connect(), delay);
   }
@@ -224,10 +255,14 @@ export class GatewayBrowserClient {
             scopes: hello.auth.scopes ?? [],
           });
         }
+        this.lastConnectFailure = null;
         this.backoffMs = 200;
+        this.reconnectAttempt = 0;
+        this.phase = "connected";
         this.opts.onHello?.(hello);
       })
-      .catch(() => {
+      .catch((err) => {
+        this.lastConnectFailure = err instanceof Error ? err.message : String(err);
         if (canFallbackToShared && deviceIdentity) {
           clearDeviceAuthToken({ deviceId: deviceIdentity.deviceId, role });
         }
@@ -302,6 +337,7 @@ export class GatewayBrowserClient {
   private queueConnect() {
     this.connectNonce = null;
     this.connectSent = false;
+    this.phase = "handshake";
     if (this.connectTimer !== null) {
       window.clearTimeout(this.connectTimer);
     }

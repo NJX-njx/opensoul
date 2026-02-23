@@ -161,15 +161,16 @@ public partial class MainWindow : Window
         _updateService.UpdateReady += OnUpdateReady;
         _updateService.StartBackgroundChecks();
 
+        // Start gateway connection early so WebView sees a ready endpoint sooner.
+        if (_settings.AutoConnectOnLaunch)
+        {
+            UpdateSplashStatus("Starting gateway...");
+            _ = ConnectGatewayAsync();
+        }
+
         // Initialize WebView2
         UpdateSplashStatus("Loading interface...");
         await InitializeWebViewAsync();
-
-        // Auto-connect if configured
-        if (_settings.AutoConnectOnLaunch)
-        {
-            await ConnectGatewayAsync();
-        }
 
         // Process command-line deep link (e.g., --deeplink opensoul://chat)
         ProcessStartupDeepLink();
@@ -606,25 +607,7 @@ public partial class MainWindow : Window
         {
             _logger.LogInformation("Bridge: shell.ready received from Control UI");
 
-            // Determine gateway connection info
-            string? gatewayUrl = null;
-            string? token = null;
-
-            if (string.Equals(_settings.ConnectionMode, "Remote", StringComparison.OrdinalIgnoreCase))
-            {
-                gatewayUrl = _settings.RemoteUrl;
-            }
-            else
-            {
-                // For local mode, read from gateway state files
-                var port = OpenSoulPaths.ReadGatewayPort();
-                var stateToken = OpenSoulPaths.ReadGatewayToken();
-                if (port > 0)
-                {
-                    gatewayUrl = $"ws://127.0.0.1:{port}";
-                    token = stateToken;
-                }
-            }
+            var (gatewayUrl, token) = ResolveGatewayInitPayload();
 
             // Send init message with all configuration
             await _bridgeService.SendInitAsync(
@@ -749,15 +732,16 @@ public partial class MainWindow : Window
             // fires before the gateway is running, causing the UI to use a stale URL.
             if (state == ControlChannelState.Connected)
             {
-                var port = OpenSoulPaths.ReadGatewayPort();
-                var token = OpenSoulPaths.ReadGatewayToken();
-                if (port > 0)
+                var (gatewayUrl, token) = ResolveGatewayInitPayload();
+                if (!string.IsNullOrWhiteSpace(gatewayUrl))
                 {
                     _logger.LogInformation(
-                        "Gateway connected, sending updated URL to Control UI (port {Port})", port);
+                        "Gateway connected, sending updated URL to Control UI ({Mode} mode): {Url}",
+                        _settings.ConnectionMode,
+                        gatewayUrl);
                     await _bridgeService.SendInitAsync(
                         theme: _themeService.ResolvedCssThemeName,
-                        gatewayUrl: $"ws://127.0.0.1:{port}",
+                        gatewayUrl: gatewayUrl,
                         token: token,
                         settings: new
                         {
@@ -767,6 +751,23 @@ public partial class MainWindow : Window
                 }
             }
         });
+    }
+
+    private (string? GatewayUrl, string? Token) ResolveGatewayInitPayload()
+    {
+        if (string.Equals(_settings.ConnectionMode, "Remote", StringComparison.OrdinalIgnoreCase))
+        {
+            var remoteUrl = _settings.RemoteUrl?.Trim();
+            return (string.IsNullOrWhiteSpace(remoteUrl) ? null : remoteUrl, null);
+        }
+
+        var port = OpenSoulPaths.ReadGatewayPort();
+        if (port <= 0)
+        {
+            return (null, null);
+        }
+
+        return ($"ws://127.0.0.1:{port}", OpenSoulPaths.ReadGatewayToken());
     }
 
     private void OnExecApprovalRequested(ExecApprovalRequestParams request)
