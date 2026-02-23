@@ -29,6 +29,20 @@ const ANTHROPIC_OPUS_46_MODEL_ID = "claude-opus-4-6";
 const ANTHROPIC_OPUS_46_DOT_MODEL_ID = "claude-opus-4.6";
 const ANTHROPIC_OPUS_TEMPLATE_MODEL_IDS = ["claude-opus-4-5", "claude-opus-4.5"] as const;
 
+// Hardcoded Anthropic model definition for when models.json is missing (e.g., fresh onboarding).
+const ANTHROPIC_HARDCODED_FALLBACK_MODEL = {
+  id: "claude-opus-4-5",
+  name: "Claude Opus 4.5",
+  provider: "anthropic",
+  api: "anthropic-messages" as const,
+  baseUrl: "https://api.anthropic.com",
+  reasoning: true,
+  input: ["text", "image"] as ("text" | "image")[],
+  cost: { input: 5, output: 25, cacheRead: 0.5, cacheWrite: 6.25 },
+  contextWindow: 200000,
+  maxTokens: 64000,
+};
+
 function resolveOpenAICodexGpt53FallbackModel(
   provider: string,
   modelId: string,
@@ -111,7 +125,13 @@ function resolveAnthropicOpus46ForwardCompatModel(
     } as Model<Api>);
   }
 
-  return undefined;
+  // Fallback: when models.json is missing (e.g., fresh onboarding with only env API key),
+  // use the hardcoded model definition so agent can start immediately.
+  return normalizeModelCompat({
+    ...ANTHROPIC_HARDCODED_FALLBACK_MODEL,
+    id: trimmedModelId,
+    name: trimmedModelId,
+  } as Model<Api>);
 }
 
 export function buildInlineProviderModels(

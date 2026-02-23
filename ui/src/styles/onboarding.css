@@ -61,27 +61,50 @@
   }
 }
 
-/* Step progress bar */
+/* Step progress bar with icons */
 .onboarding-progress {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   padding: 20px 32px 0;
+  align-items: center;
 }
 
 .onboarding-progress__step {
   flex: 1;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--border);
-  transition: background 0.3s ease;
+  height: 36px;
+  border-radius: 18px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
 }
 
 .onboarding-progress__step--active {
-  background: var(--accent);
+  background: var(--accent-subtle);
+  border-color: var(--accent);
 }
 
 .onboarding-progress__step--done {
-  background: var(--ok);
+  background: rgba(52, 211, 153, 0.1);
+  border-color: var(--ok);
+}
+
+.onboarding-progress__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  transition: color 0.3s ease;
+}
+
+.onboarding-progress__step--active .onboarding-progress__icon {
+  color: var(--accent);
+}
+
+.onboarding-progress__step--done .onboarding-progress__icon {
+  color: var(--ok);
 }
 
 /* Header */
@@ -185,6 +208,23 @@
   background: var(--bg-hover);
 }
 
+.onboarding-btn--outline {
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--muted);
+}
+
+.onboarding-btn--outline:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.onboarding-btn--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* ===========================================
    Step 1: Language Picker
    =========================================== */
@@ -198,8 +238,8 @@
 .onboarding-lang-option {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 10px;
+  padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
@@ -217,15 +257,49 @@
   background: var(--accent-subtle);
 }
 
+.onboarding-lang-option__check {
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  flex-grow: 0;
+  color: var(--accent);
+}
+
+.onboarding-lang-option__check-empty {
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+.onboarding-lang-option__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  flex: 1;
+}
+
 .onboarding-lang-option__native {
   font-size: 14px;
   font-weight: 500;
   color: var(--text-strong);
+  line-height: 1.4;
+  text-align: left;
+  font-feature-settings: "palt" 1;
+  letter-spacing: 0.01em;
 }
 
 .onboarding-lang-option__label {
   font-size: 12px;
   color: var(--muted);
+  line-height: 1.4;
+  text-align: left;
 }
 
 /* ===========================================
@@ -689,6 +763,165 @@
 @keyframes onboarding-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* ===========================================
+   Login/Register form (email + password)
+   =========================================== */
+
+/* Tab toggle for login/register */
+.onboarding-login-tabs {
+  display: flex;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+
+.onboarding-login-tab {
+  flex: 1;
+  padding: 10px 0;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.onboarding-login-tab:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+
+.onboarding-login-tab--active {
+  color: var(--accent-foreground);
+  background: var(--accent);
+}
+
+.onboarding-login-tab--active:hover {
+  background: var(--accent-hover);
+  color: var(--accent-foreground);
+}
+
+/* Form container */
+.onboarding-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Individual form field */
+.onboarding-login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.onboarding-login-field__input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.onboarding-login-field__input-wrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+.onboarding-login-field__input-wrap--error {
+  border-color: var(--danger);
+}
+
+.onboarding-login-field__input-wrap--error:focus-within {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+}
+
+.onboarding-login-field__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.onboarding-login-field__input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  min-width: 0;
+}
+
+.onboarding-login-field__input::placeholder {
+  color: var(--muted);
+}
+
+.onboarding-login-field__error {
+  font-size: 12px;
+  color: var(--danger);
+  padding-left: 42px;
+}
+
+/* Submit button */
+.onboarding-login-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.onboarding-login-submit:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.onboarding-login-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Social login section divider */
+.onboarding-login-social {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Success checkmark icon */
+.onboarding-login-success__check {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--ok);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
 }
 
 /* ===========================================

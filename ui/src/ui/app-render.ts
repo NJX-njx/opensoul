@@ -122,12 +122,23 @@ export function renderApp(state: AppViewState) {
       loginEmail: state.onboardingLoginEmail,
       loginError: state.onboardingLoginError,
       isExistingAccount: state.onboardingIsExistingAccount,
+      loginMode: state.onboardingLoginMode,
+      loginFormEmail: state.onboardingLoginFormEmail,
+      loginFormPassword: state.onboardingLoginFormPassword,
+      loginFormConfirmPassword: state.onboardingLoginFormConfirmPassword,
+      loginFormDisplayName: state.onboardingLoginFormDisplayName,
+      loginFieldErrors: state.onboardingLoginFieldErrors,
       selectedProvider: state.onboardingSelectedProvider,
       providerApiKey: state.onboardingProviderApiKey,
       providerSearchQuery: state.onboardingProviderSearchQuery,
       selectedChannel: state.onboardingSelectedChannel,
       channelToken: state.onboardingChannelToken,
       onLocaleChange: (locale) => state.setOnboardingLocale(locale),
+      onLoginModeChange: (mode) => state.setOnboardingLoginMode(mode),
+      onLoginFormEmailChange: (email) => state.setOnboardingLoginFormEmail(email),
+      onLoginFormPasswordChange: (pw) => state.setOnboardingLoginFormPassword(pw),
+      onLoginFormConfirmPasswordChange: (pw) => state.setOnboardingLoginFormConfirmPassword(pw),
+      onLoginFormDisplayNameChange: (name) => state.setOnboardingLoginFormDisplayName(name),
       onProviderSelect: (id) => state.setOnboardingProvider(id),
       onProviderApiKeyChange: (key) => state.setOnboardingProviderApiKey(key),
       onProviderSearchChange: (q) => state.setOnboardingProviderSearchQuery(q),
@@ -135,11 +146,13 @@ export function renderApp(state: AppViewState) {
       onChannelTokenChange: (token) => state.setOnboardingChannelToken(token),
       onGoogleLogin: () => state.onboardingGoogleLogin(),
       onGithubLogin: () => state.onboardingGithubLogin(),
+      onEmailLogin: () => state.onboardingEmailLogin(),
+      onEmailRegister: () => state.onboardingEmailRegister(),
       onLogout: () => state.onboardingLogout(),
       onNext: () => {
         // If login step and existing account, skip to finish
         if (
-          state.onboardingStep === 1 &&
+          state.onboardingStep === 2 &&
           state.onboardingIsExistingAccount &&
           state.onboardingLoginStatus === "success"
         ) {
