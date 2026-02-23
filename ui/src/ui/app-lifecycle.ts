@@ -32,6 +32,7 @@ import { tabFromPath, type Tab } from "./navigation.ts";
 type LifecycleHost = {
   basePath: string;
   tab: Tab;
+  connected: boolean;
   chatHasAutoScrolled: boolean;
   chatManualRefreshInFlight: boolean;
   chatLoading: boolean;
@@ -56,9 +57,10 @@ export function handleConnected(host: LifecycleHost) {
   // Initialize desktop bridge if running inside WPF shell
   if (isDesktopShell()) {
     initDesktopBridge(host);
+  } else {
+    connectGateway(host as unknown as Parameters<typeof connectGateway>[0]);
   }
 
-  connectGateway(host as unknown as Parameters<typeof connectGateway>[0]);
   startNodesPolling(host as unknown as Parameters<typeof startNodesPolling>[0]);
   if (host.tab === "logs") {
     startLogsPolling(host as unknown as Parameters<typeof startLogsPolling>[0]);
@@ -90,23 +92,39 @@ export function handleDisconnected(host: LifecycleHost) {
 function initDesktopBridge(host: LifecycleHost) {
   attachDesktopBridgeListener({
     onInit: (payload: DesktopInitPayload) => {
-      // Apply gateway URL and token from WPF shell if provided
       const settingsHost = host as unknown as Parameters<typeof applySettings>[0];
-      if (payload.gatewayUrl || payload.token) {
-        const next = { ...settingsHost.settings };
-        if (payload.gatewayUrl) {
-          next.gatewayUrl = payload.gatewayUrl;
-        }
-        if (payload.token) {
-          next.token = payload.token;
-        }
-        if (payload.settings?.sessionKey) {
-          next.sessionKey = payload.settings.sessionKey;
-          next.lastActiveSessionKey = payload.settings.sessionKey;
-        }
-        applySettings(settingsHost, next);
+      const previousGatewayUrl = settingsHost.settings.gatewayUrl;
+      const previousToken = settingsHost.settings.token;
+      const gatewayUrl = payload.gatewayUrl?.trim();
+      const gatewayUrlChanged = Boolean(gatewayUrl && gatewayUrl !== previousGatewayUrl);
+      const tokenChanged = typeof payload.token === "string" && payload.token !== previousToken;
+      const next = { ...settingsHost.settings };
+      let settingsChanged = false;
 
-        // Reconnect gateway with new URL/token
+      if (gatewayUrlChanged && gatewayUrl) {
+        next.gatewayUrl = gatewayUrl;
+        settingsChanged = true;
+      }
+      if (tokenChanged && payload.token) {
+        next.token = payload.token;
+        settingsChanged = true;
+      }
+      if (payload.settings?.sessionKey) {
+        const sessionKey = payload.settings.sessionKey;
+        if (sessionKey !== next.sessionKey || sessionKey !== next.lastActiveSessionKey) {
+          next.sessionKey = sessionKey;
+          next.lastActiveSessionKey = sessionKey;
+          settingsChanged = true;
+        }
+      }
+      if (settingsChanged) {
+        applySettings(settingsHost, next);
+      }
+
+      // Desktop shell should provide the actual gateway endpoint. Only connect
+      // after host.init includes an explicit URL to avoid connecting to the
+      // virtual host origin (opensoul.localapp) during startup.
+      if (gatewayUrl && (gatewayUrlChanged || tokenChanged || !host.connected)) {
         connectGateway(host as unknown as Parameters<typeof connectGateway>[0]);
       }
 

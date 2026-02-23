@@ -1,7 +1,7 @@
 import type { EventLogEntry } from "./app-events.ts";
 import type { OpenSoulApp } from "./app.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
-import type { GatewayEventFrame, GatewayHelloOk } from "./gateway.ts";
+import type { GatewayCloseInfo, GatewayEventFrame, GatewayHelloOk } from "./gateway.ts";
 import type { Tab } from "./navigation.ts";
 import type { UiSettings } from "./storage.ts";
 import type { AgentsListResult, PresenceEntry, HealthSnapshot, StatusSummary } from "./types.ts";
@@ -116,6 +116,47 @@ function applySessionDefaults(host: GatewayHost, defaults?: SessionDefaultsSnaps
   }
 }
 
+function inferDisconnectStage(info: GatewayCloseInfo): "dns" | "handshake" | "auth" | "reconnecting" | "network" {
+  const failure = info.failure?.toLowerCase() ?? "";
+  if (
+    failure.includes("unauthorized") ||
+    failure.includes("token") ||
+    failure.includes("password") ||
+    failure.includes("pairing") ||
+    failure.includes("device")
+  ) {
+    return "auth";
+  }
+  if (info.code === 1008 || info.code === 4008) {
+    return "auth";
+  }
+  if (info.phase === "reconnecting") {
+    return "reconnecting";
+  }
+  if (info.phase === "handshake") {
+    return "handshake";
+  }
+  if (info.phase === "dialing") {
+    return "dns";
+  }
+  return "network";
+}
+
+function formatDisconnectError(info: GatewayCloseInfo): string {
+  const stage = inferDisconnectStage(info);
+  const details = [`stage=${stage}`, `url=${info.url}`];
+  if (info.reconnectInMs !== null) {
+    details.push(`retry=${info.reconnectInMs}ms`);
+  }
+  if (info.reconnectAttempt > 0) {
+    details.push(`attempt=${info.reconnectAttempt}`);
+  }
+  if (info.failure) {
+    details.push(`cause=${info.failure}`);
+  }
+  return `disconnected (${info.code}): ${info.reason || "no reason"} [${details.join(", ")}]`;
+}
+
 export function connectGateway(host: GatewayHost) {
   host.lastError = null;
   host.hello = null;
@@ -149,13 +190,14 @@ export function connectGateway(host: GatewayHost) {
       void loadDevices(host as unknown as OpenSoulApp, { quiet: true });
       void refreshActiveTab(host as unknown as Parameters<typeof refreshActiveTab>[0]);
     },
-    onClose: ({ code, reason }) => {
+    onClose: (info) => {
+      const { code } = info;
       host.connected = false;
       // Notify desktop shell about disconnection
       sendConnectionStateChanged("disconnected");
       // Code 1012 = Service Restart (expected during config saves, don't show as error)
       if (code !== 1012) {
-        host.lastError = `disconnected (${code}): ${reason || "no reason"}`;
+        host.lastError = formatDisconnectError(info);
       }
     },
     onEvent: (evt) => handleGatewayEvent(host, evt),

@@ -118,7 +118,7 @@ function renderZoomControl(state: AppViewState) {
         class="nav-zoom-control__btn"
         @click=${() => updateZoom(currentZoom - 0.1)}
         title="Zoom Out"
-      >−</button>
+      >-</button>
       <input
         type="range"
         class="nav-zoom-control__slider"
@@ -274,7 +274,7 @@ export function renderApp(state: AppViewState) {
                 aria-expanded=${!isGroupCollapsed}
               >
                 <span class="nav-label__text">${group.label}</span>
-                <span class="nav-label__chevron">${isGroupCollapsed ? "+" : "−"}</span>
+                <span class="nav-label__chevron">${isGroupCollapsed ? "+" : "-"}</span>
               </button>
               <div class="nav-group__items">
                 ${group.tabs.map((tab) => renderTab(state, tab))}
