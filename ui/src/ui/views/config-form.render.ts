@@ -1,10 +1,17 @@
 import { html, nothing } from "lit";
 import type { ConfigUiHints } from "../types.ts";
 import { icons } from "../icons.ts";
+import {
+  configText,
+  localizeConfigSectionDescription,
+  localizeConfigSectionLabel,
+} from "./config-i18n.ts";
 import { renderNode } from "./config-form.node.ts";
 import { hintForPath, humanize, schemaType, type JsonSchema } from "./config-form.shared.ts";
+import type { Locale } from "./onboarding/i18n.ts";
 
 export type ConfigFormProps = {
+  locale: Locale;
   schema: JsonSchema | null;
   uiHints: ConfigUiHints;
   value: Record<string, unknown> | null;
@@ -353,16 +360,20 @@ function schemaMatches(schema: JsonSchema, query: string): boolean {
 }
 
 export function renderConfigForm(props: ConfigFormProps) {
+  const t = (english: string, chinese: string) => configText(props.locale, english, chinese);
   if (!props.schema) {
     return html`
-      <div class="muted">Schema unavailable.</div>
+      <div class="muted">${t("Schema unavailable.", "\u914d\u7f6e\u7ed3\u6784\u4e0d\u53ef\u7528\u3002")}</div>
     `;
   }
   const schema = props.schema;
   const value = props.value ?? {};
   if (schemaType(schema) !== "object" || !schema.properties) {
     return html`
-      <div class="callout danger">Unsupported schema. Use Raw.</div>
+      <div class="callout danger">${t(
+        "Unsupported schema. Use Raw.",
+        "\u4e0d\u652f\u6301\u7684\u914d\u7f6e\u7ed3\u6784\uff0c\u8bf7\u4f7f\u7528\u539f\u59cb\u6a21\u5f0f\u3002",
+      )}</div>
     `;
   }
   const unsupported = new Set(props.unsupportedPaths ?? []);
@@ -413,7 +424,14 @@ export function renderConfigForm(props: ConfigFormProps) {
       <div class="config-empty">
         <div class="config-empty__icon">${icons.search}</div>
         <div class="config-empty__text">
-          ${searchQuery ? `No settings match "${searchQuery}"` : "No settings in this section"}
+          ${
+            searchQuery
+              ? t(
+                  `No settings match "${searchQuery}"`,
+                  `\u672a\u627e\u5230\u5339\u914d\u201c${searchQuery}\u201d\u7684\u8bbe\u7f6e`,
+                )
+              : t("No settings in this section", "\u8fd9\u4e2a\u5206\u7ec4\u6ca1\u6709\u8bbe\u7f6e")
+          }
         </div>
       </div>
     `;
@@ -449,6 +467,7 @@ export function renderConfigForm(props: ConfigFormProps) {
                 </div>
                 <div class="config-section-card__content">
                   ${renderNode({
+                    locale: props.locale,
                     schema: node,
                     value: scopedValue,
                     path: [sectionKey, subsectionKey],
@@ -463,9 +482,17 @@ export function renderConfigForm(props: ConfigFormProps) {
             `;
             })()
           : filteredEntries.map(([key, node]) => {
-              const meta = SECTION_META[key] ?? {
+              const rawMeta = SECTION_META[key] ?? {
                 label: key.charAt(0).toUpperCase() + key.slice(1),
                 description: node.description ?? "",
+              };
+              const meta = {
+                label: localizeConfigSectionLabel(props.locale, key, rawMeta.label),
+                description: localizeConfigSectionDescription(
+                  props.locale,
+                  key,
+                  rawMeta.description,
+                ),
               };
 
               return html`
@@ -483,6 +510,7 @@ export function renderConfigForm(props: ConfigFormProps) {
                 </div>
                 <div class="config-section-card__content">
                   ${renderNode({
+                    locale: props.locale,
                     schema: node,
                     value: value[key],
                     path: [key],
