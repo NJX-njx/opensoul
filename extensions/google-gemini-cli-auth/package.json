@@ -1,6 +1,6 @@
 {
   "name": "@opensoul/google-gemini-cli-auth",
-  "version": "2026.2.6-3",
+  "version": "0.2.1",
   "description": "OpenSoul Gemini CLI OAuth provider plugin",
   "type": "module",
   "devDependencies": {

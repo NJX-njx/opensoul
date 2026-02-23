@@ -1,6 +1,6 @@
 {
   "name": "@opensoul/line",
-  "version": "2026.2.6-3",
+  "version": "0.2.1",
   "description": "OpenSoul LINE channel plugin",
   "type": "module",
   "devDependencies": {

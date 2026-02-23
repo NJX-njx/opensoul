@@ -1,6 +1,6 @@
 {
   "name": "@opensoul/memory-core",
-  "version": "2026.2.6-3",
+  "version": "0.2.1",
   "description": "OpenSoul core memory search plugin",
   "type": "module",
   "devDependencies": {

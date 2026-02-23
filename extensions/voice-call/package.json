@@ -1,6 +1,6 @@
 {
   "name": "@opensoul/voice-call",
-  "version": "2026.2.6-3",
+  "version": "0.2.1",
   "description": "OpenSoul voice-call plugin",
   "type": "module",
   "dependencies": {

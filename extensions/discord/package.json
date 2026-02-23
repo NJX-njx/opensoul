@@ -1,6 +1,6 @@
 {
   "name": "@opensoul/discord",
-  "version": "2026.2.6-3",
+  "version": "0.2.1",
   "description": "OpenSoul Discord channel plugin",
   "type": "module",
   "devDependencies": {
