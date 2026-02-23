@@ -175,7 +175,7 @@
     "sharp": "^0.34.5",
     "signal-utils": "^0.21.1",
     "sqlite-vec": "0.1.7-alpha.2",
-    "tar": "7.5.7",
+    "tar": "7.5.8",
     "tslog": "^4.10.2",
     "undici": "^7.21.0",
     "ws": "^8.19.0",
@@ -223,7 +223,7 @@
       "axios": ">=1.13.5",
       "qs": "6.14.2",
       "@sinclair/typebox": "0.34.48",
-      "tar": "7.5.7",
+      "tar": "7.5.8",
       "tough-cookie": "4.1.3"
     },
     "onlyBuiltDependencies": [
