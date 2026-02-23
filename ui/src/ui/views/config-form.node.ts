@@ -1,5 +1,6 @@
 import { html, nothing, type TemplateResult } from "lit";
 import type { ConfigUiHints } from "../types.ts";
+import { configText } from "./config-i18n.ts";
 import {
   defaultValue,
   hintForPath,
@@ -9,6 +10,7 @@ import {
   schemaType,
   type JsonSchema,
 } from "./config-form.shared.ts";
+import type { Locale } from "./onboarding/i18n.ts";
 
 const META_KEYS = new Set(["title", "description", "default", "nullable"]);
 
@@ -96,6 +98,7 @@ const icons = {
 };
 
 export function renderNode(params: {
+  locale: Locale;
   schema: JsonSchema;
   value: unknown;
   path: Array<string | number>;
@@ -105,7 +108,8 @@ export function renderNode(params: {
   showLabel?: boolean;
   onPatch: (path: Array<string | number>, value: unknown) => void;
 }): TemplateResult | typeof nothing {
-  const { schema, value, path, hints, unsupported, disabled, onPatch } = params;
+  const { locale, schema, value, path, hints, unsupported, disabled, onPatch } = params;
+  const t = (english: string, chinese: string) => configText(locale, english, chinese);
   const showLabel = params.showLabel ?? true;
   const type = schemaType(schema);
   const hint = hintForPath(path, hints);
@@ -116,7 +120,10 @@ export function renderNode(params: {
   if (unsupported.has(key)) {
     return html`<div class="cfg-field cfg-field--error">
       <div class="cfg-field__label">${label}</div>
-      <div class="cfg-field__error">Unsupported schema node. Use Raw mode.</div>
+      <div class="cfg-field__error">${t(
+        "Unsupported schema node. Use Raw mode.",
+        "\u4e0d\u652f\u6301\u7684\u914d\u7f6e\u8282\u70b9\uff0c\u8bf7\u4f7f\u7528\u539f\u59cb\u6a21\u5f0f\u3002",
+      )}</div>
     </div>`;
   }
 
@@ -287,12 +294,16 @@ export function renderNode(params: {
   return html`
     <div class="cfg-field cfg-field--error">
       <div class="cfg-field__label">${label}</div>
-      <div class="cfg-field__error">Unsupported type: ${type}. Use Raw mode.</div>
+      <div class="cfg-field__error">${t(
+        `Unsupported type: ${type}. Use Raw mode.`,
+        `\u4e0d\u652f\u6301\u7684\u7c7b\u578b\uff1a${type}\u3002\u8bf7\u4f7f\u7528\u539f\u59cb\u6a21\u5f0f\u3002`,
+      )}</div>
     </div>
   `;
 }
 
 function renderTextInput(params: {
+  locale: Locale;
   schema: JsonSchema;
   value: unknown;
   path: Array<string | number>;
@@ -302,7 +313,8 @@ function renderTextInput(params: {
   inputType: "text" | "number";
   onPatch: (path: Array<string | number>, value: unknown) => void;
 }): TemplateResult {
-  const { schema, value, path, hints, disabled, onPatch, inputType } = params;
+  const { locale, schema, value, path, hints, disabled, onPatch, inputType } = params;
+  const t = (english: string, chinese: string) => configText(locale, english, chinese);
   const showLabel = params.showLabel ?? true;
   const hint = hintForPath(path, hints);
   const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
@@ -369,6 +381,7 @@ function renderTextInput(params: {
 }
 
 function renderNumberInput(params: {
+  locale: Locale;
   schema: JsonSchema;
   value: unknown;
   path: Array<string | number>;
@@ -419,6 +432,7 @@ function renderNumberInput(params: {
 }
 
 function renderSelect(params: {
+  locale: Locale;
   schema: JsonSchema;
   value: unknown;
   path: Array<string | number>;
@@ -428,7 +442,8 @@ function renderSelect(params: {
   options: unknown[];
   onPatch: (path: Array<string | number>, value: unknown) => void;
 }): TemplateResult {
-  const { schema, value, path, hints, disabled, options, onPatch } = params;
+  const { locale, schema, value, path, hints, disabled, options, onPatch } = params;
+  const t = (english: string, chinese: string) => configText(locale, english, chinese);
   const showLabel = params.showLabel ?? true;
   const hint = hintForPath(path, hints);
   const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
@@ -452,7 +467,7 @@ function renderSelect(params: {
           onPatch(path, val === unset ? undefined : options[Number(val)]);
         }}
       >
-        <option value=${unset}>Select...</option>
+        <option value=${unset}>${t("Select...", "\u8bf7\u9009\u62e9...")}</option>
         ${options.map(
           (opt, idx) => html`
           <option value=${String(idx)}>${String(opt)}</option>
@@ -464,6 +479,7 @@ function renderSelect(params: {
 }
 
 function renderObject(params: {
+  locale: Locale;
   schema: JsonSchema;
   value: unknown;
   path: Array<string | number>;
@@ -473,7 +489,7 @@ function renderObject(params: {
   showLabel?: boolean;
   onPatch: (path: Array<string | number>, value: unknown) => void;
 }): TemplateResult {
-  const { schema, value, path, hints, unsupported, disabled, onPatch } = params;
+  const { locale, schema, value, path, hints, unsupported, disabled, onPatch } = params;
   const hint = hintForPath(path, hints);
   const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
   const help = hint?.help ?? schema.description;
@@ -518,6 +534,7 @@ function renderObject(params: {
         ${
           allowExtra
             ? renderMapField({
+                locale,
                 schema: additional,
                 value: obj,
                 path,
@@ -556,6 +573,7 @@ function renderObject(params: {
         ${
           allowExtra
             ? renderMapField({
+                locale,
                 schema: additional,
                 value: obj,
                 path,
@@ -573,6 +591,7 @@ function renderObject(params: {
 }
 
 function renderArray(params: {
+  locale: Locale;
   schema: JsonSchema;
   value: unknown;
   path: Array<string | number>;
@@ -582,7 +601,8 @@ function renderArray(params: {
   showLabel?: boolean;
   onPatch: (path: Array<string | number>, value: unknown) => void;
 }): TemplateResult {
-  const { schema, value, path, hints, unsupported, disabled, onPatch } = params;
+  const { locale, schema, value, path, hints, unsupported, disabled, onPatch } = params;
+  const t = (english: string, chinese: string) => configText(locale, english, chinese);
   const showLabel = params.showLabel ?? true;
   const hint = hintForPath(path, hints);
   const label = hint?.label ?? schema.title ?? humanize(String(path.at(-1)));
@@ -593,7 +613,10 @@ function renderArray(params: {
     return html`
       <div class="cfg-field cfg-field--error">
         <div class="cfg-field__label">${label}</div>
-        <div class="cfg-field__error">Unsupported array schema. Use Raw mode.</div>
+        <div class="cfg-field__error">${t(
+          "Unsupported array schema. Use Raw mode.",
+          "\u4e0d\u652f\u6301\u7684\u6570\u7ec4\u914d\u7f6e\u7ed3\u6784\uff0c\u8bf7\u4f7f\u7528\u539f\u59cb\u6a21\u5f0f\u3002",
+        )}</div>
       </div>
     `;
   }
@@ -604,7 +627,10 @@ function renderArray(params: {
     <div class="cfg-array">
       <div class="cfg-array__header">
         ${showLabel ? html`<span class="cfg-array__label">${label}</span>` : nothing}
-        <span class="cfg-array__count">${arr.length} item${arr.length !== 1 ? "s" : ""}</span>
+        <span class="cfg-array__count">${t(
+          `${arr.length} item${arr.length !== 1 ? "s" : ""}`,
+          `${arr.length} \u9879`,
+        )}</span>
         <button
           type="button"
           class="cfg-array__add"
@@ -615,7 +641,7 @@ function renderArray(params: {
           }}
         >
           <span class="cfg-array__add-icon">${icons.plus}</span>
-          Add
+          ${t("Add", "\u6dfb\u52a0")}
         </button>
       </div>
       ${help ? html`<div class="cfg-array__help">${help}</div>` : nothing}
@@ -623,7 +649,10 @@ function renderArray(params: {
       ${
         arr.length === 0
           ? html`
-              <div class="cfg-array__empty">No items yet. Click "Add" to create one.</div>
+              <div class="cfg-array__empty">${t(
+                'No items yet. Click "Add" to create one.',
+                "\u8fd8\u6ca1\u6709\u6761\u76ee\uff0c\u70b9\u51fb\u201c\u6dfb\u52a0\u201d\u521b\u5efa\u3002",
+              )}</div>
             `
           : html`
         <div class="cfg-array__items">
@@ -635,7 +664,7 @@ function renderArray(params: {
                 <button
                   type="button"
                   class="cfg-array__item-remove"
-                  title="Remove item"
+                  title=${t("Remove item", "\u79fb\u9664\u6761\u76ee")}
                   ?disabled=${disabled}
                   @click=${() => {
                     const next = [...arr];
@@ -648,6 +677,7 @@ function renderArray(params: {
               </div>
               <div class="cfg-array__item-content">
                 ${renderNode({
+                  locale,
                   schema: itemsSchema,
                   value: item,
                   path: [...path, idx],
@@ -669,6 +699,7 @@ function renderArray(params: {
 }
 
 function renderMapField(params: {
+  locale: Locale;
   schema: JsonSchema;
   value: Record<string, unknown>;
   path: Array<string | number>;
@@ -678,7 +709,8 @@ function renderMapField(params: {
   reservedKeys: Set<string>;
   onPatch: (path: Array<string | number>, value: unknown) => void;
 }): TemplateResult {
-  const { schema, value, path, hints, unsupported, disabled, reservedKeys, onPatch } = params;
+  const { locale, schema, value, path, hints, unsupported, disabled, reservedKeys, onPatch } = params;
+  const t = (english: string, chinese: string) => configText(locale, english, chinese);
   const anySchema = isAnySchema(schema);
   const entries = Object.entries(value ?? {}).filter(([key]) => !reservedKeys.has(key));
 
