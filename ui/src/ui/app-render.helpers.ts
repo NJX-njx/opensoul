@@ -9,10 +9,12 @@ import { syncUrlWithSessionKey } from "./app-settings.ts";
 import { OpenSoulApp } from "./app.ts";
 import { ChatState, loadChatHistory } from "./controllers/chat.ts";
 import { icons } from "./icons.ts";
+import { uiText } from "./i18n.ts";
 import { iconForTab, pathForTab, titleForTab, type Tab } from "./navigation.ts";
 
 export function renderTab(state: AppViewState, tab: Tab) {
   const href = pathForTab(tab, state.basePath);
+  const tabTitle = titleForTab(tab, state.uiLocale);
   return html`
     <a
       href=${href}
@@ -31,15 +33,16 @@ export function renderTab(state: AppViewState, tab: Tab) {
         event.preventDefault();
         state.setTab(tab);
       }}
-      title=${titleForTab(tab)}
+      title=${tabTitle}
     >
       <span class="nav-item__icon" aria-hidden="true">${icons[iconForTab(tab)]}</span>
-      <span class="nav-item__text">${titleForTab(tab)}</span>
+      <span class="nav-item__text">${tabTitle}</span>
     </a>
   `;
 }
 
 export function renderChatControls(state: AppViewState) {
+  const t = (english: string, chinese: string) => uiText(state.uiLocale, english, chinese);
   const mainSessionKey = resolveMainSessionKey(state.hello, state.sessionsResult);
   const sessionOptions = resolveSessionOptions(
     state.sessionKey,
@@ -144,7 +147,7 @@ export function renderChatControls(state: AppViewState) {
             });
           }
         }}
-        title="Refresh chat data"
+        title=${t("Refresh chat data", "刷新聊天数据")}
       >
         ${refreshIcon}
       </button>
@@ -164,8 +167,8 @@ export function renderChatControls(state: AppViewState) {
         aria-pressed=${showThinking}
         title=${
           disableThinkingToggle
-            ? "Disabled during onboarding"
-            : "Toggle assistant thinking/working output"
+            ? t("Disabled during onboarding", "引导期间不可用")
+            : t("Toggle assistant thinking/working output", "切换助手思考/执行输出")
         }
       >
         ${icons.brain}
@@ -185,8 +188,8 @@ export function renderChatControls(state: AppViewState) {
         aria-pressed=${focusActive}
         title=${
           disableFocusToggle
-            ? "Disabled during onboarding"
-            : "Toggle focus mode (hide sidebar + page header)"
+            ? t("Disabled during onboarding", "引导期间不可用")
+            : t("Toggle focus mode (hide sidebar + page header)", "切换专注模式（隐藏侧栏和页头）")
         }
       >
         ${focusIcon}

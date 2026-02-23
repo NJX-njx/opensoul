@@ -1,4 +1,6 @@
 import type { IconName } from "./icons.js";
+import { uiText } from "./i18n.ts";
+import type { Locale } from "./views/onboarding/i18n.ts";
 
 export const TAB_GROUPS = [
   { label: "Assist", tabs: ["chat"] },
@@ -159,67 +161,130 @@ export function iconForTab(tab: Tab): IconName {
   }
 }
 
-export function titleForTab(tab: Tab) {
-  switch (tab) {
-    case "agents":
-      return "Agents";
-    case "overview":
-      return "Overview";
-    case "channels":
-      return "Channels";
-    case "instances":
-      return "Instances";
-    case "sessions":
-      return "Sessions";
-    case "usage":
-      return "Usage";
-    case "cron":
-      return "Cron Jobs";
-    case "skills":
-      return "Skills";
-    case "nodes":
-      return "Nodes";
-    case "chat":
-      return "Chat";
-    case "config":
-      return "Config";
-    case "debug":
-      return "Debug";
-    case "logs":
-      return "Logs";
+export function labelForTabGroup(label: string, locale?: Locale) {
+  switch (label) {
+    case "Assist":
+      return uiText(locale, "Assist", "助手");
+    case "Operate":
+      return uiText(locale, "Operate", "运维");
+    case "Build":
+      return uiText(locale, "Build", "构建");
+    case "System":
+      return uiText(locale, "System", "系统");
     default:
-      return "Control";
+      return label;
   }
 }
 
-export function subtitleForTab(tab: Tab) {
+export function titleForTab(tab: Tab, locale?: Locale) {
   switch (tab) {
     case "agents":
-      return "Build and manage agent workspaces, tools, and identities.";
+      return uiText(locale, "Agents", "代理");
     case "overview":
-      return "System health, entry points, and fast operational diagnostics.";
+      return uiText(locale, "Overview", "总览");
     case "channels":
-      return "Operate and monitor channel connectivity and settings.";
+      return uiText(locale, "Channels", "渠道");
     case "instances":
-      return "Live presence beacons from connected clients and nodes.";
+      return uiText(locale, "Instances", "实例");
     case "sessions":
-      return "Inspect active sessions and adjust per-session behavior.";
+      return uiText(locale, "Sessions", "会话");
+    case "usage":
+      return uiText(locale, "Usage", "用量");
+    case "cron":
+      return uiText(locale, "Cron Jobs", "定时任务");
+    case "skills":
+      return uiText(locale, "Skills", "技能");
+    case "nodes":
+      return uiText(locale, "Nodes", "节点");
+    case "chat":
+      return uiText(locale, "Chat", "聊天");
+    case "config":
+      return uiText(locale, "Config", "配置");
+    case "debug":
+      return uiText(locale, "Debug", "调试");
+    case "logs":
+      return uiText(locale, "Logs", "日志");
+    default:
+      return uiText(locale, "Control", "控制台");
+  }
+}
+
+export function subtitleForTab(tab: Tab, locale?: Locale) {
+  switch (tab) {
+    case "agents":
+      return uiText(
+        locale,
+        "Build and manage agent workspaces, tools, and identities.",
+        "构建和管理代理工作区、工具与身份信息。",
+      );
+    case "overview":
+      return uiText(
+        locale,
+        "System health, entry points, and fast operational diagnostics.",
+        "系统健康状态、入口与快速运维诊断。",
+      );
+    case "channels":
+      return uiText(
+        locale,
+        "Operate and monitor channel connectivity and settings.",
+        "运营并监控渠道连接与配置。",
+      );
+    case "instances":
+      return uiText(
+        locale,
+        "Live presence beacons from connected clients and nodes.",
+        "来自已连接客户端与节点的在线状态信标。",
+      );
+    case "sessions":
+      return uiText(
+        locale,
+        "Inspect active sessions and adjust per-session behavior.",
+        "查看活跃会话并调整每个会话的行为。",
+      );
     case "usage":
       return "";
     case "cron":
-      return "Schedule wakeups and recurring automated agent runs.";
+      return uiText(
+        locale,
+        "Schedule wakeups and recurring automated agent runs.",
+        "安排唤醒与周期性自动代理执行。",
+      );
     case "skills":
-      return "Manage skill availability and API key injection across agents.";
+      return uiText(
+        locale,
+        "Manage skill availability and API key injection across agents.",
+        "管理技能可用性与跨代理 API Key 注入。",
+      );
     case "nodes":
-      return "Manage paired devices, capabilities, and command exposure.";
+      return uiText(
+        locale,
+        "Manage paired devices, capabilities, and command exposure.",
+        "管理配对设备、能力与命令暴露。",
+      );
     case "chat":
-      return "Direct assistant workspace for fast interventions and control.";
+      return uiText(
+        locale,
+        "Direct assistant workspace for fast interventions and control.",
+        "直接与助手交互的工作区，用于快速控制与干预。",
+      );
     case "config":
-      return "Edit ~/.opensoul/opensoul.json with schema-aware safeguards.";
+      return uiText(
+        locale,
+        "Edit ~/.opensoul/opensoul.json with schema-aware safeguards.",
+        "以 schema 感知保护编辑 ~/.opensoul/opensoul.json。",
+      );
     case "debug":
-      return "Advanced snapshots, event inspection, and manual RPC calls.";
+      return uiText(
+        locale,
+        "Advanced snapshots, event inspection, and manual RPC calls.",
+        "高级快照、事件检查与手动 RPC 调用。",
+      );
     case "logs":
-      return "Live tail of gateway file logs with operational filtering.";
+      return uiText(
+        locale,
+        "Live tail of gateway file logs with operational filtering.",
+        "网关文件日志实时追踪与运维过滤。",
+      );
     default:
       return "";
   }
