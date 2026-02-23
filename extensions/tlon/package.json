@@ -1,6 +1,6 @@
 {
   "name": "@opensoul/tlon",
-  "version": "2026.2.6-3",
+  "version": "0.2.1",
   "description": "OpenSoul Tlon/Urbit channel plugin",
   "type": "module",
   "dependencies": {

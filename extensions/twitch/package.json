@@ -1,6 +1,6 @@
 {
   "name": "@opensoul/twitch",
-  "version": "2026.2.6-3",
+  "version": "0.2.1",
   "description": "OpenSoul Twitch channel plugin",
   "type": "module",
   "dependencies": {
