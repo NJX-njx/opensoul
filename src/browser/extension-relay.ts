@@ -106,11 +106,8 @@ function isLoopbackHost(host: string) {
   return (
     h === "localhost" ||
     h === "127.0.0.1" ||
-    h === "0.0.0.0" ||
     h === "[::1]" ||
-    h === "::1" ||
-    h === "[::]" ||
-    h === "::"
+    h === "::1"
   );
 }
 
