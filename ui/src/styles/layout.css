@@ -6,7 +6,7 @@
   --shell-pad: 16px;
   --shell-gap: 16px;
   --shell-nav-width: 220px;
-  --shell-nav-width-collapsed: 68px;
+  --shell-nav-width-collapsed: 64px;
   --shell-topbar-height: 56px;
   --shell-focus-duration: 200ms;
   --shell-focus-ease: var(--ease-out);
@@ -512,8 +512,11 @@
 /* Collapsed nav overrides */
 .nav--collapsed .nav-item {
   justify-content: center;
-  padding-left: 0;
-  padding-right: 0;
+  width: 44px;
+  height: 38px;
+  margin: 0 auto;
+  padding: 0;
+  border-radius: 10px;
 }
 
 .nav--collapsed .nav-item__text {
@@ -524,19 +527,47 @@
 }
 
 .nav--collapsed .nav-label {
-  justify-content: center;
-  padding: 0;
-  height: 1px;
-  overflow: hidden;
-  margin: 12px 4px;
-  background: var(--border);
-  opacity: 0.5;
+  display: none;
   pointer-events: none;
 }
 
 .nav--collapsed .nav-label__text,
 .nav--collapsed .nav-label__chevron {
   display: none;
+}
+
+.nav--collapsed .nav-group {
+  margin-bottom: 10px;
+  gap: 0;
+}
+
+.nav--collapsed .nav-group__items {
+  gap: 6px;
+}
+
+.nav--collapsed .nav-item__icon {
+  opacity: 0.82;
+}
+
+.nav--collapsed .nav-item.active {
+  border-color: var(--border);
+  background: var(--accent-subtle);
+}
+
+.nav--collapsed .nav-bottom {
+  padding-top: 10px;
+}
+
+.nav--collapsed .nav-settings-btn {
+  width: 44px;
+  height: 38px;
+  margin: 0 auto;
+  padding: 0;
+  border-radius: 10px;
+}
+
+.nav--collapsed .nav-settings-btn__icon {
+  opacity: 0.82;
 }
 
 /* ===========================================
