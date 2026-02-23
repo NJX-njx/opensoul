@@ -4,16 +4,16 @@ import { repeat } from "lit/directives/repeat.js";
 import type { SessionsListResult } from "../types.ts";
 import type { ChatItem, MessageGroup } from "../types/chat-types.ts";
 import type { ChatAttachment, ChatQueueItem } from "../ui-types.ts";
+import type { Locale } from "./onboarding/i18n.ts";
 import {
   renderMessageGroup,
   renderReadingIndicatorGroup,
   renderStreamingGroup,
 } from "../chat/grouped-render.ts";
 import { normalizeMessage, normalizeRoleForGrouping } from "../chat/message-normalizer.ts";
-import { icons } from "../icons.ts";
 import { uiText } from "../i18n.ts";
+import { icons } from "../icons.ts";
 import { renderMarkdownSidebar } from "./markdown-sidebar.ts";
-import type { Locale } from "./onboarding/i18n.ts";
 import "../components/resizable-divider.ts";
 
 export type CompactionIndicatorStatus = {
@@ -229,8 +229,8 @@ export function renderChat(props: ChatProps) {
       ${
         props.loading
           ? html`
-              <div class="muted" style="text-align: center; padding: 48px 0">
-                ${t("Loading chat...", "正在加载聊天...")}
+              <div class="empty-state" style="padding: 48px 0">
+                <div class="empty-state-title">${t("Loading chat...", "正在加载聊天...")}</div>
               </div>
             `
           : nothing
@@ -246,7 +246,7 @@ export function renderChat(props: ChatProps) {
                 </div>
                 <div class="chat-welcome__title">${t("Start a conversation", "开始对话")}</div>
                 <div class="chat-welcome__sub">
-                  ${t("Send a message to begin chatting with the assistant.", "发送一条消息开始与助手聊天。")}
+                  ${t("Type anything below to start — or pick a suggestion.", "在下方输入任意内容开始，或点选一个建议。")}
                 </div>
                 <div class="chat-welcome__hints">
                   <button class="chat-welcome__hint" @click=${() => {
@@ -619,4 +619,3 @@ function messageKey(message: unknown, index: number): string {
   }
   return `msg:${role}:${index}`;
 }
-

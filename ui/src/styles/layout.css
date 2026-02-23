@@ -21,6 +21,10 @@
   animation: dashboard-enter 0.4s var(--ease-out);
   transition: grid-template-columns var(--shell-focus-duration) var(--shell-focus-ease);
   overflow: hidden;
+  background:
+    radial-gradient(1200px 520px at -12% -20%, color-mix(in srgb, var(--info) 12%, transparent), transparent 68%),
+    radial-gradient(780px 420px at 112% 0%, color-mix(in srgb, var(--ok) 10%, transparent), transparent 72%),
+    var(--bg);
 }
 
 @supports (height: 100dvh) {
@@ -85,7 +89,8 @@
   padding: 0 20px;
   height: var(--shell-topbar-height);
   border-bottom: 1px solid var(--border);
-  background: var(--bg);
+  background: color-mix(in srgb, var(--chrome-strong) 88%, transparent);
+  backdrop-filter: blur(12px);
 }
 
 .topbar-left {
@@ -215,13 +220,14 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 16px 12px;
-  background: var(--bg);
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
   scrollbar-width: none; /* Firefox */
   transition:
     width var(--shell-focus-duration) var(--shell-focus-ease),
     padding var(--shell-focus-duration) var(--shell-focus-ease),
     opacity var(--shell-focus-duration) var(--shell-focus-ease);
   min-height: 0;
+  border-right: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
 }
 
 .nav::-webkit-scrollbar {
@@ -242,7 +248,7 @@
   min-width: 0;
   padding: 16px 8px;
   overflow-x: hidden;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
   opacity: 1;
   pointer-events: auto;
 }
@@ -295,9 +301,9 @@
 
 /* Nav groups */
 .nav-group {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   display: grid;
-  gap: 2px;
+  gap: 3px;
 }
 
 .nav-group:last-child {
@@ -306,7 +312,7 @@
 
 .nav-group__items {
   display: grid;
-  gap: 1px;
+  gap: 2px;
 }
 
 .nav-group--collapsed .nav-group__items {
@@ -320,11 +326,11 @@
   justify-content: space-between;
   gap: 8px;
   width: 100%;
-  padding: 6px 10px;
+  padding: 7px 10px;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--muted);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -337,7 +343,7 @@
 
 .nav-label:hover {
   color: var(--text);
-  background: var(--bg-hover);
+  background: color-mix(in srgb, var(--bg-hover) 70%, transparent);
 }
 
 .nav-label--static {
@@ -443,10 +449,10 @@
   align-items: center;
   justify-content: flex-start;
   gap: 10px;
-  padding: 8px 10px;
+  padding: 10px 10px;
   border-radius: var(--radius-md);
-  border: 1px solid transparent;
-  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--border) 35%, transparent);
+  background: color-mix(in srgb, var(--card) 66%, transparent);
   color: var(--muted);
   cursor: pointer;
   text-decoration: none;
@@ -454,6 +460,13 @@
     border-color var(--duration-fast) ease,
     background var(--duration-fast) ease,
     color var(--duration-fast) ease;
+}
+
+.nav-item__body {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+  flex: 1;
 }
 
 .nav-item__icon {
@@ -479,7 +492,7 @@
 
 .nav-item__text {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   white-space: nowrap;
   opacity: 1;
   max-width: 300px;
@@ -489,9 +502,30 @@
     max-width var(--shell-focus-duration) var(--shell-focus-ease);
 }
 
+.nav-item__hint {
+  color: color-mix(in srgb, var(--muted) 92%, var(--text) 8%);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.9;
+}
+
+.nav-item__active-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--info) 82%, var(--accent) 18%);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--info) 20%, transparent);
+  flex-shrink: 0;
+}
+
 .nav-item:hover {
   color: var(--text);
-  background: var(--bg-hover);
+  background: color-mix(in srgb, var(--bg-hover) 72%, transparent);
+  border-color: color-mix(in srgb, var(--border-strong) 76%, transparent);
   text-decoration: none;
 }
 
@@ -501,7 +535,13 @@
 
 .nav-item.active {
   color: var(--text-strong);
-  background: var(--bg-hover);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--info) 18%, transparent),
+      color-mix(in srgb, var(--bg-hover) 82%, transparent)
+    );
+  border-color: color-mix(in srgb, var(--info) 48%, var(--border) 52%);
 }
 
 .nav-item.active .nav-item__icon {
@@ -519,7 +559,10 @@
   border-radius: 10px;
 }
 
-.nav--collapsed .nav-item__text {
+.nav--collapsed .nav-item__body,
+.nav--collapsed .nav-item__text,
+.nav--collapsed .nav-item__hint,
+.nav--collapsed .nav-item__active-dot {
   opacity: 0;
   max-width: 0;
   overflow: hidden;
@@ -576,7 +619,7 @@
 
 .content {
   grid-area: content;
-  padding: 12px 16px 32px;
+  padding: 14px 18px 34px;
   display: block;
   min-height: 0;
   overflow-y: auto;
@@ -608,10 +651,19 @@
 /* Content header */
 .content-header {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 4px 8px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--card) 82%, transparent),
+      color-mix(in srgb, var(--bg-elevated) 88%, transparent)
+    );
+  box-shadow: var(--shadow-sm);
   overflow: visible;
   transform-origin: top center;
   transition:
@@ -620,6 +672,36 @@
     max-height var(--shell-focus-duration) var(--shell-focus-ease),
     padding var(--shell-focus-duration) var(--shell-focus-ease);
   max-height: none;
+}
+
+.content-header__main {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.page-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.page-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  background: color-mix(in srgb, var(--secondary) 82%, transparent);
+  color: color-mix(in srgb, var(--text) 88%, var(--info) 12%);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.page-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 .shell--chat-focus .content-header {
@@ -632,24 +714,44 @@
 }
 
 .page-title {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.035em;
-  line-height: 1.15;
+  line-height: 1.12;
   color: var(--text-strong);
 }
 
 .page-sub {
-  color: var(--muted);
-  font-size: 14px;
+  color: color-mix(in srgb, var(--muted) 86%, var(--text) 14%);
+  font-size: 13px;
   font-weight: 400;
-  margin-top: 6px;
+  margin-top: 4px;
   letter-spacing: -0.01em;
 }
 
 .page-meta {
   display: flex;
   gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.page-health-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--secondary) 86%, transparent);
+}
+
+.page-health-pill .statusDot {
+  width: 7px;
+  height: 7px;
 }
 
 /* Chat view header adjustments */

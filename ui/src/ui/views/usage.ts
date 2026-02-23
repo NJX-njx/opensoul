@@ -4,19 +4,25 @@ import { extractQueryTerms, filterSessionsByQuery, parseToolSummary } from "../u
 
 // Inline styles for usage view (app uses light DOM, so static styles don't work)
 const usageStylesString = `
+  .usage-page {
+    --usage-accent: var(--info);
+    --usage-accent-hover: color-mix(in srgb, var(--info) 86%, black);
+    --usage-accent-soft: color-mix(in srgb, var(--info) 14%, transparent);
+  }
   .usage-page-header {
     margin: 4px 0 12px;
   }
   .usage-page-title {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 700;
     letter-spacing: -0.02em;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
   }
   .usage-page-subtitle {
     font-size: 13px;
     color: var(--text-muted);
-    margin: 0 0 12px;
+    margin: 0 0 16px;
+    line-height: 1.5;
   }
   /* ===== FILTERS & HEADER ===== */
   .usage-filters-inline {
@@ -166,23 +172,23 @@ const usageStylesString = `
     border-color: var(--border-strong);
   }
   .usage-primary-btn {
-    background: #ff4d4d;
+    background: var(--usage-accent);
     color: #fff;
-    border-color: #ff4d4d;
+    border-color: var(--usage-accent);
     box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.12);
   }
   .btn.usage-primary-btn {
-    background: #ff4d4d !important;
-    border-color: #ff4d4d !important;
+    background: var(--usage-accent) !important;
+    border-color: var(--usage-accent) !important;
     color: #fff !important;
   }
   .usage-primary-btn:hover {
-    background: #e64545;
-    border-color: #e64545;
+    background: var(--usage-accent-hover);
+    border-color: var(--usage-accent-hover);
   }
   .btn.usage-primary-btn:hover {
-    background: #e64545 !important;
-    border-color: #e64545 !important;
+    background: var(--usage-accent-hover) !important;
+    border-color: var(--usage-accent-hover) !important;
   }
   .usage-primary-btn:disabled {
     background: rgba(255, 77, 77, 0.18);
@@ -804,7 +810,7 @@ const usageStylesString = `
     color: var(--text);
   }
   .chart-toggle .toggle-btn.active {
-    background: #ff4d4d;
+    background: var(--usage-accent);
     color: white;
   }
   .chart-toggle.small .toggle-btn {
@@ -861,14 +867,14 @@ const usageStylesString = `
   .daily-bar {
     width: 100%;
     max-width: var(--bar-max-width, 32px);
-    background: #ff4d4d;
+    background: var(--usage-accent);
     border-radius: 3px 3px 0 0;
     min-height: 2px;
     transition: all 0.15s;
     overflow: hidden;
   }
   .daily-bar-wrapper:hover .daily-bar {
-    background: #cc3d3d;
+    background: var(--usage-accent-hover);
   }
   .daily-bar-label {
     position: absolute;
@@ -4625,7 +4631,7 @@ export function renderUsage(props: UsageProps) {
         <div class="row" style="justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
           <div style="flex: 1; min-width: 250px;">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 2px;">
-              <div class="card-title" style="margin: 0;">Token Usage</div>
+              <div class="card-title" style="margin: 0;">Token Usage · 加载中</div>
               <span style="
                 display: inline-flex;
                 align-items: center;
@@ -5013,8 +5019,8 @@ export function renderUsage(props: UsageProps) {
     <style>${usageStylesString}</style>
 
     <section class="usage-page-header">
-      <div class="usage-page-title">Usage</div>
-      <div class="usage-page-subtitle">See where tokens go, when sessions spike, and what drives cost.</div>
+      <div class="usage-page-title">Usage · 用量统计</div>
+      <div class="usage-page-subtitle">Track token consumption, session activity, and cost breakdown over time.</div>
     </section>
 
     <section class="card usage-header ${props.headerPinned ? "pinned" : ""}">
@@ -5031,7 +5037,7 @@ export function renderUsage(props: UsageProps) {
           ${
             isEmpty
               ? html`
-                  <span class="usage-query-hint">Select a date range and click Refresh to load usage.</span>
+                  <span class="usage-query-hint">Select a date range and click Refresh to load your usage data.</span>
                 `
               : nothing
           }

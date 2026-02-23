@@ -33,34 +33,34 @@ function sectionSummary(
   switch (section) {
     case "general":
       return {
-        label: t("General", "\u901a\u7528"),
+        label: t("General", "通用"),
         description: t(
           "Personal preferences and language.",
-          "\u4e2a\u6027\u5316\u4f60\u7684\u754c\u9762\u504f\u597d\u548c\u8bed\u8a00\u3002",
+          "外观、语言与基础偏好设置。",
         ),
       };
     case "config":
       return {
-        label: t("Config", "\u914d\u7f6e"),
+        label: t("Config", "配置"),
         description: t(
           "Organized configuration with section-based editing.",
-          "\u5206\u533a\u7ec4\u7ec7\u7684\u914d\u7f6e\uff0c\u4e0d\u518d\u4e00\u5c4f\u4fe1\u606f\u538b\u5012\u4f60\u3002",
+          "按分组管理配置，减少一次性信息压力。",
         ),
       };
     case "logs":
       return {
-        label: t("Logs", "\u65e5\u5fd7"),
+        label: t("Logs", "日志"),
         description: t(
           "Readable runtime logs for troubleshooting.",
-          "\u6613\u4e8e\u9605\u8bfb\u7684\u8fd0\u884c\u65e5\u5fd7\uff0c\u65b9\u4fbf\u5feb\u901f\u6392\u67e5\u95ee\u9898\u3002",
+          "更易读的运行日志，方便快速排查问题。",
         ),
       };
     case "debug":
       return {
-        label: t("Debug", "\u8c03\u8bd5"),
+        label: t("Debug", "调试"),
         description: t(
           "System diagnostics and advanced gateway tools.",
-          "\u7cfb\u7edf\u8bca\u65ad\u53ca\u9ad8\u7ea7\u7f51\u5173\u8c03\u8bd5\u5de5\u5177\u3002",
+          "系统诊断与高级网关调试工具。",
         ),
       };
     default:
@@ -85,25 +85,25 @@ function renderGeneralSection(state: AppViewState) {
     <section class="settings-page settings-page--general">
       <header class="settings-page__header settings-page__header--compact">
         <div>
-          <h3 class="settings-page__title">${t("Personalization", "\u4e2a\u6027\u5316")}</h3>
+          <h3 class="settings-page__title">${t("Personalization", "个性化")}</h3>
           <p class="settings-page__desc">
             ${t(
               "Tune appearance and language to match your daily workflow.",
-              "\u8c03\u6574\u4f60\u7684\u5916\u89c2\u548c\u8bed\u8a00\uff0c\u8ba9\u5de5\u4f5c\u6d41\u66f4\u52a0\u81ea\u7136\u3002",
+              "调整界面外观和语言，让设置体验更自然。",
             )}
           </p>
         </div>
       </header>
 
       <div class="settings-surface">
-        <h4 class="settings-section__title">${t("Appearance", "\u5916\u89c2")}</h4>
+        <h4 class="settings-section__title">${t("Appearance", "外观")}</h4>
         <div class="settings-section__row">
           <div class="settings-section__row-info">
-            <span class="settings-section__row-label">${t("Theme", "\u4e3b\u9898")}</span>
+            <span class="settings-section__row-label">${t("Theme", "主题")}</span>
             <span class="settings-section__row-desc">
               ${t(
                 "Choose light, dark, or follow your system preference.",
-                "\u53ef\u9009\u62e9\u6d45\u8272\u3001\u6df1\u8272\u6216\u8ddf\u968f\u7cfb\u7edf\u5916\u89c2\u3002",
+                "可选择浅色、深色或跟随系统外观。",
               )}
             </span>
           </div>
@@ -113,21 +113,21 @@ function renderGeneralSection(state: AppViewState) {
         </div>
 
         <h4 class="settings-section__title settings-section__title--spaced">
-          ${t("Language", "\u8bed\u8a00")}
+          ${t("Language", "语言")}
         </h4>
         <div class="settings-section__row">
           <div class="settings-section__row-info">
-            <span class="settings-section__row-label">${t("System language", "\u7cfb\u7edf\u8bed\u8a00")}</span>
+            <span class="settings-section__row-label">${t("System language", "系统语言")}</span>
             <span class="settings-section__row-desc">
               ${t(
                 "Uses the same options as onboarding and applies immediately.",
-                "\u4e0e\u5f15\u5bfc\u9875\u4fdd\u6301\u4e00\u81f4\uff0c\u5207\u6362\u540e\u7acb\u5373\u751f\u6548\u3002",
+                "与引导页保持一致，切换后立即生效。",
               )}
             </span>
           </div>
           <div class="settings-section__row-control">
             <label class="settings-sr-only" for="settings-system-language">
-              ${t("System language", "\u7cfb\u7edf\u8bed\u8a00")}
+              ${t("System language", "系统语言")}
             </label>
             <select
               id="settings-system-language"
@@ -151,7 +151,7 @@ function renderGeneralSection(state: AppViewState) {
       </div>
 
       <div class="settings-surface settings-surface--subtle">
-        <h4 class="settings-section__title">${t("Resources", "\u8d44\u6e90")}</h4>
+        <h4 class="settings-section__title">${t("Resources", "资源")}</h4>
         <a
           class="settings-link"
           href="https://github.com/NJX-njx/opensoul"
@@ -159,7 +159,7 @@ function renderGeneralSection(state: AppViewState) {
           rel="noreferrer"
         >
           <span class="settings-link__icon">${icons.link}</span>
-          <span class="settings-link__text">${t("GitHub Repository", "GitHub \u4ed3\u5e93")}</span>
+          <span class="settings-link__text">${t("GitHub Repository", "GitHub 仓库")}</span>
           <span class="settings-link__external">
             <svg
               width="14"
@@ -198,13 +198,13 @@ export function renderSettingsPanel(
   const navLabel = (section: SettingsSection) => {
     switch (section) {
       case "general":
-        return t("General", "\u901a\u7528");
+        return t("General", "通用");
       case "config":
-        return t("Config", "\u914d\u7f6e");
+        return t("Config", "配置");
       case "logs":
-        return t("Logs", "\u65e5\u5fd7");
+        return t("Logs", "日志");
       case "debug":
-        return t("Debug", "\u8c03\u8bd5");
+        return t("Debug", "调试");
       default:
         return section;
     }
@@ -226,7 +226,7 @@ export function renderSettingsPanel(
     <div class="settings-panel" @keydown=${handleKeyDown} tabindex="-1">
       <div class="settings-panel__header">
         <div class="settings-panel__header-main">
-          <h2 class="settings-panel__title">${t("Settings", "\u8bbe\u7f6e")}</h2>
+          <h2 class="settings-panel__title">${t("Settings", "设置")}</h2>
           <p class="settings-panel__subtitle">${sectionMeta.description}</p>
         </div>
         <div class="settings-panel__header-actions">
@@ -234,8 +234,8 @@ export function renderSettingsPanel(
           <button
             class="settings-panel__close"
             @click=${() => state.closeSettings()}
-            title=${t("Close settings", "\u5173\u95ed\u8bbe\u7f6e")}
-            aria-label=${t("Close settings", "\u5173\u95ed\u8bbe\u7f6e")}
+            title=${t("Close settings", "关闭设置")}
+            aria-label=${t("Close settings", "关闭设置")}
           >
             ${icons.x}
           </button>

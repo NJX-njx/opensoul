@@ -1,4 +1,4 @@
-import { html } from "lit";
+import { html, nothing } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 import type { AppViewState } from "./app-view-state.ts";
 import type { ThemeTransitionContext } from "./theme-transition.ts";
@@ -10,11 +10,12 @@ import { OpenSoulApp } from "./app.ts";
 import { ChatState, loadChatHistory } from "./controllers/chat.ts";
 import { icons } from "./icons.ts";
 import { uiText } from "./i18n.ts";
-import { iconForTab, pathForTab, titleForTab, type Tab } from "./navigation.ts";
+import { iconForTab, navHintForTab, pathForTab, titleForTab, type Tab } from "./navigation.ts";
 
 export function renderTab(state: AppViewState, tab: Tab) {
   const href = pathForTab(tab, state.basePath);
   const tabTitle = titleForTab(tab, state.uiLocale);
+  const tabHint = navHintForTab(tab, state.uiLocale);
   return html`
     <a
       href=${href}
@@ -36,7 +37,11 @@ export function renderTab(state: AppViewState, tab: Tab) {
       title=${tabTitle}
     >
       <span class="nav-item__icon" aria-hidden="true">${icons[iconForTab(tab)]}</span>
-      <span class="nav-item__text">${tabTitle}</span>
+      <span class="nav-item__body">
+        <span class="nav-item__text">${tabTitle}</span>
+        ${tabHint ? html`<span class="nav-item__hint">${tabHint}</span>` : nothing}
+      </span>
+      ${state.tab === tab ? html`<span class="nav-item__active-dot" aria-hidden="true"></span>` : nothing}
     </a>
   `;
 }

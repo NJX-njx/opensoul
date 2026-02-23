@@ -49,9 +49,60 @@ export function renderChannels(props: ChannelsProps) {
       }
       return a.order - b.order;
     });
+  const channelStatusRows = Object.values(channels ?? {}).filter(
+    (entry): entry is Record<string, unknown> => Boolean(entry && typeof entry === "object"),
+  );
+  const configuredCount = orderedChannels.filter((channel) => channel.enabled).length;
+  const runningCount = channelStatusRows.filter((entry) => entry.running === true).length;
+  const connectedCount = channelStatusRows.filter((entry) => entry.connected === true).length;
+  const errorCount = channelStatusRows.filter((entry) => {
+    return typeof entry.lastError === "string" && entry.lastError.trim().length > 0;
+  }).length;
 
   return html`
-    <section class="grid grid-cols-2">
+    <section class="card">
+      <div class="section-header">
+        <div>
+          <div class="card-title">Channel Status · 渠道状态</div>
+          <div class="card-sub">Monitor connectivity and health of all messaging channels.</div>
+        </div>
+        <div class="section-header__meta">
+          <button class="btn btn--sm" ?disabled=${props.loading} @click=${() => props.onRefresh(false)}>
+            ${props.loading ? "Refreshing…" : "↻ Refresh"}
+          </button>
+          <span class="muted">${props.lastSuccessAt ? formatRelativeTimestamp(props.lastSuccessAt) : "—"}</span>
+        </div>
+      </div>
+      <div class="page-summary-grid" style="margin-top: 18px;">
+        <div class="page-summary-card">
+          <div class="page-summary-label">Configured · 已配置</div>
+          <div class="page-summary-value">${configuredCount}</div>
+          <div class="page-summary-sub">Enabled in your config</div>
+        </div>
+        <div class="page-summary-card">
+          <div class="page-summary-label">Running · 运行中</div>
+          <div class="page-summary-value">${runningCount}</div>
+          <div class="page-summary-sub">Active services</div>
+        </div>
+        <div class="page-summary-card">
+          <div class="page-summary-label">Connected · 已连接</div>
+          <div class="page-summary-value">${connectedCount}</div>
+          <div class="page-summary-sub">Upstream links alive</div>
+        </div>
+        <div class="page-summary-card">
+          <div class="page-summary-label">Issues · 异常</div>
+          <div class="page-summary-value ${errorCount > 0 ? "warn" : "ok"}">${errorCount}</div>
+          <div class="page-summary-sub">Channels with errors</div>
+        </div>
+      </div>
+      ${
+        props.lastError
+          ? html`<div class="callout danger" style="margin-top: 14px;">${props.lastError}</div>`
+          : nothing
+      }
+    </section>
+
+    <section class="grid grid-cols-2" style="margin-top: 20px;">
       ${orderedChannels.map((channel) =>
         renderChannel(channel.key, props, {
           whatsapp,
@@ -67,25 +118,13 @@ export function renderChannels(props: ChannelsProps) {
       )}
     </section>
 
-    <section class="card" style="margin-top: 18px;">
-      <div class="row" style="justify-content: space-between;">
-        <div>
-          <div class="card-title">Channel health</div>
-          <div class="card-sub">Channel status snapshots from the gateway.</div>
-        </div>
-        <div class="muted">${props.lastSuccessAt ? formatRelativeTimestamp(props.lastSuccessAt) : "n/a"}</div>
+    <details class="collapsible" style="margin-top: 20px;">
+      <summary>Raw Snapshot · 原始数据</summary>
+      <div class="card-sub" style="margin-top: 10px;">
+        Full channel diagnostic data from the gateway — useful for debugging.
       </div>
-      ${
-        props.lastError
-          ? html`<div class="callout danger" style="margin-top: 12px;">
-            ${props.lastError}
-          </div>`
-          : nothing
-      }
-      <pre class="code-block" style="margin-top: 12px;">
-${props.snapshot ? JSON.stringify(props.snapshot, null, 2) : "No snapshot yet."}
-      </pre>
-    </section>
+      <pre class="code-block" style="margin-top: 10px;">${props.snapshot ? JSON.stringify(props.snapshot, null, 2) : "No data available yet."}</pre>
+    </details>
   `;
 }
 
@@ -194,7 +233,7 @@ function renderGenericChannelCard(
   return html`
     <div class="card">
       <div class="card-title">${label}</div>
-      <div class="card-sub">Channel status and configuration.</div>
+      <div class="card-sub">Status and connectivity overview.</div>
       ${accountCountLabel}
 
       ${
@@ -205,26 +244,35 @@ function renderGenericChannelCard(
             </div>
           `
           : html`
-            <div class="status-list" style="margin-top: 16px;">
-              <div>
-                <span class="label">Configured</span>
-                <span>${configured == null ? "n/a" : configured ? "Yes" : "No"}</span>
-              </div>
-              <div>
-                <span class="label">Running</span>
-                <span>${running == null ? "n/a" : running ? "Yes" : "No"}</span>
-              </div>
-              <div>
-                <span class="label">Connected</span>
-                <span>${connected == null ? "n/a" : connected ? "Yes" : "No"}</span>
-              </div>
+            <div class="info-grid" style="margin-top: 16px;">
+              <span class="info-grid-label">Configured</span>
+              <span>${
+                configured == null
+                  ? "—"
+                  : html`<span class="status-badge ${configured ? "ok" : "neutral"}">
+                ${configured ? "Yes" : "No"}</span>`
+              }</span>
+              <span class="info-grid-label">Running</span>
+              <span>${
+                running == null
+                  ? "—"
+                  : html`<span class="status-badge ${running ? "ok" : "warn"}">
+                ${running ? "Yes" : "No"}</span>`
+              }</span>
+              <span class="info-grid-label">Connected</span>
+              <span>${
+                connected == null
+                  ? "—"
+                  : html`<span class="status-badge ${connected ? "ok" : "danger"}">
+                ${connected ? "Yes" : "No"}</span>`
+              }</span>
             </div>
           `
       }
 
       ${
         lastError
-          ? html`<div class="callout danger" style="margin-top: 12px;">
+          ? html`<div class="callout danger" style="margin-top: 14px;">
             ${lastError}
           </div>`
           : nothing
@@ -287,33 +335,33 @@ function renderGenericAccount(account: ChannelAccountSnapshot) {
   const runningStatus = deriveRunningStatus(account);
   const connectedStatus = deriveConnectedStatus(account);
 
+  const runBadgeClass = runningStatus === "Yes" || runningStatus === "Active" ? "ok" : "warn";
+  const connBadgeClass =
+    connectedStatus === "Yes" || connectedStatus === "Active"
+      ? "ok"
+      : connectedStatus === "No"
+        ? "danger"
+        : "neutral";
+
   return html`
     <div class="account-card">
       <div class="account-card-header">
         <div class="account-card-title">${account.name || account.accountId}</div>
         <div class="account-card-id">${account.accountId}</div>
       </div>
-      <div class="status-list account-card-status">
-        <div>
-          <span class="label">Running</span>
-          <span>${runningStatus}</span>
-        </div>
-        <div>
-          <span class="label">Configured</span>
-          <span>${account.configured ? "Yes" : "No"}</span>
-        </div>
-        <div>
-          <span class="label">Connected</span>
-          <span>${connectedStatus}</span>
-        </div>
-        <div>
-          <span class="label">Last inbound</span>
-          <span>${account.lastInboundAt ? formatRelativeTimestamp(account.lastInboundAt) : "n/a"}</span>
-        </div>
+      <div class="info-grid account-card-status">
+        <span class="info-grid-label">Running</span>
+        <span class="status-badge ${runBadgeClass}">${runningStatus}</span>
+        <span class="info-grid-label">Configured</span>
+        <span class="status-badge ${account.configured ? "ok" : "neutral"}">${account.configured ? "Yes" : "No"}</span>
+        <span class="info-grid-label">Connected</span>
+        <span class="status-badge ${connBadgeClass}">${connectedStatus === "n/a" ? "—" : connectedStatus}</span>
+        <span class="info-grid-label">Last message</span>
+        <span>${account.lastInboundAt ? formatRelativeTimestamp(account.lastInboundAt) : "—"}</span>
         ${
           account.lastError
             ? html`
-              <div class="account-card-error">
+              <div class="account-card-error" style="grid-column: 1 / -1;">
                 ${account.lastError}
               </div>
             `

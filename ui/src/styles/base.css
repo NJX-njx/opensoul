@@ -73,6 +73,14 @@
   --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--ring);
   --focus-glow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ring), 0 0 16px var(--accent-glow);
 
+  /* Compatibility aliases for view-scoped styles */
+  --text-muted: var(--muted);
+  --bg-secondary: var(--bg-elevated);
+  --bg-subtle: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+  --font-mono: var(--mono);
+  --danger-color: var(--danger);
+  --success-color: var(--ok);
+
   /* Grid */
   --grid-line: rgba(255, 255, 255, 0.04);
 
@@ -177,6 +185,14 @@
   --focus: rgba(161, 161, 170, 0.15);
   --focus-glow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ring), 0 0 12px var(--accent-glow);
 
+  /* Compatibility aliases for view-scoped styles */
+  --text-muted: var(--muted);
+  --bg-secondary: #f8fafc;
+  --bg-subtle: #f3f4f6;
+  --font-mono: var(--mono);
+  --danger-color: var(--danger);
+  --success-color: var(--ok);
+
   --grid-line: rgba(0, 0, 0, 0.05);
 
   /* Light shadows */
@@ -202,7 +218,10 @@ body {
   margin: 0;
   font: 400 14px/1.55 var(--font-body);
   letter-spacing: -0.02em;
-  background: var(--bg);
+  background:
+    radial-gradient(860px 520px at -20% -30%, color-mix(in srgb, var(--info) 10%, transparent), transparent 62%),
+    radial-gradient(720px 420px at 118% -12%, color-mix(in srgb, var(--ok) 9%, transparent), transparent 66%),
+    var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

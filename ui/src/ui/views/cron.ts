@@ -63,35 +63,35 @@ export function renderCron(props: CronProps) {
   return html`
     <section class="grid grid-cols-2">
       <div class="card">
-        <div class="card-title">Scheduler</div>
-        <div class="card-sub">Gateway-owned cron scheduler status.</div>
-        <div class="stat-grid" style="margin-top: 16px;">
+        <div class="card-title">Scheduler · 调度器</div>
+        <div class="card-sub">Current scheduler status and next wake time.</div>
+        <div class="stat-grid" style="margin-top: 18px;">
           <div class="stat">
-            <div class="stat-label">Enabled</div>
+            <div class="stat-label">Status · 状态</div>
             <div class="stat-value">
-              ${props.status ? (props.status.enabled ? "Yes" : "No") : "n/a"}
+              ${props.status ? html`<span class="status-badge ${props.status.enabled ? "ok" : "warn"}">${props.status.enabled ? "Enabled" : "Disabled"}</span>` : "—"}
             </div>
           </div>
           <div class="stat">
-            <div class="stat-label">Jobs</div>
-            <div class="stat-value">${props.status?.jobs ?? "n/a"}</div>
+            <div class="stat-label">Jobs · 任务</div>
+            <div class="stat-value">${props.status?.jobs ?? "—"}</div>
           </div>
           <div class="stat">
-            <div class="stat-label">Next wake</div>
+            <div class="stat-label">Next wake · 下次执行</div>
             <div class="stat-value">${formatNextRun(props.status?.nextWakeAtMs ?? null)}</div>
           </div>
         </div>
-        <div class="row" style="margin-top: 12px;">
+        <div class="row" style="margin-top: 14px;">
           <button class="btn" ?disabled=${props.loading} @click=${props.onRefresh}>
-            ${props.loading ? "Refreshing…" : "Refresh"}
+            ${props.loading ? "Refreshing…" : "↻ Refresh"}
           </button>
           ${props.error ? html`<span class="muted">${props.error}</span>` : nothing}
         </div>
       </div>
 
       <div class="card">
-        <div class="card-title">New Job</div>
-        <div class="card-sub">Create a scheduled wakeup or agent run.</div>
+        <div class="card-title">New Job · 新建任务</div>
+        <div class="card-sub">Schedule a recurring wakeup or automated agent task.</div>
         <div class="form-grid" style="margin-top: 16px;">
           <label class="field">
             <span>Name</span>
@@ -272,33 +272,45 @@ export function renderCron(props: CronProps) {
       </div>
     </section>
 
-    <section class="card" style="margin-top: 18px;">
-      <div class="card-title">Jobs</div>
-      <div class="card-sub">All scheduled jobs stored in the gateway.</div>
+    <section class="card" style="margin-top: 20px;">
+      <div class="card-title">Scheduled Jobs · 已调度任务</div>
+      <div class="card-sub">All jobs managed by the gateway scheduler.</div>
       ${
         props.jobs.length === 0
           ? html`
-              <div class="muted" style="margin-top: 12px">No jobs yet.</div>
+              <div class="empty-state" style="margin-top: 16px">
+                <div class="empty-state-icon">⏰</div>
+                <div class="empty-state-title">No jobs scheduled yet</div>
+                <div class="empty-state-desc">Use the form above to create your first scheduled task.</div>
+              </div>
             `
           : html`
-            <div class="list" style="margin-top: 12px;">
+            <div class="list" style="margin-top: 16px;">
               ${props.jobs.map((job) => renderJob(job, props))}
             </div>
           `
       }
     </section>
 
-    <section class="card" style="margin-top: 18px;">
-      <div class="card-title">Run history</div>
+    <section class="card" style="margin-top: 20px;">
+      <div class="card-title">Run History · 执行历史</div>
       <div class="card-sub">Latest runs for ${selectedRunTitle}.</div>
       ${
         props.runsJobId == null
           ? html`
-              <div class="muted" style="margin-top: 12px">Select a job to inspect run history.</div>
+              <div class="empty-state" style="margin-top: 16px">
+                <div class="empty-state-icon">📊</div>
+                <div class="empty-state-title">Select a job above</div>
+                <div class="empty-state-desc">Click on a scheduled job to view its execution history.</div>
+              </div>
             `
           : orderedRuns.length === 0
             ? html`
-                <div class="muted" style="margin-top: 12px">No runs yet.</div>
+                <div class="empty-state" style="margin-top: 16px">
+                  <div class="empty-state-icon">📂</div>
+                  <div class="empty-state-title">No runs recorded</div>
+                  <div class="empty-state-desc">This job has not been executed yet.</div>
+                </div>
               `
             : html`
               <div class="list" style="margin-top: 12px;">
@@ -480,13 +492,13 @@ function renderJobPayload(job: CronJob) {
 
 function formatStateRelative(ms?: number) {
   if (typeof ms !== "number" || !Number.isFinite(ms)) {
-    return "n/a";
+    return "—";
   }
   return formatRelativeTimestamp(ms);
 }
 
 function renderJobState(job: CronJob) {
-  const status = job.state?.lastStatus ?? "n/a";
+  const status = job.state?.lastStatus ?? "—";
   const statusClass =
     status === "ok"
       ? "cron-job-status-ok"
