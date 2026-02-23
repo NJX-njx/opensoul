@@ -101,6 +101,20 @@ describe("browser config", () => {
     expect(profile?.cdpIsLoopback).toBe(false);
   });
 
+  it("treats wildcard CDP hosts as non-loopback", () => {
+    const ipv4Wildcard = resolveBrowserConfig({
+      cdpUrl: "http://0.0.0.0:9222",
+    });
+    expect(ipv4Wildcard.cdpIsLoopback).toBe(false);
+    expect(resolveProfile(ipv4Wildcard, "opensoul")?.cdpIsLoopback).toBe(false);
+
+    const ipv6Wildcard = resolveBrowserConfig({
+      cdpUrl: "http://[::]:9222",
+    });
+    expect(ipv6Wildcard.cdpIsLoopback).toBe(false);
+    expect(resolveProfile(ipv6Wildcard, "opensoul")?.cdpIsLoopback).toBe(false);
+  });
+
   it("supports explicit CDP URLs for the default profile", () => {
     const resolved = resolveBrowserConfig({
       cdpUrl: "http://example.com:9222",
