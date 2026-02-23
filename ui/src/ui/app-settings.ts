@@ -37,6 +37,7 @@ import {
 import { saveSettings, type UiSettings } from "./storage.ts";
 import { startThemeTransition, type ThemeTransitionContext } from "./theme-transition.ts";
 import { resolveTheme, type ResolvedTheme, type ThemeMode } from "./theme.ts";
+import type { Locale } from "./views/onboarding/i18n.ts";
 
 type SettingsHost = {
   settings: UiSettings;
@@ -47,6 +48,7 @@ type SettingsHost = {
   sessionKey: string;
   tab: Tab;
   connected: boolean;
+  uiLocale?: Locale;
   chatHasAutoScrolled: boolean;
   logsAtBottom: boolean;
   eventLog: unknown[];
@@ -166,7 +168,7 @@ export function setTab(host: SettingsHost, next: Tab) {
     host.tab = next;
   }
   // Notify desktop shell about tab change for window title update
-  sendTabChanged(next, titleForTab(next));
+  sendTabChanged(next, titleForTab(next, host.uiLocale));
   if (next === "chat") {
     host.chatHasAutoScrolled = false;
   }

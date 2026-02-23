@@ -77,6 +77,7 @@ import {
   type CompactionStatus,
 } from "./app-tool-stream.ts";
 import { resolveInjectedAssistantIdentity } from "./assistant-identity.ts";
+import { loadUiLocale, saveUiLocale } from "./i18n.ts";
 import { loadAssistantIdentity as loadAssistantIdentityInternal } from "./controllers/assistant-identity.ts";
 import {
   loadConfig as loadConfigInternal,
@@ -86,7 +87,7 @@ import { loadDebug as loadDebugInternal } from "./controllers/debug.ts";
 import { loadLogs as loadLogsInternal } from "./controllers/logs.ts";
 import { loadSettings, type UiSettings } from "./storage.ts";
 import { type ChatAttachment, type ChatQueueItem, type CronFormState } from "./ui-types.ts";
-import { detectLocale, type Locale } from "./views/onboarding/i18n.ts";
+import type { Locale } from "./views/onboarding/i18n.ts";
 
 declare global {
   interface Window {
@@ -111,10 +112,13 @@ function resolveOnboardingMode(): boolean {
 
 @customElement("opensoul-app")
 export class OpenSoulApp extends LitElement {
+  private readonly initialLocale: Locale = loadUiLocale();
+
   @state() settings: UiSettings = loadSettings();
   @state() password = "";
   @state() tab: Tab = "chat";
   @state() onboarding = resolveOnboardingMode();
+  @state() uiLocale: Locale = this.initialLocale;
   @state() connected = false;
   @state() theme: ThemeMode = this.settings.theme ?? "system";
   @state() themeResolved: ResolvedTheme = "dark";
@@ -338,7 +342,7 @@ export class OpenSoulApp extends LitElement {
   // Onboarding wizard state
   @state() showOnboardingWizard = true; // TODO: restore to !localStorage.getItem("opensoul.onboarding.done")
   @state() onboardingStep: 1 | 2 | 3 | 4 | 5 = 1;
-  @state() onboardingLocale: Locale = detectLocale();
+  @state() onboardingLocale: Locale = this.initialLocale;
   @state() onboardingLoginStatus: "idle" | "loading" | "success" | "error" = "idle";
   @state() onboardingLoginDisplayName: string | null = null;
   @state() onboardingLoginAvatarUrl: string | null = null;
@@ -377,6 +381,7 @@ export class OpenSoulApp extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    saveUiLocale(this.uiLocale);
     handleConnected(this as unknown as Parameters<typeof handleConnected>[0]);
   }
 
@@ -640,6 +645,8 @@ export class OpenSoulApp extends LitElement {
 
   setOnboardingLocale(locale: Locale) {
     this.onboardingLocale = locale;
+    this.uiLocale = locale;
+    saveUiLocale(locale);
   }
 
   setOnboardingProvider(providerId: string | null) {
@@ -706,6 +713,8 @@ export class OpenSoulApp extends LitElement {
   }
 
   finishOnboarding() {
+    this.uiLocale = this.onboardingLocale;
+    saveUiLocale(this.onboardingLocale);
     localStorage.setItem("opensoul.onboarding.done", "1");
     this.showOnboardingWizard = false;
   }

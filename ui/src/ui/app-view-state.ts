@@ -42,6 +42,7 @@ export type AppViewState = {
   tab: Tab;
   onboarding: boolean;
   basePath: string;
+  uiLocale: Locale;
   connected: boolean;
   theme: ThemeMode;
   themeResolved: "light" | "dark";
