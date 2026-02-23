@@ -37,8 +37,16 @@ describe("Operate Zoom Control", () => {
     expect(zoomControl).not.toBeNull();
   });
 
-  it("hides zoom control on non-Operate tabs", async () => {
+  it("shows zoom control on Assist tabs", async () => {
     const app = mountApp("/chat");
+    await app.updateComplete;
+    
+    const zoomControl = app.shadowRoot?.querySelector(".nav-zoom-control");
+    expect(zoomControl).not.toBeNull();
+  });
+
+  it("hides zoom control on non-Operate/Assist tabs", async () => {
+    const app = mountApp("/overview");
     await app.updateComplete;
     
     const zoomControl = app.shadowRoot?.querySelector(".nav-zoom-control");
