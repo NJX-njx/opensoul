@@ -643,10 +643,14 @@ export class OpenSoulApp extends LitElement {
     this.onboardingStep = step;
   }
 
-  setOnboardingLocale(locale: Locale) {
+  setUiLocale(locale: Locale) {
     this.onboardingLocale = locale;
     this.uiLocale = locale;
     saveUiLocale(locale);
+  }
+
+  setOnboardingLocale(locale: Locale) {
+    this.setUiLocale(locale);
   }
 
   setOnboardingProvider(providerId: string | null) {

@@ -282,6 +282,7 @@ function resolveSessionOptions(
 const THEME_ORDER: ThemeMode[] = ["system", "light", "dark"];
 
 export function renderThemeToggle(state: AppViewState) {
+  const t = (english: string, chinese: string) => uiText(state.uiLocale, english, chinese);
   const index = Math.max(0, THEME_ORDER.indexOf(state.theme));
   const applyTheme = (next: ThemeMode) => (event: MouseEvent) => {
     const element = event.currentTarget as HTMLElement;
@@ -295,14 +296,14 @@ export function renderThemeToggle(state: AppViewState) {
 
   return html`
     <div class="theme-toggle" style="--theme-index: ${index};">
-      <div class="theme-toggle__track" role="group" aria-label="Theme">
+      <div class="theme-toggle__track" role="group" aria-label=${t("Theme", "主题")}>
         <span class="theme-toggle__indicator"></span>
         <button
           class="theme-toggle__button ${state.theme === "system" ? "active" : ""}"
           @click=${applyTheme("system")}
           aria-pressed=${state.theme === "system"}
-          aria-label="System theme"
-          title="System"
+          aria-label=${t("System theme", "系统主题")}
+          title=${t("System", "系统")}
         >
           ${renderMonitorIcon()}
         </button>
@@ -310,8 +311,8 @@ export function renderThemeToggle(state: AppViewState) {
           class="theme-toggle__button ${state.theme === "light" ? "active" : ""}"
           @click=${applyTheme("light")}
           aria-pressed=${state.theme === "light"}
-          aria-label="Light theme"
-          title="Light"
+          aria-label=${t("Light theme", "浅色主题")}
+          title=${t("Light", "浅色")}
         >
           ${renderSunIcon()}
         </button>
@@ -319,8 +320,8 @@ export function renderThemeToggle(state: AppViewState) {
           class="theme-toggle__button ${state.theme === "dark" ? "active" : ""}"
           @click=${applyTheme("dark")}
           aria-pressed=${state.theme === "dark"}
-          aria-label="Dark theme"
-          title="Dark"
+          aria-label=${t("Dark theme", "深色主题")}
+          title=${t("Dark", "深色")}
         >
           ${renderMoonIcon()}
         </button>

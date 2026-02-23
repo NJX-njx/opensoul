@@ -7,6 +7,7 @@ import {
 } from "../../../src/gateway/protocol/client-info.js";
 import { clearDeviceAuthToken, loadDeviceAuthToken, storeDeviceAuthToken } from "./device-auth.ts";
 import { loadOrCreateDeviceIdentity, signDevicePayload } from "./device-identity.ts";
+import { loadUiLocale } from "./i18n.ts";
 import { generateUUID } from "./uuid.ts";
 
 export type GatewayEventFrame = {
@@ -242,7 +243,7 @@ export class GatewayBrowserClient {
       caps: [],
       auth,
       userAgent: navigator.userAgent,
-      locale: navigator.language,
+      locale: loadUiLocale(),
     };
 
     void this.request<GatewayHelloOk>("connect", params)

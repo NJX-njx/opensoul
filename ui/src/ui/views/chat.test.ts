@@ -15,6 +15,7 @@ function createSessions(): SessionsListResult {
 
 function createProps(overrides: Partial<ChatProps> = {}): ChatProps {
   return {
+    locale: "en",
     sessionKey: "main",
     onSessionKeyChange: () => undefined,
     thinkingLevel: null,
@@ -147,7 +148,7 @@ describe("chat view", () => {
     );
 
     const newSessionButton = Array.from(container.querySelectorAll("button")).find(
-      (btn) => btn.textContent?.trim() === "New session",
+      (btn) => btn.textContent?.trim() === "New",
     );
     expect(newSessionButton).not.toBeUndefined();
     newSessionButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
