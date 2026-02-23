@@ -465,15 +465,60 @@ extension OnboardingView {
                     }
                 }
 
-                self.onboardingCard(spacing: 8, padding: 12) {
-                    Text("API key (advanced)")
+                self.onboardingCard(spacing: 10, padding: 12) {
+                    Text("API key")
                         .font(.headline)
-                    Text(
-                        "You can also use an Anthropic API key, but this UI is instructions-only for now " +
-                            "(GUI apps don’t automatically inherit your shell env vars like `ANTHROPIC_API_KEY`).")
+                    Text("Store an Anthropic API key for the default agent.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
+
+                    if self.state.connectionMode != .local {
+                        Text("Gateway isn’t running locally; save the API key on the gateway host.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    SecureField("sk-ant-...", text: self.$anthropicApiKey)
+                        .textFieldStyle(.roundedBorder)
+
+                    HStack(spacing: 12) {
+                        Button {
+                            Task { await self.saveAnthropicApiKey() }
+                        } label: {
+                            if self.anthropicApiKeySaving {
+                                ProgressView()
+                            } else {
+                                Text("Save API key")
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(
+                            self.anthropicApiKeySaving ||
+                                self.anthropicApiKey.isEmpty ||
+                                self.state.connectionMode != .local)
+
+                        Button("Reveal") {
+                            NSWorkspace.shared.activateFileViewerSelecting([self.authProfileStoreURL()])
+                        }
+                        .buttonStyle(.bordered)
+
+                        Spacer(minLength: 0)
+                    }
+
+                    Text(self.authProfileStoreURL().path)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+
+                    if let status = self.anthropicApiKeyStatus {
+                        Text(status)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 .shadow(color: .clear, radius: 0)
                 .background(Color.clear)

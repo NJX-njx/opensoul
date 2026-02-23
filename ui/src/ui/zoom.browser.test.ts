@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { OpenSoulApp } from "./app.ts";
 
+// Helper from navigation.browser.test.ts
 // oxlint-disable-next-line typescript/unbound-method
 const originalConnect = OpenSoulApp.prototype.connect;
 
@@ -11,17 +12,9 @@ function mountApp(pathname: string) {
   return app;
 }
 
-async function mountMainUi(pathname: string) {
-  const app = mountApp(pathname);
-  await app.updateComplete;
-  app.showOnboardingWizard = false;
-  await app.updateComplete;
-  return app;
-}
-
 beforeEach(() => {
   OpenSoulApp.prototype.connect = () => {
-    // no-op
+     // no-op
   };
   window.__OPENSOUL_CONTROL_UI_BASE_PATH__ = undefined;
   localStorage.clear();
@@ -35,32 +28,87 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-describe("Sidebar Zoom Control Removal", () => {
-  it("does not render zoom control on Operate tabs", async () => {
-    const app = await mountMainUi("/channels");
+describe("Operate Zoom Control", () => {
+  it("shows zoom control on Operate tabs", async () => {
+    const app = mountApp("/channels");
+    await app.updateComplete;
+    
+    const zoomControl = app.shadowRoot?.querySelector(".nav-zoom-control");
+    expect(zoomControl).not.toBeNull();
+  });
 
-    const zoomControl = app.querySelector(".nav-zoom-control");
+  it("hides zoom control on non-Operate tabs", async () => {
+    const app = mountApp("/chat");
+    await app.updateComplete;
+    
+    const zoomControl = app.shadowRoot?.querySelector(".nav-zoom-control");
     expect(zoomControl).toBeNull();
   });
 
-  it("does not render zoom control on Assist tabs", async () => {
-    const app = await mountMainUi("/chat");
-
-    const zoomControl = app.querySelector(".nav-zoom-control");
-    expect(zoomControl).toBeNull();
-  });
-
-  it("does not apply main-content scaling from stored zoom settings", async () => {
-    localStorage.setItem("opensoul.control.settings.v1", JSON.stringify({ operateZoomLevel: 1.5 }));
-    const app = await mountMainUi("/channels");
-
-    const content = app.querySelector("main.content") as HTMLElement | null;
-    expect(content).not.toBeNull();
-    if (!content) {
-      return;
-    }
+  it("applies default zoom level", async () => {
+    const app = mountApp("/channels");
+    await app.updateComplete;
+    
+    const content = app.shadowRoot?.querySelector("main.content") as HTMLElement;
+    // Default 1.0, so no style applied or empty style
     expect(content.style.transform).toBe("");
-    expect(content.style.width).toBe("");
-    expect(content.style.height).toBe("");
+  });
+
+  it("applies stored zoom level", async () => {
+    localStorage.setItem(
+      "opensoul.control.settings.v1",
+      JSON.stringify({ operateZoomLevel: 1.5 })
+    );
+    const app = mountApp("/channels");
+    await app.updateComplete;
+    
+    const content = app.shadowRoot?.querySelector("main.content") as HTMLElement;
+    expect(content.style.transform).toBe("scale(1.5)");
+    // 100 / 1.5 = 66.666...
+    expect(content.style.width).toContain("66.666"); 
+  });
+
+  it("updates zoom on button click", async () => {
+    const app = mountApp("/channels");
+    await app.updateComplete;
+    
+    const zoomInBtn = app.shadowRoot?.querySelector(".nav-zoom-control__btn[title='Zoom In']") as HTMLElement;
+    expect(zoomInBtn).not.toBeNull();
+    
+    zoomInBtn.click();
+    await app.updateComplete;
+    
+    expect(app.settings.operateZoomLevel).toBe(1.1);
+    const content = app.shadowRoot?.querySelector("main.content") as HTMLElement;
+    expect(content.style.transform).toBe("scale(1.1)");
+  });
+
+  it("updates zoom on slider input", async () => {
+    const app = mountApp("/channels");
+    await app.updateComplete;
+    
+    const slider = app.shadowRoot?.querySelector(".nav-zoom-control__slider") as HTMLInputElement;
+    expect(slider).not.toBeNull();
+    
+    slider.value = "2.0";
+    slider.dispatchEvent(new Event("input"));
+    await app.updateComplete;
+    
+    expect(app.settings.operateZoomLevel).toBe(2.0);
+    const content = app.shadowRoot?.querySelector("main.content") as HTMLElement;
+    expect(content.style.transform).toBe("scale(2)");
+  });
+  
+  it("updates zoom on wheel event", async () => {
+    const app = mountApp("/channels");
+    await app.updateComplete;
+    
+    const slider = app.shadowRoot?.querySelector(".nav-zoom-control__slider") as HTMLInputElement;
+    expect(slider).not.toBeNull();
+    
+    slider.dispatchEvent(new WheelEvent("wheel", { deltaY: -100 })); // Zoom in (negative deltaY is up)
+    await app.updateComplete;
+    
+    expect(app.settings.operateZoomLevel).toBe(1.1);
   });
 });
