@@ -1,6 +1,6 @@
 {
   "name": "@opensoul/nostr",
-  "version": "2026.2.6-3",
+  "version": "0.2.1",
   "description": "OpenSoul Nostr channel plugin for NIP-04 encrypted DMs",
   "type": "module",
   "dependencies": {

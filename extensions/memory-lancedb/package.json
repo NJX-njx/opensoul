@@ -1,6 +1,6 @@
 {
   "name": "@opensoul/memory-lancedb",
-  "version": "2026.2.6-3",
+  "version": "0.2.1",
   "description": "OpenSoul LanceDB-backed long-term memory plugin with auto-recall/capture",
   "type": "module",
   "dependencies": {

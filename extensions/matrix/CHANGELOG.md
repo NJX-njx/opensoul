@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1
+
+### Changes
+- Version alignment with core OpenSoul release numbers.
+
 ## 2026.2.6-3
 
 ### Changes
