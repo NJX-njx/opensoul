@@ -289,6 +289,7 @@ export type AppViewState = {
   handleOpenSidebar: (content: string) => void;
   handleCloseSidebar: () => void;
   handleSplitRatioChange: (ratio: number) => void;
+  setUiLocale: (locale: Locale) => void;
 
   // Onboarding wizard state
   showOnboardingWizard: boolean;

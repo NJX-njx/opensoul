@@ -221,6 +221,42 @@
   flex-shrink: 0;
 }
 
+.settings-select {
+  min-width: 260px;
+  max-width: 320px;
+  height: 36px;
+  padding: 0 34px 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+}
+
+.settings-select:hover {
+  border-color: var(--border-strong);
+}
+
+.settings-select:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22);
+}
+
+.settings-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* GitHub link row */
 .settings-link {
   display: flex;
@@ -342,5 +378,10 @@
   .settings-nav-item {
     flex: 0 0 auto;
     padding: 8px 14px;
+  }
+
+  .settings-select {
+    min-width: 0;
+    width: min(100%, 280px);
   }
 }

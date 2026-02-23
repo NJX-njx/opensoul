@@ -52,7 +52,14 @@ import {
 } from "./controllers/skills.ts";
 import { loadUsage, loadSessionTimeSeries, loadSessionLogs } from "./controllers/usage.ts";
 import { icons } from "./icons.ts";
-import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
+import { uiText } from "./i18n.ts";
+import {
+  labelForTabGroup,
+  normalizeBasePath,
+  TAB_GROUPS,
+  subtitleForTab,
+  titleForTab,
+} from "./navigation.ts";
 
 // Module-scope debounce for usage date changes (avoids type-unsafe hacks on state object)
 let usageDateDebounceTimeout: number | null = null;
@@ -101,6 +108,8 @@ function resolveAssistantAvatarUrl(state: AppViewState): string | undefined {
 }
 
 export function renderApp(state: AppViewState) {
+  const t = (english: string, chinese: string) => uiText(state.uiLocale, english, chinese);
+
   // --- Onboarding Wizard (first-launch) ---
   if (state.showOnboardingWizard) {
     const wizardState: OnboardingWizardState = {
@@ -162,7 +171,7 @@ export function renderApp(state: AppViewState) {
   const presenceCount = state.presenceEntries.length;
   const sessionsCount = state.sessionsResult?.count ?? null;
   const cronNext = state.cronStatus?.nextWakeAtMs ?? null;
-  const chatDisabledReason = state.connected ? null : "Disconnected from gateway.";
+  const chatDisabledReason = state.connected ? null : t("Disconnected from gateway.", "与网关断开连接。");
   const isChat = state.tab === "chat";
   const chatFocus = isChat && (state.settings.chatFocusMode || state.onboarding);
   const showThinking = state.onboarding ? false : state.settings.chatShowThinking;
@@ -188,8 +197,12 @@ export function renderApp(state: AppViewState) {
                 ...state.settings,
                 navCollapsed: !state.settings.navCollapsed,
               })}
-            title="${state.settings.navCollapsed ? "Expand sidebar" : "Collapse sidebar"}"
-            aria-label="${state.settings.navCollapsed ? "Expand sidebar" : "Collapse sidebar"}"
+            title="${state.settings.navCollapsed
+              ? t("Expand sidebar", "展开侧栏")
+              : t("Collapse sidebar", "收起侧栏")}"
+            aria-label="${state.settings.navCollapsed
+              ? t("Expand sidebar", "展开侧栏")
+              : t("Collapse sidebar", "收起侧栏")}"
           >
             <span class="nav-collapse-toggle__icon">${icons.menu}</span>
           </button>
@@ -199,15 +212,15 @@ export function renderApp(state: AppViewState) {
             </div>
             <div class="brand-text">
               <div class="brand-title">OPENSOUL</div>
-              <div class="brand-sub">Gateway Dashboard</div>
+              <div class="brand-sub">${t("Gateway Dashboard", "网关控制台")}</div>
             </div>
           </div>
         </div>
         <div class="topbar-status">
           <div class="pill">
             <span class="statusDot ${state.connected ? "ok" : ""}"></span>
-            <span>Health</span>
-            <span class="mono">${state.connected ? "OK" : "Offline"}</span>
+            <span>${t("Health", "状态")}</span>
+            <span class="mono">${state.connected ? t("OK", "正常") : t("Offline", "离线")}</span>
           </div>
           ${nothing /* Theme toggle moved to Settings panel */}
         </div>
@@ -216,6 +229,7 @@ export function renderApp(state: AppViewState) {
         ${TAB_GROUPS.map((group) => {
           const storedGroupCollapsed = state.settings.navGroupsCollapsed[group.label] ?? false;
           const isGroupCollapsed = state.settings.navCollapsed ? false : storedGroupCollapsed;
+          const groupLabel = labelForTabGroup(group.label, state.uiLocale);
           return html`
             <div class="nav-group ${isGroupCollapsed ? "nav-group--collapsed" : ""}">
               <button
@@ -230,7 +244,7 @@ export function renderApp(state: AppViewState) {
                 }}
                 aria-expanded=${!isGroupCollapsed}
               >
-                <span class="nav-label__text">${group.label}</span>
+                <span class="nav-label__text">${groupLabel}</span>
                 <span class="nav-label__chevron">${isGroupCollapsed ? "+" : "-"}</span>
               </button>
               <div class="nav-group__items">
@@ -243,18 +257,22 @@ export function renderApp(state: AppViewState) {
           <button
             class="nav-settings-btn"
             @click=${() => state.openSettings()}
-            title="Settings"
+            title=${t("Settings", "设置")}
           >
             <span class="nav-settings-btn__icon">${icons.settings}</span>
-            <span class="nav-settings-btn__text">Settings</span>
+            <span class="nav-settings-btn__text">${t("Settings", "设置")}</span>
           </button>
         </div>
       </aside>
       <main class="content ${isChat ? "content--chat" : ""}">
         <section class="content-header">
           <div>
-            ${state.tab === "usage" ? nothing : html`<div class="page-title">${titleForTab(state.tab)}</div>`}
-            ${state.tab === "usage" ? nothing : html`<div class="page-sub">${subtitleForTab(state.tab)}</div>`}
+            ${state.tab === "usage"
+              ? nothing
+              : html`<div class="page-title">${titleForTab(state.tab, state.uiLocale)}</div>`}
+            ${state.tab === "usage"
+              ? nothing
+              : html`<div class="page-sub">${subtitleForTab(state.tab, state.uiLocale)}</div>`}
           </div>
           <div class="page-meta">
             ${state.lastError ? html`<div class="pill danger">${state.lastError}</div>` : nothing}
@@ -265,6 +283,7 @@ export function renderApp(state: AppViewState) {
         ${
           state.tab === "overview"
             ? renderOverview({
+                locale: state.uiLocale,
                 connected: state.connected,
                 hello: state.hello,
                 settings: state.settings,
@@ -1110,6 +1129,7 @@ export function renderApp(state: AppViewState) {
         ${
           state.tab === "chat"
             ? renderChat({
+                locale: state.uiLocale,
                 sessionKey: state.sessionKey,
                 onSessionKeyChange: (next) => {
                   state.sessionKey = next;

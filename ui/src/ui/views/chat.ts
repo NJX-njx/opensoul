@@ -1,4 +1,4 @@
-import { html, nothing } from "lit";
+﻿import { html, nothing } from "lit";
 import { ref } from "lit/directives/ref.js";
 import { repeat } from "lit/directives/repeat.js";
 import type { SessionsListResult } from "../types.ts";
@@ -11,7 +11,9 @@ import {
 } from "../chat/grouped-render.ts";
 import { normalizeMessage, normalizeRoleForGrouping } from "../chat/message-normalizer.ts";
 import { icons } from "../icons.ts";
+import { uiText } from "../i18n.ts";
 import { renderMarkdownSidebar } from "./markdown-sidebar.ts";
+import type { Locale } from "./onboarding/i18n.ts";
 import "../components/resizable-divider.ts";
 
 export type CompactionIndicatorStatus = {
@@ -21,6 +23,7 @@ export type CompactionIndicatorStatus = {
 };
 
 export type ChatProps = {
+  locale: Locale;
   sessionKey: string;
   onSessionKeyChange: (next: string) => void;
   thinkingLevel: string | null;
@@ -77,16 +80,20 @@ function adjustTextareaHeight(el: HTMLTextAreaElement) {
   el.style.height = `${el.scrollHeight}px`;
 }
 
-function renderCompactionIndicator(status: CompactionIndicatorStatus | null | undefined) {
+function renderCompactionIndicator(
+  status: CompactionIndicatorStatus | null | undefined,
+  locale: Locale,
+) {
   if (!status) {
     return nothing;
   }
+  const t = (english: string, chinese: string) => uiText(locale, english, chinese);
 
   // Show "compacting..." while active
   if (status.active) {
     return html`
       <div class="compaction-indicator compaction-indicator--active" role="status" aria-live="polite">
-        ${icons.loader} Compacting context...
+        ${icons.loader} ${t("Compacting context...", "姝ｅ湪鍘嬬缉涓婁笅鏂?..")}
       </div>
     `;
   }
@@ -97,7 +104,7 @@ function renderCompactionIndicator(status: CompactionIndicatorStatus | null | un
     if (elapsed < COMPACTION_TOAST_DURATION_MS) {
       return html`
         <div class="compaction-indicator compaction-indicator--complete" role="status" aria-live="polite">
-          ${icons.check} Context compacted
+          ${icons.check} ${t("Context compacted", "涓婁笅鏂囧凡鍘嬬缉")}
         </div>
       `;
     }
@@ -164,13 +171,13 @@ function renderAttachmentPreview(props: ChatProps) {
           <div class="chat-attachment">
             <img
               src=${att.dataUrl}
-              alt="Attachment preview"
+              alt=${uiText(props.locale, "Attachment preview", "闄勪欢棰勮")}
               class="chat-attachment__img"
             />
             <button
               class="chat-attachment__remove"
               type="button"
-              aria-label="Remove attachment"
+              aria-label=${uiText(props.locale, "Remove attachment", "绉婚櫎闄勪欢")}
               @click=${() => {
                 const next = (props.attachments ?? []).filter((a) => a.id !== att.id);
                 props.onAttachmentsChange?.(next);
@@ -186,6 +193,7 @@ function renderAttachmentPreview(props: ChatProps) {
 }
 
 export function renderChat(props: ChatProps) {
+  const t = (english: string, chinese: string) => uiText(props.locale, english, chinese);
   const canCompose = props.connected;
   const isBusy = props.sending || props.stream !== null;
   const canAbort = Boolean(props.canAbort && props.onAbort);
@@ -200,9 +208,12 @@ export function renderChat(props: ChatProps) {
   const hasAttachments = (props.attachments?.length ?? 0) > 0;
   const composePlaceholder = props.connected
     ? hasAttachments
-      ? "Add a message or paste more images..."
-      : "Message (↩ to send, Shift+↩ for line breaks, paste images)"
-    : "Connect to the gateway to start chatting…";
+      ? t("Add a message or paste more images...", "添加消息或继续粘贴图片...")
+      : t(
+          "Message (Enter to send, Shift+Enter for line breaks, paste images)",
+          "消息（Enter 发送，Shift+Enter 换行，可粘贴图片）",
+        )
+    : t("Connect to the gateway to start chatting...", "连接网关后即可开始聊天...");
 
   const splitRatio = props.splitRatio ?? 0.6;
   const sidebarOpen = Boolean(props.sidebarOpen && props.onCloseSidebar);
@@ -218,7 +229,9 @@ export function renderChat(props: ChatProps) {
       ${
         props.loading
           ? html`
-              <div class="muted" style="text-align: center; padding: 48px 0">Loading chat…</div>
+              <div class="muted" style="text-align: center; padding: 48px 0">
+                ${t("Loading chat...", "姝ｅ湪鍔犺浇鑱婂ぉ...")}
+              </div>
             `
           : nothing
       }
@@ -231,23 +244,25 @@ export function renderChat(props: ChatProps) {
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                   </svg>
                 </div>
-                <div class="chat-welcome__title">Start a conversation</div>
-                <div class="chat-welcome__sub">Send a message to begin chatting with the assistant.</div>
+                <div class="chat-welcome__title">${t("Start a conversation", "开始对话")}</div>
+                <div class="chat-welcome__sub">
+                  ${t("Send a message to begin chatting with the assistant.", "发送一条消息开始与助手聊天。")}
+                </div>
                 <div class="chat-welcome__hints">
                   <button class="chat-welcome__hint" @click=${() => {
-                    props.onDraftChange("What can you help me with?");
+                    props.onDraftChange(t("What can you help me with?", "你可以帮我做什么？"));
                   }}>
-                    What can you help me with?
+                    ${t("What can you help me with?", "你可以帮我做什么？")}
                   </button>
                   <button class="chat-welcome__hint" @click=${() => {
-                    props.onDraftChange("Show me your available tools");
+                    props.onDraftChange(t("Show me your available tools", "展示你可用的工具"));
                   }}>
-                    Show me your available tools
+                    ${t("Show me your available tools", "展示你可用的工具")}
                   </button>
                   <button class="chat-welcome__hint" @click=${() => {
-                    props.onDraftChange("Tell me about this system");
+                    props.onDraftChange(t("Tell me about this system", "介绍一下这个系统"));
                   }}>
-                    Tell me about this system
+                    ${t("Tell me about this system", "介绍一下这个系统")}
                   </button>
                 </div>
               </div>
@@ -309,8 +324,8 @@ export function renderChat(props: ChatProps) {
               class="chat-focus-exit"
               type="button"
               @click=${props.onToggleFocusMode}
-              aria-label="Exit focus mode"
-              title="Exit focus mode"
+              aria-label=${t("Exit focus mode", "退出专注模式")}
+              title=${t("Exit focus mode", "退出专注模式")}
             >
               ${icons.x}
             </button>
@@ -337,6 +352,7 @@ export function renderChat(props: ChatProps) {
               ></resizable-divider>
               <div class="chat-sidebar">
                 ${renderMarkdownSidebar({
+                  locale: props.locale,
                   content: props.sidebarContent ?? null,
                   error: props.sidebarError ?? null,
                   onClose: props.onCloseSidebar!,
@@ -357,7 +373,7 @@ export function renderChat(props: ChatProps) {
         props.queue.length
           ? html`
             <div class="chat-queue" role="status" aria-live="polite">
-              <div class="chat-queue__title">Queued (${props.queue.length})</div>
+              <div class="chat-queue__title">${t("Queued", "队列中")} (${props.queue.length})</div>
               <div class="chat-queue__list">
                 ${props.queue.map(
                   (item) => html`
@@ -365,13 +381,15 @@ export function renderChat(props: ChatProps) {
                       <div class="chat-queue__text">
                         ${
                           item.text ||
-                          (item.attachments?.length ? `Image (${item.attachments.length})` : "")
+                          (item.attachments?.length
+                            ? `${t("Image", "图片")} (${item.attachments.length})`
+                            : "")
                         }
                       </div>
                       <button
                         class="btn chat-queue__remove"
                         type="button"
-                        aria-label="Remove queued message"
+                        aria-label=${t("Remove queued message", "移除排队消息")}
                         @click=${() => props.onQueueRemove(item.id)}
                       >
                         ${icons.x}
@@ -385,7 +403,7 @@ export function renderChat(props: ChatProps) {
           : nothing
       }
 
-      ${renderCompactionIndicator(props.compactionStatus)}
+      ${renderCompactionIndicator(props.compactionStatus, props.locale)}
 
       ${
         props.showNewMessages
@@ -395,7 +413,7 @@ export function renderChat(props: ChatProps) {
               type="button"
               @click=${props.onScrollToBottom}
             >
-              New messages ${icons.arrowDown}
+              ${t("New messages", "新消息")} ${icons.arrowDown}
             </button>
           `
           : nothing
@@ -405,7 +423,7 @@ export function renderChat(props: ChatProps) {
         ${renderAttachmentPreview(props)}
         <div class="chat-compose__row">
           <label class="field chat-compose__field">
-            <span>Message</span>
+            <span>${t("Message", "消息")}</span>
             <textarea
               ${ref((el) => el && adjustTextareaHeight(el as HTMLTextAreaElement))}
               .value=${props.draft}
@@ -438,21 +456,21 @@ export function renderChat(props: ChatProps) {
             ></textarea>
           </label>
           <div class="chat-compose__actions">
-            <span class="chat-compose__hint">↵ Send · Shift+↵ New line</span>
+            <span class="chat-compose__hint">${t("Enter Send · Shift+Enter New line", "Enter 发送 · Shift+Enter 换行")}</span>
             <div class="chat-compose__actions-right">
               <button
                 class="btn"
                 ?disabled=${!props.connected || (!canAbort && props.sending)}
                 @click=${canAbort ? props.onAbort : props.onNewSession}
               >
-                ${canAbort ? "Stop" : "New"}
+                ${canAbort ? t("Stop", "停止") : t("New", "新建")}
               </button>
               <button
                 class="btn primary"
                 ?disabled=${!props.connected}
                 @click=${props.onSend}
               >
-                ${isBusy ? "Queue" : "Send"}
+                ${isBusy ? t("Queue", "排队") : t("Send", "发送")}
               </button>
             </div>
           </div>
@@ -506,6 +524,7 @@ function groupMessages(items: ChatItem[]): Array<ChatItem | MessageGroup> {
 }
 
 function buildChatItems(props: ChatProps): Array<ChatItem | MessageGroup> {
+  const t = (english: string, chinese: string) => uiText(props.locale, english, chinese);
   const items: ChatItem[] = [];
   const history = Array.isArray(props.messages) ? props.messages : [];
   const tools = Array.isArray(props.toolMessages) ? props.toolMessages : [];
@@ -516,7 +535,10 @@ function buildChatItems(props: ChatProps): Array<ChatItem | MessageGroup> {
       key: "chat:history:notice",
       message: {
         role: "system",
-        content: `Showing last ${CHAT_HISTORY_RENDER_LIMIT} messages (${historyStart} hidden).`,
+        content: t(
+          `Showing last ${CHAT_HISTORY_RENDER_LIMIT} messages (${historyStart} hidden).`,
+          `仅显示最近 ${CHAT_HISTORY_RENDER_LIMIT} 条消息（已隐藏 ${historyStart} 条）。`,
+        ),
         timestamp: Date.now(),
       },
     });
@@ -533,7 +555,7 @@ function buildChatItems(props: ChatProps): Array<ChatItem | MessageGroup> {
           typeof marker.id === "string"
             ? `divider:compaction:${marker.id}`
             : `divider:compaction:${normalized.timestamp}:${i}`,
-        label: "Compaction",
+        label: t("Compaction", "压缩"),
         timestamp: normalized.timestamp ?? Date.now(),
       });
       continue;
@@ -597,3 +619,4 @@ function messageKey(message: unknown, index: number): string {
   }
   return `msg:${role}:${index}`;
 }
+
