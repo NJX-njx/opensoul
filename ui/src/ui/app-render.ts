@@ -214,14 +214,15 @@ export function renderApp(state: AppViewState) {
       </header>
       <aside class="nav ${state.settings.navCollapsed ? "nav--collapsed" : ""}">
         ${TAB_GROUPS.map((group) => {
-          const isGroupCollapsed = state.settings.navGroupsCollapsed[group.label] ?? false;
+          const storedGroupCollapsed = state.settings.navGroupsCollapsed[group.label] ?? false;
+          const isGroupCollapsed = state.settings.navCollapsed ? false : storedGroupCollapsed;
           return html`
             <div class="nav-group ${isGroupCollapsed ? "nav-group--collapsed" : ""}">
               <button
                 class="nav-label"
                 @click=${() => {
                   const next = { ...state.settings.navGroupsCollapsed };
-                  next[group.label] = !isGroupCollapsed;
+                  next[group.label] = !storedGroupCollapsed;
                   state.applySettings({
                     ...state.settings,
                     navGroupsCollapsed: next,
