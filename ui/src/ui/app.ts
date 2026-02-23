@@ -29,6 +29,7 @@ import type {
   NostrProfile,
 } from "./types.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
+import type { Locale } from "./views/onboarding/i18n.ts";
 import {
   handleChannelConfigReload as handleChannelConfigReloadInternal,
   handleChannelConfigSave as handleChannelConfigSaveInternal,
@@ -55,6 +56,11 @@ import {
   handleFirstUpdated,
   handleUpdated,
 } from "./app-lifecycle.ts";
+import {
+  applyOnboardingConfig,
+  saveOnboardingSelectionsToAccount,
+  loadOnboardingSelectionsFromAccount,
+} from "./app-onboarding-config.ts";
 import { renderApp } from "./app-render.ts";
 import {
   exportLogs as exportLogsInternal,
@@ -77,7 +83,6 @@ import {
   type CompactionStatus,
 } from "./app-tool-stream.ts";
 import { resolveInjectedAssistantIdentity } from "./assistant-identity.ts";
-import { loadUiLocale, resolveUiLocale, saveUiLocale } from "./i18n.ts";
 import { loadAssistantIdentity as loadAssistantIdentityInternal } from "./controllers/assistant-identity.ts";
 import {
   loadConfig as loadConfigInternal,
@@ -85,9 +90,9 @@ import {
 } from "./controllers/config.ts";
 import { loadDebug as loadDebugInternal } from "./controllers/debug.ts";
 import { loadLogs as loadLogsInternal } from "./controllers/logs.ts";
+import { loadUiLocale, resolveUiLocale, saveUiLocale } from "./i18n.ts";
 import { loadSettings, type UiSettings } from "./storage.ts";
 import { type ChatAttachment, type ChatQueueItem, type CronFormState } from "./ui-types.ts";
-import type { Locale } from "./views/onboarding/i18n.ts";
 
 declare global {
   interface Window {
@@ -349,6 +354,17 @@ export class OpenSoulApp extends LitElement {
   @state() onboardingLoginEmail: string | null = null;
   @state() onboardingLoginError: string | null = null;
   @state() onboardingIsExistingAccount = false;
+  @state() onboardingLoginMode: "login" | "register" = "register";
+  @state() onboardingLoginFormEmail = "";
+  @state() onboardingLoginFormPassword = "";
+  @state() onboardingLoginFormConfirmPassword = "";
+  @state() onboardingLoginFormDisplayName = "";
+  @state() onboardingLoginFieldErrors: {
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+    displayName?: string;
+  } = {};
   @state() onboardingSelectedProvider: string | null = null;
   @state() onboardingProviderApiKey = "";
   @state() onboardingProviderSearchQuery = "";
@@ -654,6 +670,168 @@ export class OpenSoulApp extends LitElement {
     this.setUiLocale(locale);
   }
 
+  setOnboardingLoginMode(mode: "login" | "register") {
+    this.onboardingLoginMode = mode;
+    this.onboardingLoginFieldErrors = {};
+    this.onboardingLoginError = null;
+  }
+
+  setOnboardingLoginFormEmail(email: string) {
+    this.onboardingLoginFormEmail = email;
+    if (this.onboardingLoginFieldErrors.email) {
+      this.onboardingLoginFieldErrors = { ...this.onboardingLoginFieldErrors, email: undefined };
+    }
+  }
+
+  setOnboardingLoginFormPassword(password: string) {
+    this.onboardingLoginFormPassword = password;
+    if (this.onboardingLoginFieldErrors.password) {
+      this.onboardingLoginFieldErrors = { ...this.onboardingLoginFieldErrors, password: undefined };
+    }
+  }
+
+  setOnboardingLoginFormConfirmPassword(password: string) {
+    this.onboardingLoginFormConfirmPassword = password;
+    if (this.onboardingLoginFieldErrors.confirmPassword) {
+      this.onboardingLoginFieldErrors = {
+        ...this.onboardingLoginFieldErrors,
+        confirmPassword: undefined,
+      };
+    }
+  }
+
+  setOnboardingLoginFormDisplayName(name: string) {
+    this.onboardingLoginFormDisplayName = name;
+    if (this.onboardingLoginFieldErrors.displayName) {
+      this.onboardingLoginFieldErrors = {
+        ...this.onboardingLoginFieldErrors,
+        displayName: undefined,
+      };
+    }
+  }
+
+  /** Validate login/register form fields. Returns true if valid. */
+  private validateLoginForm(): boolean {
+    const errors: typeof this.onboardingLoginFieldErrors = {};
+    const email = this.onboardingLoginFormEmail.trim();
+    const password = this.onboardingLoginFormPassword;
+    const isRegister = this.onboardingLoginMode === "register";
+
+    if (!email) {
+      errors.email = "required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = "invalid";
+    }
+    if (!password) {
+      errors.password = "required";
+    } else if (password.length < 6) {
+      errors.password = "tooShort";
+    }
+    if (isRegister) {
+      if (this.onboardingLoginFormConfirmPassword !== password) {
+        errors.confirmPassword = "mismatch";
+      }
+      if (!this.onboardingLoginFormDisplayName.trim()) {
+        errors.displayName = "required";
+      }
+    }
+    this.onboardingLoginFieldErrors = errors;
+    return Object.values(errors).every((v) => v === undefined);
+  }
+
+  /** Hash a password using SubtleCrypto SHA-256. */
+  private async hashPassword(password: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  async onboardingEmailRegister() {
+    if (!this.validateLoginForm()) return;
+    this.onboardingLoginStatus = "loading";
+    this.onboardingLoginError = null;
+    try {
+      const email = this.onboardingLoginFormEmail.trim().toLowerCase();
+      const existingRaw = localStorage.getItem(`opensoul.user.${email}`);
+      if (existingRaw) {
+        this.onboardingLoginStatus = "error";
+        this.onboardingLoginError = "Account already exists. Please login instead.";
+        return;
+      }
+      const passwordHash = await this.hashPassword(this.onboardingLoginFormPassword);
+      const user = {
+        email,
+        displayName: this.onboardingLoginFormDisplayName.trim(),
+        passwordHash,
+        createdAt: Date.now(),
+      };
+      localStorage.setItem(`opensoul.user.${email}`, JSON.stringify(user));
+      localStorage.setItem(
+        "opensoul.auth.session",
+        JSON.stringify({ email, loggedInAt: Date.now() }),
+      );
+      this.onboardingLoginStatus = "success";
+      this.onboardingLoginDisplayName = user.displayName;
+      this.onboardingLoginEmail = email;
+      this.onboardingLoginAvatarUrl = null;
+      this.onboardingIsExistingAccount = false;
+    } catch {
+      this.onboardingLoginStatus = "error";
+      this.onboardingLoginError = "Registration failed. Please try again.";
+    }
+  }
+
+  async onboardingEmailLogin() {
+    if (!this.validateLoginForm()) return;
+    this.onboardingLoginStatus = "loading";
+    this.onboardingLoginError = null;
+    try {
+      const email = this.onboardingLoginFormEmail.trim().toLowerCase();
+      const existingRaw = localStorage.getItem(`opensoul.user.${email}`);
+      if (!existingRaw) {
+        this.onboardingLoginStatus = "error";
+        this.onboardingLoginError = "Account not found. Please register first.";
+        return;
+      }
+      const user = JSON.parse(existingRaw) as {
+        email: string;
+        displayName: string;
+        passwordHash: string;
+      };
+      const passwordHash = await this.hashPassword(this.onboardingLoginFormPassword);
+      if (passwordHash !== user.passwordHash) {
+        this.onboardingLoginStatus = "error";
+        this.onboardingLoginError = "Invalid password.";
+        return;
+      }
+      localStorage.setItem(
+        "opensoul.auth.session",
+        JSON.stringify({ email, loggedInAt: Date.now() }),
+      );
+      this.onboardingLoginStatus = "success";
+      this.onboardingLoginDisplayName = user.displayName;
+      this.onboardingLoginEmail = email;
+      this.onboardingLoginAvatarUrl = null;
+      this.onboardingIsExistingAccount = true;
+
+      // Restore previous provider/channel selections for existing accounts
+      const saved = loadOnboardingSelectionsFromAccount(email);
+      if (saved) {
+        if (saved.selectedProvider) {
+          this.onboardingSelectedProvider = saved.selectedProvider;
+        }
+        if (saved.selectedChannel) {
+          this.onboardingSelectedChannel = saved.selectedChannel;
+        }
+      }
+    } catch {
+      this.onboardingLoginStatus = "error";
+      this.onboardingLoginError = "Login failed. Please try again.";
+    }
+  }
+
   setOnboardingProvider(providerId: string | null) {
     this.onboardingSelectedProvider = providerId;
     if (!providerId) {
@@ -684,7 +862,6 @@ export class OpenSoulApp extends LitElement {
     this.onboardingLoginStatus = "loading";
     this.onboardingLoginError = null;
     // TODO: Replace with real Google OAuth flow.
-    // For now, simulate a successful login after a short delay.
     setTimeout(() => {
       this.onboardingLoginStatus = "success";
       this.onboardingLoginDisplayName = "Google User";
@@ -698,7 +875,6 @@ export class OpenSoulApp extends LitElement {
     this.onboardingLoginStatus = "loading";
     this.onboardingLoginError = null;
     // TODO: Replace with real GitHub OAuth flow.
-    // For now, simulate a successful login after a short delay.
     setTimeout(() => {
       this.onboardingLoginStatus = "success";
       this.onboardingLoginDisplayName = "GitHub User";
@@ -715,11 +891,46 @@ export class OpenSoulApp extends LitElement {
     this.onboardingLoginEmail = null;
     this.onboardingLoginError = null;
     this.onboardingIsExistingAccount = false;
+    this.onboardingLoginFormPassword = "";
+    this.onboardingLoginFormConfirmPassword = "";
+    this.onboardingLoginFieldErrors = {};
+    localStorage.removeItem("opensoul.auth.session");
   }
 
-  finishOnboarding() {
+  async finishOnboarding() {
     this.uiLocale = this.onboardingLocale;
     saveUiLocale(this.onboardingLocale);
+
+    // Import provider/channel selections into gateway config
+    console.log(
+      "[finishOnboarding] client connected:",
+      this.client?.connected,
+      "client:",
+      !!this.client,
+    );
+    if (this.client) {
+      const selections = {
+        selectedProvider: this.onboardingSelectedProvider,
+        providerApiKey: this.onboardingProviderApiKey,
+        selectedChannel: this.onboardingSelectedChannel,
+        channelToken: this.onboardingChannelToken,
+      };
+      console.log("[finishOnboarding] selections:", {
+        selectedProvider: selections.selectedProvider,
+        hasApiKey: !!selections.providerApiKey,
+        selectedChannel: selections.selectedChannel,
+        hasToken: !!selections.channelToken,
+      });
+      const result = await applyOnboardingConfig(this.client, selections);
+      console.log("[finishOnboarding] applyOnboardingConfig result:", result);
+      if (!result.ok) {
+        console.error("[finishOnboarding] Config apply failed:", result.error);
+      }
+      saveOnboardingSelectionsToAccount(this.onboardingLoginEmail, selections);
+    } else {
+      console.warn("[finishOnboarding] No gateway client available, skipping config apply");
+    }
+
     localStorage.setItem("opensoul.onboarding.done", "1");
     this.showOnboardingWizard = false;
   }

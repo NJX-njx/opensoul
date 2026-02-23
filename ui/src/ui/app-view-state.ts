@@ -301,6 +301,17 @@ export type AppViewState = {
   onboardingLoginEmail: string | null;
   onboardingLoginError: string | null;
   onboardingIsExistingAccount: boolean;
+  onboardingLoginMode: "login" | "register";
+  onboardingLoginFormEmail: string;
+  onboardingLoginFormPassword: string;
+  onboardingLoginFormConfirmPassword: string;
+  onboardingLoginFormDisplayName: string;
+  onboardingLoginFieldErrors: {
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+    displayName?: string;
+  };
   onboardingSelectedProvider: string | null;
   onboardingProviderApiKey: string;
   onboardingProviderSearchQuery: string;
@@ -308,6 +319,11 @@ export type AppViewState = {
   onboardingChannelToken: string;
   setOnboardingStep: (step: 1 | 2 | 3 | 4 | 5) => void;
   setOnboardingLocale: (locale: Locale) => void;
+  setOnboardingLoginMode: (mode: "login" | "register") => void;
+  setOnboardingLoginFormEmail: (email: string) => void;
+  setOnboardingLoginFormPassword: (password: string) => void;
+  setOnboardingLoginFormConfirmPassword: (password: string) => void;
+  setOnboardingLoginFormDisplayName: (name: string) => void;
   setOnboardingProvider: (providerId: string | null) => void;
   setOnboardingProviderApiKey: (key: string) => void;
   setOnboardingProviderSearchQuery: (query: string) => void;
@@ -315,6 +331,8 @@ export type AppViewState = {
   setOnboardingChannelToken: (token: string) => void;
   onboardingGoogleLogin: () => void;
   onboardingGithubLogin: () => void;
+  onboardingEmailLogin: () => void;
+  onboardingEmailRegister: () => void;
   onboardingLogout: () => void;
   finishOnboarding: () => void;
 };
