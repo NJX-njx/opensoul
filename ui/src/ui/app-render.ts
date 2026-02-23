@@ -1210,6 +1210,7 @@ export function renderApp(state: AppViewState) {
 
       ${renderSettingsPanel(state, {
         config: renderConfig({
+          locale: state.uiLocale,
           raw: state.configRaw,
           originalRaw: state.configRawOriginal,
           valid: state.configValid,
