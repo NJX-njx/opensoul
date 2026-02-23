@@ -18,6 +18,12 @@ function nextFrame() {
   });
 }
 
+function findNavGroupByLabel(app: OpenSoulApp, label: string): HTMLElement | undefined {
+  return Array.from(app.querySelectorAll<HTMLElement>(".nav-group")).find(
+    (group) => group.querySelector(".nav-label__text")?.textContent?.trim() === label,
+  );
+}
+
 beforeEach(() => {
   OpenSoulApp.prototype.connect = () => {
     // no-op: avoid real gateway WS connections in browser tests
@@ -82,6 +88,29 @@ describe("control UI routing", () => {
     await app.updateComplete;
     expect(app.tab).toBe("channels");
     expect(window.location.pathname).toBe("/channels");
+  });
+
+  it("collapses Assist group even when Chat is the active tab", async () => {
+    const app = mountApp("/chat");
+    await app.updateComplete;
+
+    const assistGroup = findNavGroupByLabel(app, "Assist");
+    expect(assistGroup).toBeDefined();
+    const toggle = assistGroup?.querySelector<HTMLButtonElement>("button.nav-label");
+    expect(toggle).not.toBeNull();
+    toggle?.click();
+
+    await app.updateComplete;
+
+    expect(app.settings.navGroupsCollapsed.Assist).toBe(true);
+    const nextAssistGroup = findNavGroupByLabel(app, "Assist");
+    expect(nextAssistGroup?.classList.contains("nav-group--collapsed")).toBe(true);
+
+    const items = nextAssistGroup?.querySelector<HTMLElement>(".nav-group__items");
+    expect(items).not.toBeNull();
+    if (items) {
+      expect(getComputedStyle(items).display).toBe("none");
+    }
   });
 
   it("keeps chat and nav usable on narrow viewports", async () => {
