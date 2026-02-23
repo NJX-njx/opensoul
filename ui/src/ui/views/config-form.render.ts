@@ -3,6 +3,7 @@ import type { ConfigUiHints } from "../types.ts";
 import { icons } from "../icons.ts";
 import {
   configText,
+  localizeConfigText,
   localizeConfigSectionDescription,
   localizeConfigSectionLabel,
 } from "./config-i18n.ts";
@@ -444,8 +445,12 @@ export function renderConfigForm(props: ConfigFormProps) {
           ? (() => {
               const { sectionKey, subsectionKey, schema: node } = subsectionContext;
               const hint = hintForPath([sectionKey, subsectionKey], props.uiHints);
-              const label = hint?.label ?? node.title ?? humanize(subsectionKey);
-              const description = hint?.help ?? node.description ?? "";
+              const rawLabel = hint?.label ?? node.title ?? humanize(subsectionKey);
+              const label = localizeConfigText(props.locale, rawLabel);
+              const rawDescription = hint?.help ?? node.description ?? "";
+              const description = rawDescription
+                ? localizeConfigText(props.locale, rawDescription)
+                : rawDescription;
               const sectionValue = value[sectionKey];
               const scopedValue =
                 sectionValue && typeof sectionValue === "object"
@@ -488,10 +493,9 @@ export function renderConfigForm(props: ConfigFormProps) {
               };
               const meta = {
                 label: localizeConfigSectionLabel(props.locale, key, rawMeta.label),
-                description: localizeConfigSectionDescription(
+                description: localizeConfigText(
                   props.locale,
-                  key,
-                  rawMeta.description,
+                  localizeConfigSectionDescription(props.locale, key, rawMeta.description),
                 ),
               };
 

@@ -40,6 +40,7 @@ describe("config form renderer", () => {
     const analysis = analyzeConfigSchema(rootSchema);
     render(
       renderConfigForm({
+        locale: "en",
         schema: analysis.schema,
         uiHints: {
           "gateway.auth.token": { label: "Gateway Token", sensitive: true },
@@ -83,6 +84,7 @@ describe("config form renderer", () => {
     const analysis = analyzeConfigSchema(rootSchema);
     render(
       renderConfigForm({
+        locale: "en",
         schema: analysis.schema,
         uiHints: {},
         unsupportedPaths: analysis.unsupportedPaths,
@@ -109,6 +111,7 @@ describe("config form renderer", () => {
     const analysis = analyzeConfigSchema(rootSchema);
     render(
       renderConfigForm({
+        locale: "en",
         schema: analysis.schema,
         uiHints: {},
         unsupportedPaths: analysis.unsupportedPaths,
@@ -143,6 +146,7 @@ describe("config form renderer", () => {
     const analysis = analyzeConfigSchema(schema);
     render(
       renderConfigForm({
+        locale: "en",
         schema: analysis.schema,
         uiHints: {},
         unsupportedPaths: analysis.unsupportedPaths,
@@ -156,6 +160,36 @@ describe("config form renderer", () => {
     expect(removeButton).not.toBeUndefined();
     removeButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onPatch).toHaveBeenCalledWith(["slack"], {});
+  });
+
+  it("localizes map field chrome in Chinese", () => {
+    const container = document.createElement("div");
+    const schema = {
+      type: "object",
+      properties: {
+        slack: {
+          type: "object",
+          additionalProperties: {
+            type: "string",
+          },
+        },
+      },
+    };
+    const analysis = analyzeConfigSchema(schema);
+    render(
+      renderConfigForm({
+        locale: "zh-CN",
+        schema: analysis.schema,
+        uiHints: {},
+        unsupportedPaths: analysis.unsupportedPaths,
+        value: { slack: {} },
+        onPatch: vi.fn(),
+      }),
+      container,
+    );
+
+    expect(container.textContent).toContain("自定义条目");
+    expect(container.textContent).toContain("添加条目");
   });
 
   it("supports wildcard uiHints for map entries", () => {
@@ -183,6 +217,7 @@ describe("config form renderer", () => {
     const analysis = analyzeConfigSchema(schema);
     render(
       renderConfigForm({
+        locale: "en",
         schema: analysis.schema,
         uiHints: {
           "plugins.entries.*.enabled": { label: "Plugin Enabled" },

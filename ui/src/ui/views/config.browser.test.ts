@@ -4,6 +4,7 @@ import { renderConfig } from "./config.ts";
 
 describe("config view", () => {
   const baseProps = () => ({
+    locale: "en" as const,
     raw: "{\n}\n",
     originalRaw: "{\n}\n",
     valid: true,
@@ -197,5 +198,25 @@ describe("config view", () => {
     (input as HTMLInputElement).value = "gateway";
     input.dispatchEvent(new Event("input", { bubbles: true }));
     expect(onSearchChange).toHaveBeenCalledWith("gateway");
+  });
+
+  it("renders Chinese chrome and section labels when locale is zh-CN", () => {
+    const container = document.createElement("div");
+    render(
+      renderConfig({
+        ...baseProps(),
+        locale: "zh-CN",
+        schema: {
+          type: "object",
+          properties: {
+            gateway: { type: "object", properties: {} },
+          },
+        },
+      }),
+      container,
+    );
+
+    expect(container.textContent).toContain("设置");
+    expect(container.textContent).toContain("网关");
   });
 });
