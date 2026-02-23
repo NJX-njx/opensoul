@@ -7,7 +7,7 @@
  */
 import { html, nothing } from "lit";
 import type { AppViewState } from "../app-view-state.ts";
-import { uiText } from "../i18n.ts";
+import { resolveUiLocale, uiText } from "../i18n.ts";
 import type { SettingsTab } from "../navigation.ts";
 import { renderThemeToggle } from "../app-render.helpers.ts";
 import { icons } from "../icons.ts";
@@ -27,13 +27,15 @@ const SETTINGS_NAV: Array<{
 
 function renderGeneralSection(state: AppViewState) {
   const t = (english: string, chinese: string) => uiText(state.uiLocale, english, chinese);
+  const selectedLocale = resolveUiLocale(state.uiLocale);
 
   const handleLocaleChange = (event: Event) => {
     const select = event.currentTarget as HTMLSelectElement | null;
     if (!select) {
       return;
     }
-    state.setUiLocale(select.value as Locale);
+    const next = resolveUiLocale(select.value);
+    state.setUiLocale(next as Locale);
   };
 
   return html`
@@ -74,7 +76,8 @@ function renderGeneralSection(state: AppViewState) {
           <select
             id="settings-system-language"
             class="settings-select"
-            .value=${state.uiLocale}
+            .value=${selectedLocale}
+            @input=${handleLocaleChange}
             @change=${handleLocaleChange}
           >
             ${AVAILABLE_LOCALES.map(

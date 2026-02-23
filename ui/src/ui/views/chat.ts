@@ -93,7 +93,7 @@ function renderCompactionIndicator(
   if (status.active) {
     return html`
       <div class="compaction-indicator compaction-indicator--active" role="status" aria-live="polite">
-        ${icons.loader} ${t("Compacting context...", "姝ｅ湪鍘嬬缉涓婁笅鏂?..")}
+        ${icons.loader} ${t("Compacting context...", "正在压缩上下文...")}
       </div>
     `;
   }
@@ -104,7 +104,7 @@ function renderCompactionIndicator(
     if (elapsed < COMPACTION_TOAST_DURATION_MS) {
       return html`
         <div class="compaction-indicator compaction-indicator--complete" role="status" aria-live="polite">
-          ${icons.check} ${t("Context compacted", "涓婁笅鏂囧凡鍘嬬缉")}
+          ${icons.check} ${t("Context compacted", "上下文已压缩")}
         </div>
       `;
     }
@@ -171,13 +171,13 @@ function renderAttachmentPreview(props: ChatProps) {
           <div class="chat-attachment">
             <img
               src=${att.dataUrl}
-              alt=${uiText(props.locale, "Attachment preview", "闄勪欢棰勮")}
+              alt=${uiText(props.locale, "Attachment preview", "附件预览")}
               class="chat-attachment__img"
             />
             <button
               class="chat-attachment__remove"
               type="button"
-              aria-label=${uiText(props.locale, "Remove attachment", "绉婚櫎闄勪欢")}
+              aria-label=${uiText(props.locale, "Remove attachment", "移除附件")}
               @click=${() => {
                 const next = (props.attachments ?? []).filter((a) => a.id !== att.id);
                 props.onAttachmentsChange?.(next);
@@ -230,7 +230,7 @@ export function renderChat(props: ChatProps) {
         props.loading
           ? html`
               <div class="muted" style="text-align: center; padding: 48px 0">
-                ${t("Loading chat...", "姝ｅ湪鍔犺浇鑱婂ぉ...")}
+                ${t("Loading chat...", "正在加载聊天...")}
               </div>
             `
           : nothing

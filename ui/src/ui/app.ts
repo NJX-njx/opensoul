@@ -77,7 +77,7 @@ import {
   type CompactionStatus,
 } from "./app-tool-stream.ts";
 import { resolveInjectedAssistantIdentity } from "./assistant-identity.ts";
-import { loadUiLocale, saveUiLocale } from "./i18n.ts";
+import { loadUiLocale, resolveUiLocale, saveUiLocale } from "./i18n.ts";
 import { loadAssistantIdentity as loadAssistantIdentityInternal } from "./controllers/assistant-identity.ts";
 import {
   loadConfig as loadConfigInternal,
@@ -644,9 +644,10 @@ export class OpenSoulApp extends LitElement {
   }
 
   setUiLocale(locale: Locale) {
-    this.onboardingLocale = locale;
-    this.uiLocale = locale;
-    saveUiLocale(locale);
+    const normalized = resolveUiLocale(locale);
+    this.onboardingLocale = normalized;
+    this.uiLocale = normalized;
+    saveUiLocale(normalized);
   }
 
   setOnboardingLocale(locale: Locale) {
