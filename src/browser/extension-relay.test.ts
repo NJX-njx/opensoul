@@ -144,6 +144,20 @@ describe("chrome extension relay server", () => {
     }
   });
 
+  it("rejects wildcard hosts for relay bootstrap", async () => {
+    await expect(
+      ensureChromeExtensionRelayServer({
+        cdpUrl: `http://0.0.0.0:${await getFreePort()}`,
+      }),
+    ).rejects.toThrow(/requires loopback cdpUrl host/i);
+
+    await expect(
+      ensureChromeExtensionRelayServer({
+        cdpUrl: `http://[::]:${await getFreePort()}`,
+      }),
+    ).rejects.toThrow(/requires loopback cdpUrl host/i);
+  });
+
   it("advertises CDP WS only when extension is connected", async () => {
     const port = await getFreePort();
     cdpUrl = `http://127.0.0.1:${port}`;
