@@ -1,6 +1,6 @@
 {
   "name": "@opensoul/minimax-portal-auth",
-  "version": "2026.2.6-3",
+  "version": "0.2.1",
   "description": "OpenSoul MiniMax Portal OAuth provider plugin",
   "type": "module",
   "devDependencies": {

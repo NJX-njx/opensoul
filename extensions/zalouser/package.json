@@ -1,6 +1,6 @@
 {
   "name": "@opensoul/zalouser",
-  "version": "2026.2.6-3",
+  "version": "0.2.1",
   "description": "OpenSoul Zalo Personal Account plugin via zca-cli",
   "type": "module",
   "dependencies": {

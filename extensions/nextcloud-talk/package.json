@@ -1,6 +1,6 @@
 {
   "name": "@opensoul/nextcloud-talk",
-  "version": "2026.2.6-3",
+  "version": "0.2.1",
   "description": "OpenSoul Nextcloud Talk channel plugin",
   "type": "module",
   "devDependencies": {
