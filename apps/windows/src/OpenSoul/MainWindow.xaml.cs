@@ -161,14 +161,17 @@ public partial class MainWindow : Window
         _updateService.UpdateReady += OnUpdateReady;
         _updateService.StartBackgroundChecks();
 
-        // Start gateway connection early so WebView sees a ready endpoint sooner.
+        // Start gateway BEFORE WebView so shell.ready receives a valid gateway URL on first init.
+        // Previously we ran both in parallel; Control UI often got host.init with null URL first,
+        // then a second host.init when gateway connected. On slow systems or with VPN, the second
+        // init could race or fail, causing "first launch doesn't connect, second does".
         if (_settings.AutoConnectOnLaunch)
         {
             UpdateSplashStatus("Starting gateway...");
-            _ = ConnectGatewayAsync();
+            await ConnectGatewayAsync();
         }
 
-        // Initialize WebView2
+        // Initialize WebView2 (after gateway is ready so first host.init has correct URL)
         UpdateSplashStatus("Loading interface...");
         await InitializeWebViewAsync();
 

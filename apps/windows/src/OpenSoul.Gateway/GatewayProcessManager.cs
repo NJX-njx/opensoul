@@ -316,6 +316,13 @@ public sealed class GatewayProcessManager : IAsyncDisposable
         var localPort = FindAvailablePort();
         _logger.LogInformation("Starting gateway: {Node} {Script} (port {Port})", nodePath, opensoulPath, localPort);
 
+        // WorkingDirectory must be the directory containing opensoul.mjs so that
+        // ./dist/entry.js resolves correctly. StateDir is for runtime state (config, etc.)
+        // and is passed via OPENSOUL_STATE_DIR.
+        var workingDir = Path.GetDirectoryName(opensoulPath);
+        if (string.IsNullOrWhiteSpace(workingDir))
+            workingDir = OpenSoulPaths.StateDir;
+
         var psi = new ProcessStartInfo(nodePath)
         {
             Arguments = $"\"{opensoulPath}\" gateway --allow-unconfigured --token \"{token}\" --port {localPort}",
@@ -323,7 +330,7 @@ public sealed class GatewayProcessManager : IAsyncDisposable
             CreateNoWindow = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
-            WorkingDirectory = OpenSoulPaths.StateDir,
+            WorkingDirectory = workingDir,
         };
 
         psi.Environment["OPENSOUL_STATE_DIR"] = OpenSoulPaths.StateDir;
@@ -532,17 +539,19 @@ public sealed class GatewayProcessManager : IAsyncDisposable
             }
         }
 
+        // Prefer project root (has dist/) over npm global (may lack dist/).
+        var baseDir = AppContext.BaseDirectory;
         var candidates = new string?[]
         {
-            Path.Combine(AppContext.BaseDirectory, "opensoul.mjs"),
+            Path.Combine(baseDir, "opensoul.mjs"),
+            FindOpenSoulEntryByWalkingParents(),
+            Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", "..", "opensoul.mjs")),
+            Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", "..", "..", "opensoul.mjs")),
+            Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "..", "..", "..", "..", "opensoul.mjs")),
             Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "npm", "node_modules", "opensoul", "opensoul.mjs"),
             FindGlobalNpmPackage(),
-            Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "..", "..", "opensoul.mjs")),
-            Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "..", "..", "..", "opensoul.mjs")),
-            Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "..", "opensoul.mjs")),
-            FindOpenSoulEntryByWalkingParents(),
         };
 
         foreach (var candidate in candidates.Where(static candidate => !string.IsNullOrWhiteSpace(candidate)).Distinct())
