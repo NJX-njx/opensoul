@@ -20,11 +20,7 @@ function normalizeBase(input: string): string {
 
 export default defineConfig(() => {
   const envBase = process.env.OPENSOUL_CONTROL_UI_BASE_PATH?.trim();
-  const isVercel = process.env.VERCEL === "1" || process.env.VERCEL === "true";
-  const base = envBase ? normalizeBase(envBase) : isVercel ? "/" : "./";
-  const outDir = isVercel
-    ? path.resolve(here, "dist")
-    : path.resolve(here, "../dist/control-ui");
+  const base = envBase ? normalizeBase(envBase) : "./";
   return {
     base,
     publicDir: path.resolve(here, "public"),
@@ -32,7 +28,7 @@ export default defineConfig(() => {
       include: ["lit/directives/repeat.js"],
     },
     build: {
-      outDir,
+      outDir: path.resolve(here, "../dist/control-ui"),
       emptyOutDir: true,
       sourcemap: true,
     },
