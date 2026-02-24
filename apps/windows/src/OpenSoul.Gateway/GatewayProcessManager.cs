@@ -355,14 +355,36 @@ public sealed class GatewayProcessManager : IAsyncDisposable
         psi.Environment["NO_PROXY"] = mergedNoProxy;
         psi.Environment["no_proxy"] = mergedNoProxy;
 
-        // Explicitly clear inherited proxy vars for the local gateway process.
-        // This is process-local and does not change user/system proxy settings.
-        psi.Environment["HTTP_PROXY"] = "";
-        psi.Environment["HTTPS_PROXY"] = "";
-        psi.Environment["ALL_PROXY"] = "";
-        psi.Environment["http_proxy"] = "";
-        psi.Environment["https_proxy"] = "";
-        psi.Environment["all_proxy"] = "";
+        // Automatically inject Windows system proxy into the Node.js environment
+        // so that Gemini and other APIs can be reached if the user relies on a proxy.
+        try
+        {
+            var systemProxy = System.Net.WebRequest.GetSystemWebProxy();
+            var testUri = new Uri("https://generativelanguage.googleapis.com");
+            var proxyUri = systemProxy.GetProxy(testUri);
+            
+            if (proxyUri != null && proxyUri != testUri)
+            {
+                var proxyString = proxyUri.ToString();
+                if (proxyString.EndsWith("/"))
+                {
+                    proxyString = proxyString.Substring(0, proxyString.Length - 1);
+                }
+                    
+                _logger.LogInformation("Detected system proxy, injecting into Node environment: {Proxy}", proxyString);
+                
+                psi.Environment["HTTP_PROXY"] = proxyString;
+                psi.Environment["HTTPS_PROXY"] = proxyString;
+                psi.Environment["ALL_PROXY"] = proxyString;
+                psi.Environment["http_proxy"] = proxyString;
+                psi.Environment["https_proxy"] = proxyString;
+                psi.Environment["all_proxy"] = proxyString;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to resolve system proxy for Node.js environment");
+        }
 
         _gatewayProcess = Process.Start(psi);
         if (_gatewayProcess is null)
