@@ -116,7 +116,7 @@ OpenSoul never quite rolled off the tongue. And so, at 4am GMT, the team gathere
 
 In just 3 hours:
 
-- GitHub renamed: `github.com/opensoul/opensoul` ✅
+- GitHub renamed: `github.com/NJX-njx/opensoul` ✅
 - X handle `@opensoul` secured with GOLD CHECKMARK 💰
 - npm packages released under new name
 - Docs migrated to `docs.opensoul.ai`

@@ -25,7 +25,7 @@ description: Deploy OpenSoul on Fly.io
 
 ```bash
 # Clone the repo
-git clone https://github.com/opensoul/opensoul.git
+git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
 
 # Create a new Fly app (pick your own name)

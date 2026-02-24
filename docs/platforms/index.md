@@ -11,9 +11,8 @@ title: "Platforms"
 OpenSoul core is written in TypeScript. **Node is the recommended runtime**.
 Bun is not recommended for the Gateway (WhatsApp/Telegram bugs).
 
-Companion apps exist for macOS (menu bar app) and mobile nodes (iOS/Android). Windows and
-Linux companion apps are planned, but the Gateway is fully supported today.
-Native companion apps for Windows are also planned; the Gateway is recommended via WSL2.
+Companion apps exist for macOS (menu bar app), Windows (native WPF app), and mobile nodes
+(iOS/Android). Linux companion app is planned; the Gateway is fully supported on all platforms.
 
 ## Choose your OS
 

@@ -135,7 +135,7 @@ opensoul health
 
 Notes:
 
-- `pnpm build` matters when you run the packaged `opensoul` binary ([`opensoul.mjs`](https://github.com/opensoul/opensoul/blob/main/opensoul.mjs)) or use Node to run `dist/`.
+- `pnpm build` matters when you run the packaged `opensoul` binary ([`opensoul.mjs`](https://github.com/NJX-njx/opensoul/blob/main/opensoul.mjs)) or use Node to run `dist/`.
 - If you run from a repo checkout without a global install, use `pnpm opensoul ...` for CLI commands.
 - If you run directly from TypeScript (`pnpm opensoul ...`), a rebuild is usually unnecessary, but **config migrations still apply** → run doctor.
 - Switching between global and git installs is easy: install the other flavor, then run `opensoul doctor` so the gateway service entrypoint is rewritten to the current install.

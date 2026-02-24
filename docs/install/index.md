@@ -105,10 +105,10 @@ The **installer script** is the recommended way to install OpenSoul. It handles 
 
     <Steps>
       <Step title="Clone and build">
-        Clone the [OpenSoul repo](https://github.com/opensoul/opensoul) and build:
+        Clone the [OpenSoul repo](https://github.com/NJX-njx/opensoul) and build:
 
         ```bash
-        git clone https://github.com/opensoul/opensoul.git
+        git clone https://github.com/NJX-njx/opensoul.git
         cd opensoul
         pnpm install
         pnpm ui:build

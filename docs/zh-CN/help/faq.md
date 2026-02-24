@@ -285,8 +285,8 @@ curl -fsSL https://opensoul.ai/install.sh | bash -s -- --install-method git
 提示：要求智能体**计划并监督**修复（逐步进行），然后只执行必要的命令。这样改动较小，更容易审查。
 
 如果你发现了真正的 bug 或修复方案，请提交 GitHub issue 或发送 PR：
-https://github.com/opensoul/opensoul/issues
-https://github.com/opensoul/opensoul/pulls
+https://github.com/NJX-njx/opensoul/issues
+https://github.com/NJX-njx/opensoul/pulls
 
 从以下命令开始（在寻求帮助时分享输出）：
 
@@ -322,7 +322,7 @@ opensoul onboard --install-daemon
 从源码安装（贡献者/开发者）：
 
 ```bash
-git clone https://github.com/opensoul/opensoul.git
+git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
 pnpm install
 pnpm build
@@ -421,7 +421,7 @@ opensoul doctor
 ### 在哪里查看最新版本的更新内容
 
 查看 GitHub 变更日志：
-https://github.com/opensoul/opensoul/blob/main/CHANGELOG.md
+https://github.com/NJX-njx/opensoul/blob/main/CHANGELOG.md
 
 最新条目在顶部。如果顶部部分标记为 **Unreleased**，则下一个带日期的部分是最新发布版本。条目按**亮点**、**变更**和**修复**分组（需要时还有文档/其他部分）。
 
@@ -431,7 +431,7 @@ https://github.com/opensoul/opensoul/blob/main/CHANGELOG.md
 请帮助我们在此处报告以解除封锁：https://spa.xfinity.com/check_url_status。
 
 如果仍然无法访问该网站，文档在 GitHub 上有镜像：
-https://github.com/opensoul/opensoul/tree/main/docs
+https://github.com/NJX-njx/opensoul/tree/main/docs
 
 ### stable 和 beta 有什么区别
 
@@ -443,7 +443,7 @@ https://github.com/opensoul/opensoul/tree/main/docs
 我们将构建发布到 **beta**，测试后，一旦构建稳定，就会**将同一版本提升为 `latest`**。这就是为什么 beta 和 stable 可以指向**相同版本**。
 
 查看变更：
-https://github.com/opensoul/opensoul/blob/main/CHANGELOG.md
+https://github.com/NJX-njx/opensoul/blob/main/CHANGELOG.md
 
 ### 如何安装 beta 版本，beta 和 dev 有什么区别
 
@@ -497,7 +497,7 @@ curl -fsSL https://opensoul.ai/install.sh | bash -s -- --install-method git
 如果你更喜欢手动克隆，使用：
 
 ```bash
-git clone https://github.com/opensoul/opensoul.git
+git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
 pnpm install
 pnpm build
@@ -795,7 +795,7 @@ brew install <formula>
 从 npm → git：
 
 ```bash
-git clone https://github.com/opensoul/opensoul.git
+git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
 pnpm install
 pnpm build
@@ -2625,4 +2625,4 @@ OpenSoul 默认阻止**跨提供商**消息。如果工具调用绑定到 Telegr
 
 ---
 
-仍然卡住？在 [Discord](https://discord.com/invite/clawd) 中提问或发起 [GitHub 讨论](https://github.com/opensoul/opensoul/discussions)。
+仍然卡住？在 [Discord](https://discord.com/invite/clawd) 中提问或发起 [GitHub 讨论](https://github.com/NJX-njx/opensoul/discussions)。

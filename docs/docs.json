@@ -27,12 +27,12 @@
     "links": [
       {
         "label": "GitHub",
-        "href": "https://github.com/opensoul/opensoul",
+        "href": "https://github.com/NJX-njx/opensoul",
         "icon": "github"
       },
       {
         "label": "Releases",
-        "href": "https://github.com/opensoul/opensoul/releases",
+        "href": "https://github.com/NJX-njx/opensoul/releases",
         "icon": "package"
       }
     ]

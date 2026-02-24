@@ -45,7 +45,7 @@ npm install -g opensoul@latest
 从源代码（开发）：
 
 ```bash
-git clone https://github.com/opensoul/opensoul.git
+git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
 pnpm install
 pnpm ui:build # 首次运行时自动安装 UI 依赖

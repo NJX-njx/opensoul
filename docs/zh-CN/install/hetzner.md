@@ -106,7 +106,7 @@ docker compose version
 ## 3) 克隆 OpenSoul 仓库
 
 ```bash
-git clone https://github.com/opensoul/opensoul.git
+git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
 ```
 

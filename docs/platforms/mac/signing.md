@@ -7,11 +7,11 @@ title: "macOS Signing"
 
 # mac signing (debug builds)
 
-This app is usually built from [`scripts/package-mac-app.sh`](https://github.com/opensoul/opensoul/blob/main/scripts/package-mac-app.sh), which now:
+This app is usually built from [`scripts/package-mac-app.sh`](https://github.com/NJX-njx/opensoul/blob/main/scripts/package-mac-app.sh), which now:
 
 - sets a stable debug bundle identifier: `ai.opensoul.mac.debug`
 - writes the Info.plist with that bundle id (override via `BUNDLE_ID=...`)
-- calls [`scripts/codesign-mac-app.sh`](https://github.com/opensoul/opensoul/blob/main/scripts/codesign-mac-app.sh) to sign the main binary and app bundle so macOS treats each rebuild as the same signed bundle and keeps TCC permissions (notifications, accessibility, screen recording, mic, speech). For stable permissions, use a real signing identity; ad-hoc is opt-in and fragile (see [macOS permissions](/platforms/mac/permissions)).
+- calls [`scripts/codesign-mac-app.sh`](https://github.com/NJX-njx/opensoul/blob/main/scripts/codesign-mac-app.sh) to sign the main binary and app bundle so macOS treats each rebuild as the same signed bundle and keeps TCC permissions (notifications, accessibility, screen recording, mic, speech). For stable permissions, use a real signing identity; ad-hoc is opt-in and fragile (see [macOS permissions](/platforms/mac/permissions)).
 - uses `CODESIGN_TIMESTAMP=auto` by default; it enables trusted timestamps for Developer ID signatures. Set `CODESIGN_TIMESTAMP=off` to skip timestamping (offline debug builds).
 - inject build metadata into Info.plist: `OpenSoulBuildTimestamp` (UTC) and `OpenSoulGitCommit` (short hash) so the About pane can show build, git, and debug/release channel.
 - **Packaging requires Node 22+**: the script runs TS builds and the Control UI build.

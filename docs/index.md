@@ -1,11 +1,11 @@
 ---
-summary: "OpenSoul is a multi-channel gateway for AI agents that runs on any OS."
+summary: "OpenSoul — Your AI Soul Companion. Self-hosted AI agent across 30+ messaging channels."
 read_when:
   - Introducing OpenSoul to newcomers
 title: "OpenSoul"
 ---
 
-# OpenSoul 🦞
+# OpenSoul 
 
 <p align="center">
     <img
@@ -25,8 +25,9 @@ title: "OpenSoul"
 > _"EXFOLIATE! EXFOLIATE!"_ — A space lobster, probably
 
 <p align="center">
-  <strong>Any OS gateway for AI agents across WhatsApp, Telegram, Discord, iMessage, and more.</strong><br />
-  Send a message, get an agent response from your pocket. Plugins add Mattermost and more.
+  <strong>Your AI Soul Companion — Chat, Collaborate, Create.</strong><br />
+  Self-hosted AI agent across WhatsApp, Telegram, Discord, Slack, and 30+ more channels.
+  Your personal AI companion for life and work.
 </p>
 
 <Columns>
@@ -43,9 +44,9 @@ title: "OpenSoul"
 
 ## What is OpenSoul?
 
-OpenSoul is a **self-hosted gateway** that connects your favorite chat apps — WhatsApp, Telegram, Discord, iMessage, and more — to AI coding agents like Pi. You run a single Gateway process on your own machine (or a server), and it becomes the bridge between your messaging apps and an always-available AI assistant.
+OpenSoul is a **self-hosted AI agent gateway** that connects your favorite chat apps — WhatsApp, Telegram, Discord, Slack, iMessage, and 30+ more — to AI agents like Pi. You run a single Gateway process on your own machine (or a server), and it becomes the bridge between your messaging apps and an always-available AI companion.
 
-**Who is it for?** Developers and power users who want a personal AI assistant they can message from anywhere — without giving up control of their data or relying on a hosted service.
+**Who is it for?** Anyone who wants a personal AI companion they can message from anywhere — for emotional support, productivity, or coding — without giving up control of their data or relying on a hosted service.
 
 **What makes it different?**
 
@@ -122,10 +123,6 @@ Open the browser Control UI after the Gateway starts.
 
 - Local default: [http://127.0.0.1:18789/](http://127.0.0.1:18789/)
 - Remote access: [Web surfaces](/web) and [Tailscale](/gateway/tailscale)
-
-<p align="center">
-  <img src="whatsapp-opensoul.jpg" alt="OpenSoul" width="420" />
-</p>
 
 ## Configuration (optional)
 
