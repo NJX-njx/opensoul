@@ -2,6 +2,7 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
 import process from "node:process";
+import { setGlobalDispatcher, EnvHttpProxyAgent } from "undici";
 import { applyCliProfileEnv, parseCliProfileArgs } from "./cli/profile.js";
 import { isTruthyEnvValue, normalizeEnv } from "./infra/env.js";
 import { installProcessWarningFilter } from "./infra/warning-filter.js";
@@ -10,6 +11,12 @@ import { attachChildProcessBridge } from "./process/child-process-bridge.js";
 process.title = "opensoul";
 installProcessWarningFilter();
 normalizeEnv();
+
+try {
+  setGlobalDispatcher(new EnvHttpProxyAgent());
+} catch (e) {
+  console.warn("Failed to set global proxy dispatcher:", e);
+}
 
 if (process.argv.includes("--no-color")) {
   process.env.NO_COLOR = "1";
