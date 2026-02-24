@@ -9,7 +9,7 @@
     <RootNamespace>OpenSoul</RootNamespace>
     <AssemblyName>OpenSoul</AssemblyName>
     <ApplicationIcon>Resources\opensoul.ico</ApplicationIcon>
-    <Version>0.2.1</Version>
+    <Version>0.2.2</Version>
     <Company>OpenSoul</Company>
     <Product>OpenSoul</Product>
     <Description>OpenSoul Windows desktop client</Description>
