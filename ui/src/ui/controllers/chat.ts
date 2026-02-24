@@ -194,9 +194,16 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
       }
     }
   } else if (payload.state === "final") {
+    const hadRun = Boolean(state.chatRunId);
+    const hasContent = Boolean(extractText(payload.message));
     state.chatStream = null;
     state.chatRunId = null;
     state.chatStreamStartedAt = null;
+    // Agent completed but returned no content - likely API/network issue
+    if (hadRun && !hasContent) {
+      state.lastError =
+        "模型未返回内容。请检查：1) 网络连接或 VPN 是否影响 API 访问；2) API Key 是否有效；3) 尝试在设置中切换模型（如 Claude）";
+    }
   } else if (payload.state === "aborted") {
     state.chatStream = null;
     state.chatRunId = null;

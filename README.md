@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="girl-profile.png" alt="OpenSoul" width="640">
+  <img src="opensoul.png" alt="OpenSoul" width="640">
 </p>
 
 <p align="center">
@@ -56,7 +56,7 @@ Connect your AI companion to the apps you already use — no new app to install.
 
 ### 🧠 Intelligent Agent Core
 
-- **Multi-model support** — OpenAI, Anthropic, AWS Bedrock, Ollama (local), and more
+- **Multi-model support** — OpenAI, Anthropic, Google Gemini (including new Gemini 2.5 Flash), AWS Bedrock, Ollama (local), and more
 - **Memory system** — Long-term memory with vector search (LanceDB)
 - **Multi-agent routing** — Session isolation and intelligent routing
 - **Tool use** — Agents can browse the web, run code, manage files, and more
@@ -80,8 +80,8 @@ Native apps for every major platform:
 - **macOS** — Native Swift app with menu bar integration
 - **iOS** — iPhone & iPad companion
 - **Android** — Full-featured Android app
-- **Windows** — Native Windows desktop app
-- **Web** — Browser-based control dashboard
+- **Windows** — Native Windows desktop app (with improved gateway connection)
+- **Web** — Browser-based control dashboard with intuitive onboarding & API key management
 - **CLI / TUI** — Terminal interface for power users
 
 ### 🔒 Privacy-First & Self-Hosted
@@ -246,34 +246,51 @@ This project is built upon [OpenClaw](https://github.com/nicepkg/openclaw) (MIT)
 
 ## 中文简介
 
-**OpenSoul** — 你的 AI 灵魂伴侣，聊天、协作、创造。
+<p align="center">
+  <strong>OpenSoul —— 你的 AI 灵魂伴侣：聊天、协作、创造</strong>
+</p>
 
-OpenSoul 是一个自托管的 AI 智能体伴侣，可以集成到你日常使用的 30+ 消息应用中（WhatsApp、Telegram、Discord、Slack 等），既能提供生活情感陪伴，也能作为工作中的高效协作者。
+OpenSoul 是一个突破平台限制的自托管 AI 智能体伴侣。它可以无缝集成到你日常使用的 30 多种消息应用中（如 WhatsApp、Telegram、Discord、Slack 等），运行在你自己的设备或服务器上，既能提供贴心的生活情感陪伴，也能作为工作中的高效协作者。
 
-### 核心特性
+### ✨ 核心特性
 
-- **30+ 消息渠道** — 连接你已有的沟通工具，无需安装新应用
-- **50+ 内置技能** — GitHub、Notion、Obsidian 等实用技能开箱即用
-- **跨平台应用** — macOS、iOS、Android、Windows 原生应用
-- **多模型支持** — OpenAI、Anthropic、Ollama（本地模型）等
-- **记忆系统** — 长期记忆 + 向量搜索，真正记住你
-- **隐私优先** — 自托管，数据完全属于你
-- **开源免费** — MIT 许可证，代码完全透明
+- **🌐 30+ 消息渠道支持**
+  无需安装新应用，直接在微信（通过特定渠道）、Telegram、WhatsApp、Slack、Discord 等你最熟悉的平台中与 AI 交流。
+- **🧠 强大的智能体核心与多模型支持**
+  全面支持 **OpenAI、Anthropic、Google Gemini (最新支持 2.5 Flash)、AWS Bedrock** 以及 **Ollama（本地大模型）**。配备长期记忆（通过 LanceDB 向量搜索）和智能路由机制。
+- **🛠️ 50+ 实用开箱即用技能**
+  内置 GitHub、Notion、Obsidian 读写、Canvas 可视化、终端命令行（Shell/Tmux）等技能，不仅能聊天，更能帮你执行复杂任务。
+- **📱 全平台原生应用覆盖**
+  提供 macOS、iOS、Android 和 Windows 原生客户端，以及具有完善 Onboarding（引导流程）和密钥管理的 Web 控制台面板。
+- **🔒 绝对的隐私安全与自托管**
+  支持通过 Ollama 纯本地运行大模型，你的聊天记录和数据完全留在你自己的服务器或设备上，告别云端隐私泄露焦虑。
 
-### 快速开始
+### 🚀 快速开始
+
+确保已安装 **Node.js ≥ 22** 及 **pnpm**：
 
 ```bash
+# 克隆仓库
 git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
+
+# 安装依赖
 pnpm install
+
+# 编译项目
 pnpm build
+
+# 启动 OpenSoul
 pnpm start
 ```
 
-需要 **Node.js ≥ 22**。详细文档请参阅 [`docs/`](docs/) 目录。
+### 📖 更多资源
+
+- 完整的开发与使用文档请参阅 [`docs/`](docs/) 目录。
+- 欢迎通过提交 Issue 或 Pull Request 来参与贡献（详见 [贡献指南](CONTRIBUTING.md)）。
 
 ---
 
 <p align="center">
-  <sub>If you find OpenSoul useful, please consider giving it a ⭐ on GitHub!</sub>
+  <sub>如果你觉得 OpenSoul 对你有帮助，请在 GitHub 上给我们点亮 ⭐！</sub>
 </p>
