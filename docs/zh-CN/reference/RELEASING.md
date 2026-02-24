@@ -29,13 +29,13 @@ x-i18n:
 
 - [ ] 更新 `package.json` 版本（例如 `2026.1.29`）。
 - [ ] 运行 `pnpm plugins:sync` 以对齐扩展包版本和变更日志。
-- [ ] 更新 CLI/版本字符串：[`src/cli/program.ts`](https://github.com/opensoul/opensoul/blob/main/src/cli/program.ts) 和 [`src/provider-web.ts`](https://github.com/opensoul/opensoul/blob/main/src/provider-web.ts) 中的 Baileys user agent。
-- [ ] 确认包元数据（name、description、repository、keywords、license）以及 `bin` 映射指向 [`opensoul.mjs`](https://github.com/opensoul/opensoul/blob/main/opensoul.mjs) 作为 `opensoul`。
+- [ ] 更新 CLI/版本字符串：[`src/cli/program.ts`](https://github.com/NJX-njx/opensoul/blob/main/src/cli/program.ts) 和 [`src/provider-web.ts`](https://github.com/NJX-njx/opensoul/blob/main/src/provider-web.ts) 中的 Baileys user agent。
+- [ ] 确认包元数据（name、description、repository、keywords、license）以及 `bin` 映射指向 [`opensoul.mjs`](https://github.com/NJX-njx/opensoul/blob/main/opensoul.mjs) 作为 `opensoul`。
 - [ ] 如果依赖项有变化，运行 `pnpm install` 确保 `pnpm-lock.yaml` 是最新的。
 
 2. **构建和产物**
 
-- [ ] 如果 A2UI 输入有变化，运行 `pnpm canvas:a2ui:bundle` 并提交更新后的 [`src/canvas-host/a2ui/a2ui.bundle.js`](https://github.com/opensoul/opensoul/blob/main/src/canvas-host/a2ui/a2ui.bundle.js)。
+- [ ] 如果 A2UI 输入有变化，运行 `pnpm canvas:a2ui:bundle` 并提交更新后的 [`src/canvas-host/a2ui/a2ui.bundle.js`](https://github.com/NJX-njx/opensoul/blob/main/src/canvas-host/a2ui/a2ui.bundle.js)。
 - [ ] `pnpm run build`（重新生成 `dist/`）。
 - [ ] 验证 npm 包的 `files` 包含所有必需的 `dist/*` 文件夹（特别是用于 headless node + ACP CLI 的 `dist/node-host/**` 和 `dist/acp/**`）。
 - [ ] 确认 `dist/build-info.json` 存在并包含预期的 `commit` 哈希（CLI 横幅在 npm 安装时使用此信息）。
@@ -64,7 +64,7 @@ x-i18n:
 5. **macOS 应用（Sparkle）**
 
 - [ ] 构建并签名 macOS 应用，然后压缩以供分发。
-- [ ] 生成 Sparkle appcast（通过 [`scripts/make_appcast.sh`](https://github.com/opensoul/opensoul/blob/main/scripts/make_appcast.sh) 生成 HTML 注释）并更新 `appcast.xml`。
+- [ ] 生成 Sparkle appcast（通过 [`scripts/make_appcast.sh`](https://github.com/NJX-njx/opensoul/blob/main/scripts/make_appcast.sh) 生成 HTML 注释）并更新 `appcast.xml`。
 - [ ] 保留应用 zip（和可选的 dSYM zip）以便附加到 GitHub 发布。
 - [ ] 按照 [macOS 发布](/platforms/mac/release) 获取确切命令和所需环境变量。
   - `APP_BUILD` 必须是数字且单调递增（不带 `-beta`），以便 Sparkle 正确比较版本。

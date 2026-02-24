@@ -190,7 +190,7 @@ docker compose version
 ## 6) Clone the OpenSoul repository
 
 ```bash
-git clone https://github.com/opensoul/opensoul.git
+git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
 ```
 

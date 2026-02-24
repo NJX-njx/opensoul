@@ -1,20 +1,20 @@
 ---
-summary: "Windows (WSL2) support + companion app status"
+summary: "Windows support: native app + WSL2 for Gateway"
 read_when:
   - Installing OpenSoul on Windows
   - Looking for Windows companion app status
-title: "Windows (WSL2)"
+title: "Windows"
 ---
 
-# Windows (WSL2)
+# Windows
 
-OpenSoul on Windows is recommended **via WSL2** (Ubuntu recommended). The
-CLI + Gateway run inside Linux, which keeps the runtime consistent and makes
-tooling far more compatible (Node/Bun/pnpm, Linux binaries, skills). Native
-Windows might be trickier. WSL2 gives you the full Linux experience — one command
-to install: `wsl --install`.
+OpenSoul supports Windows in two ways:
 
-Native Windows companion apps are planned.
+1. **Native Windows app** — C#/.NET WPF desktop app with system tray, deep link protocol
+   (`opensoul://`), Mica/Acrylic effects, and Velopack auto-updates. Connects to a Gateway
+   (local or remote).
+2. **WSL2 (recommended for Gateway)** — Run the CLI + Gateway inside Linux for full tooling
+   compatibility (Node/Bun/pnpm, skills). One command to install: `wsl --install`.
 
 ## Install (WSL2)
 
@@ -143,7 +143,7 @@ systemctl --user status
 Follow the Linux Getting Started flow inside WSL:
 
 ```bash
-git clone https://github.com/opensoul/opensoul.git
+git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
 pnpm install
 pnpm ui:build # auto-installs UI deps on first run
@@ -155,5 +155,6 @@ Full guide: [Getting Started](/start/getting-started)
 
 ## Windows companion app
 
-We do not have a Windows companion app yet. Contributions are welcome if you want
-contributions to make it happen.
+A native Windows desktop app is available in `apps/windows/` — C#/.NET WPF with WebView2,
+system tray, deep link protocol (`opensoul://`), Mica/Acrylic background effects, and
+Velopack auto-updates. Build from source or download releases from [Releases](https://github.com/NJX-njx/opensoul/releases).

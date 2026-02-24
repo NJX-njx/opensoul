@@ -42,7 +42,7 @@ pnpm install
 如果你没有 Apple Developer ID 证书，脚本将自动使用 **ad-hoc 签名**（`-`）。
 
 有关开发运行模式、签名标志和 Team ID 故障排除，请参阅 macOS 应用 README：
-https://github.com/opensoul/opensoul/blob/main/apps/macos/README.md
+https://github.com/NJX-njx/opensoul/blob/main/apps/macos/README.md
 
 > **注意**：Ad-hoc 签名的应用可能会触发安全提示。如果应用立即崩溃并显示"Abort trap 6"，请参阅[故障排除](#troubleshooting)部分。
 
@@ -92,7 +92,7 @@ xcrun swift --version
    ```bash
    tccutil reset All ai.opensoul.mac.debug
    ```
-2. 如果这不起作用，在 [`scripts/package-mac-app.sh`](https://github.com/opensoul/opensoul/blob/main/scripts/package-mac-app.sh) 中临时更改 `BUNDLE_ID` 以强制 macOS 从"全新状态"开始。
+2. 如果这不起作用，在 [`scripts/package-mac-app.sh`](https://github.com/NJX-njx/opensoul/blob/main/scripts/package-mac-app.sh) 中临时更改 `BUNDLE_ID` 以强制 macOS 从"全新状态"开始。
 
 ### Gateway 网关无限期"Starting..."
 

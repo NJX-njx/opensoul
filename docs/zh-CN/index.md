@@ -1,7 +1,7 @@
 ---
 read_when:
   - 向新用户介绍 OpenSoul
-summary: OpenSoul 是一个多渠道 AI 智能体 Gateway 网关，可在任何操作系统上运行。
+summary: OpenSoul — 你的 AI 灵魂伴侣。自托管 AI 智能体，支持 30+ 消息渠道。
 title: OpenSoul
 x-i18n:
   generated_at: "2026-02-04T17:53:40Z"
@@ -32,8 +32,9 @@ x-i18n:
 > _"去壳！去壳！"_ — 大概是一只太空龙虾说的
 
 <p align="center">
-  <strong>适用于任何操作系统的 AI 智能体 Gateway 网关，支持 WhatsApp、Telegram、Discord、iMessage 等。</strong><br />
-  发送消息，随时随地获取智能体响应。通过插件可添加 Mattermost 等更多渠道。
+  <strong>你的 AI 灵魂伴侣 — 聊天、协作、创造。</strong><br />
+  自托管 AI 智能体，支持 WhatsApp、Telegram、Discord、Slack 等 30+ 渠道。
+  生活与工作中的个人 AI 伴侣。
 </p>
 
 <Columns>
@@ -48,7 +49,7 @@ x-i18n:
   </Card>
 </Columns>
 
-OpenSoul 通过单个 Gateway 网关进程将聊天应用连接到 Pi 等编程智能体。它为 OpenSoul 助手提供支持，并支持本地或远程部署。
+OpenSoul 通过单个 Gateway 网关进程将聊天应用连接到 Pi 等 AI 智能体。支持情感陪伴、生产力协作和编程辅助，可本地或远程部署。
 
 ## 工作原理
 
@@ -116,10 +117,6 @@ Gateway 网关启动后，打开浏览器控制界面。
 
 - 本地默认地址：http://127.0.0.1:18789/
 - 远程访问：[Web 界面](/web)和 [Tailscale](/gateway/tailscale)
-
-<p align="center">
-  <img src="whatsapp-opensoul.jpg" alt="OpenSoul" width="420" />
-</p>
 
 ## 配置（可选）
 

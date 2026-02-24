@@ -914,6 +914,6 @@ node -e "import('./path/to/handler.ts').then(console.log)"
 ## 另请参阅
 
 - [CLI 参考：hooks](/cli/hooks)
-- [捆绑 Hooks README](https://github.com/opensoul/opensoul/tree/main/src/hooks/bundled)
+- [捆绑 Hooks README](https://github.com/NJX-njx/opensoul/tree/main/src/hooks/bundled)
 - [Webhook Hooks](/automation/webhook)
 - [配置](/gateway/configuration#hooks)

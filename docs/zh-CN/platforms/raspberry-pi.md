@@ -125,7 +125,7 @@ curl -fsSL https://opensoul.ai/install.sh | bash
 ### 选项 B：可修改安装（用于调试）
 
 ```bash
-git clone https://github.com/opensoul/opensoul.git
+git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
 npm install
 npm run build

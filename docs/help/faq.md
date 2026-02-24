@@ -287,8 +287,8 @@ Tip: ask the agent to **plan and supervise** the fix (step-by-step), then execut
 necessary commands. That keeps changes small and easier to audit.
 
 If you discover a real bug or fix, please file a GitHub issue or send a PR:
-[https://github.com/opensoul/opensoul/issues](https://github.com/opensoul/opensoul/issues)
-[https://github.com/opensoul/opensoul/pulls](https://github.com/opensoul/opensoul/pulls)
+[https://github.com/NJX-njx/opensoul/issues](https://github.com/NJX-njx/opensoul/issues)
+[https://github.com/NJX-njx/opensoul/pulls](https://github.com/NJX-njx/opensoul/pulls)
 
 Start with these commands (share outputs when asking for help):
 
@@ -324,7 +324,7 @@ The wizard can also build UI assets automatically. After onboarding, you typical
 From source (contributors/dev):
 
 ```bash
-git clone https://github.com/opensoul/opensoul.git
+git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
 pnpm install
 pnpm build
@@ -434,7 +434,7 @@ Related: [Migrating](/install/migrating), [Where things live on disk](/help/faq#
 ### Where do I see what is new in the latest version
 
 Check the GitHub changelog:
-[https://github.com/opensoul/opensoul/blob/main/CHANGELOG.md](https://github.com/opensoul/opensoul/blob/main/CHANGELOG.md)
+[https://github.com/NJX-njx/opensoul/blob/main/CHANGELOG.md](https://github.com/NJX-njx/opensoul/blob/main/CHANGELOG.md)
 
 Newest entries are at the top. If the top section is marked **Unreleased**, the next dated
 section is the latest shipped version. Entries are grouped by **Highlights**, **Changes**, and
@@ -448,7 +448,7 @@ detail: [Troubleshooting](/help/troubleshooting#docsopensoulai-shows-an-ssl-erro
 Please help us unblock it by reporting here: [https://spa.xfinity.com/check_url_status](https://spa.xfinity.com/check_url_status).
 
 If you still can't reach the site, the docs are mirrored on GitHub:
-[https://github.com/opensoul/opensoul/tree/main/docs](https://github.com/opensoul/opensoul/tree/main/docs)
+[https://github.com/NJX-njx/opensoul/tree/main/docs](https://github.com/NJX-njx/opensoul/tree/main/docs)
 
 ### What's the difference between stable and beta
 
@@ -462,7 +462,7 @@ that same version to `latest`**. That's why beta and stable can point at the
 **same version**.
 
 See what changed:
-[https://github.com/opensoul/opensoul/blob/main/CHANGELOG.md](https://github.com/opensoul/opensoul/blob/main/CHANGELOG.md)
+[https://github.com/NJX-njx/opensoul/blob/main/CHANGELOG.md](https://github.com/NJX-njx/opensoul/blob/main/CHANGELOG.md)
 
 ### How do I install the beta version and whats the difference between beta and dev
 
@@ -517,7 +517,7 @@ That gives you a local repo you can edit, then update via git.
 If you prefer a clean clone manually, use:
 
 ```bash
-git clone https://github.com/opensoul/opensoul.git
+git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
 pnpm install
 pnpm build
@@ -841,7 +841,7 @@ This **does not delete your data** - it only changes the OpenSoul code install. 
 From npm → git:
 
 ```bash
-git clone https://github.com/opensoul/opensoul.git
+git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
 pnpm install
 pnpm build
@@ -2845,4 +2845,4 @@ You can add options like `debounce:2s cap:25 drop:summarize` for followup modes.
 
 ---
 
-Still stuck? Ask in [Discord](https://discord.com/invite/clawd) or open a [GitHub discussion](https://github.com/opensoul/opensoul/discussions).
+Still stuck? Ask in [Discord](https://discord.com/invite/clawd) or open a [GitHub discussion](https://github.com/NJX-njx/opensoul/discussions).

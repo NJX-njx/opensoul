@@ -130,7 +130,7 @@ See [Pairing](/channels/pairing).
 If you are developing OpenSoul itself:
 
 ```bash
-git clone https://github.com/opensoul/opensoul.git
+git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
 pnpm install
 pnpm ui:build # auto-installs UI deps on first run

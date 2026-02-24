@@ -35,7 +35,7 @@ To build the macOS app and package it into `dist/OpenSoul.app`, run:
 If you don't have an Apple Developer ID certificate, the script will automatically use **ad-hoc signing** (`-`).
 
 For dev run modes, signing flags, and Team ID troubleshooting, see the macOS app README:
-[https://github.com/opensoul/opensoul/blob/main/apps/macos/README.md](https://github.com/opensoul/opensoul/blob/main/apps/macos/README.md)
+[https://github.com/NJX-njx/opensoul/blob/main/apps/macos/README.md](https://github.com/NJX-njx/opensoul/blob/main/apps/macos/README.md)
 
 > **Note**: Ad-hoc signed apps may trigger security prompts. If the app crashes immediately with "Abort trap 6", see the [Troubleshooting](#troubleshooting) section.
 
@@ -87,7 +87,7 @@ If the app crashes when you try to allow **Speech Recognition** or **Microphone*
    tccutil reset All ai.opensoul.mac.debug
    ```
 
-2. If that fails, change the `BUNDLE_ID` temporarily in [`scripts/package-mac-app.sh`](https://github.com/opensoul/opensoul/blob/main/scripts/package-mac-app.sh) to force a "clean slate" from macOS.
+2. If that fails, change the `BUNDLE_ID` temporarily in [`scripts/package-mac-app.sh`](https://github.com/NJX-njx/opensoul/blob/main/scripts/package-mac-app.sh) to force a "clean slate" from macOS.
 
 ### Gateway "Starting..." indefinitely
 

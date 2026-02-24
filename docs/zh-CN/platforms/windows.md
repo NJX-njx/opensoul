@@ -2,8 +2,8 @@
 read_when:
   - 在 Windows 上安装 OpenSoul
   - 查找 Windows 配套应用状态
-summary: Windows（WSL2）支持 + 配套应用状态
-title: Windows (WSL2)
+summary: Windows 支持：原生应用 + WSL2 运行 Gateway 网关
+title: Windows
 x-i18n:
   generated_at: "2026-02-03T07:53:19Z"
   model: claude-opus-4-5
@@ -13,11 +13,12 @@ x-i18n:
   workflow: 15
 ---
 
-# Windows (WSL2)
+# Windows
 
-Windows 上的 OpenSoul 推荐**通过 WSL2**（推荐 Ubuntu）。CLI + Gateway 网关在 Linux 内运行，这保持了运行时的一致性并使工具兼容性大大提高（Node/Bun/pnpm、Linux 二进制文件、Skills）。原生 Windows 可能更棘手。WSL2 给你完整的 Linux 体验——一条命令安装：`wsl --install`。
+OpenSoul 在 Windows 上支持两种方式：
 
-原生 Windows 配套应用已在计划中。
+1. **原生 Windows 应用** — C#/.NET WPF 桌面应用，带系统托盘、深链接协议（`opensoul://`）、Mica/Acrylic 效果和 Velopack 自动更新。可连接本地或远程 Gateway 网关。
+2. **WSL2（推荐用于 Gateway 网关）** — 在 Linux 内运行 CLI + Gateway 网关，获得完整工具兼容性（Node/Bun/pnpm、Skills）。一条命令安装：`wsl --install`。
 
 ## 安装（WSL2）
 
@@ -141,7 +142,7 @@ systemctl --user status
 在 WSL 内按照 Linux 入门指南流程：
 
 ```bash
-git clone https://github.com/opensoul/opensoul.git
+git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
 pnpm install
 pnpm ui:build # auto-installs UI deps on first run
@@ -153,4 +154,4 @@ opensoul onboard
 
 ## Windows 配套应用
 
-我们还没有 Windows 配套应用。如果你想让它实现，欢迎贡献。
+原生 Windows 桌面应用位于 `apps/windows/` — C#/.NET WPF + WebView2，带系统托盘、深链接协议（`opensoul://`）、Mica/Acrylic 背景效果和 Velopack 自动更新。从源码构建或从 [Releases](https://github.com/NJX-njx/opensoul/releases) 下载。

@@ -14,11 +14,11 @@ x-i18n:
 
 # Mac 签名（调试构建）
 
-此应用通常从 [`scripts/package-mac-app.sh`](https://github.com/opensoul/opensoul/blob/main/scripts/package-mac-app.sh) 构建，该脚本目前会：
+此应用通常从 [`scripts/package-mac-app.sh`](https://github.com/NJX-njx/opensoul/blob/main/scripts/package-mac-app.sh) 构建，该脚本目前会：
 
 - 设置稳定的调试 Bundle 标识符：`ai.opensoul.mac.debug`
 - 使用该 Bundle ID 写入 Info.plist（可通过 `BUNDLE_ID=...` 覆盖）
-- 调用 [`scripts/codesign-mac-app.sh`](https://github.com/opensoul/opensoul/blob/main/scripts/codesign-mac-app.sh) 对主二进制文件和应用包进行签名，使 macOS 将每次重新构建视为相同的已签名包，并保留 TCC 权限（通知、辅助功能、屏幕录制、麦克风、语音）。要获得稳定的权限，请使用真实签名身份；临时签名是可选的且不稳定（参阅 [macOS 权限](/platforms/mac/permissions)）。
+- 调用 [`scripts/codesign-mac-app.sh`](https://github.com/NJX-njx/opensoul/blob/main/scripts/codesign-mac-app.sh) 对主二进制文件和应用包进行签名，使 macOS 将每次重新构建视为相同的已签名包，并保留 TCC 权限（通知、辅助功能、屏幕录制、麦克风、语音）。要获得稳定的权限，请使用真实签名身份；临时签名是可选的且不稳定（参阅 [macOS 权限](/platforms/mac/permissions)）。
 - 默认使用 `CODESIGN_TIMESTAMP=auto`；为 Developer ID 签名启用受信任的时间戳。设置 `CODESIGN_TIMESTAMP=off` 可跳过时间戳（离线调试构建）。
 - 将构建元数据注入 Info.plist：`OpenSoulBuildTimestamp`（UTC）和 `OpenSoulGitCommit`（短哈希），以便"关于"面板可以显示构建信息、git 信息和调试/发布渠道。
 - **打包需要 Node 22+**：脚本会运行 TS 构建和 Control UI 构建。
