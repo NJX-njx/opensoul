@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.WebSockets;
 using System.Text;
@@ -64,7 +64,7 @@ public sealed class GatewayChannel : IAsyncDisposable
             _logger.LogInformation("Connecting to gateway at {Url}", config.Url);
 
             _ws = new ClientWebSocket();
-            _ws.Options.SetRequestHeader("User-Agent", "OpenSoul-Windows/0.2.1");
+            _ws.Options.SetRequestHeader("User-Agent", "OpenSoul-Windows/0.2.2");
 
             var uri = new Uri(config.Url);
             if (IsLoopbackHost(uri.Host))
