@@ -232,6 +232,16 @@ export const BUILTIN_PROVIDER_MODELS: Record<string, BuiltinProviderConfig> = {
     api: "google-generative-ai",
     models: [
       {
+        id: "gemini-2.5-flash",
+        name: "Gemini 2.5 Flash",
+        api: "google-generative-ai",
+        reasoning: true,
+        input: ["text", "image"],
+        cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        contextWindow: 1000000,
+        maxTokens: 65536,
+      },
+      {
         id: "gemini-3-pro-preview",
         name: "Gemini 3 Pro",
         api: "google-generative-ai",
@@ -300,7 +310,7 @@ export const BUILTIN_PROVIDER_MODELS: Record<string, BuiltinProviderConfig> = {
 export const PROVIDER_DEFAULT_MODEL: Record<string, string> = {
   anthropic: "anthropic/claude-opus-4-6",
   openai: "openai/gpt-5.1-codex",
-  google: "google/gemini-3-pro-preview",
+  google: "google/gemini-2.5-flash",
   openrouter: "openrouter/anthropic/claude-sonnet-4-5",
   xai: "xai/grok-3",
   minimax: "minimax/MiniMax-M2.1",

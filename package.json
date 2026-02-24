@@ -215,6 +215,18 @@
   "packageManager": "pnpm@10.23.0",
   "pnpm": {
     "minimumReleaseAge": 2880,
+    "packageExtensions": {
+      "@mariozechner/pi-coding-agent": {
+        "dependencies": {
+          "strip-ansi": "^7.1.2"
+        }
+      },
+      "form-data": {
+        "dependencies": {
+          "hasown": "^2.0.0"
+        }
+      }
+    },
     "overrides": {
       "fast-xml-parser": "5.3.4",
       "form-data": "2.5.4",
