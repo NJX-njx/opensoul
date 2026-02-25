@@ -75,7 +75,15 @@ public sealed class GatewayProcessManager : IAsyncDisposable
         }
 
         // Reuse an existing managed gateway after app restart/crash.
-        if (await TryAttachExistingGatewayAsync(ct))
+        // Skip reuse when system proxy is enabled: the existing process may have been
+        // started without proxy injection, causing API calls (e.g. Gemini) to hang.
+        if (SystemProxyNeedsInjection() && TryReadIntFile(OpenSoulPaths.GatewayPidFile, out var existingPid))
+        {
+            _logger.LogInformation("System proxy detected; terminating existing gateway (PID {Pid}) to restart with proxy", existingPid);
+            TryKillProcessTree(existingPid);
+            DeleteRuntimeMetadataFiles(keepToken: true);
+        }
+        else if (await TryAttachExistingGatewayAsync(ct))
         {
             SetStatus(GatewayStatus.Running);
             StartMonitor();
@@ -241,6 +249,21 @@ public sealed class GatewayProcessManager : IAsyncDisposable
         if (!keepToken)
         {
             try { File.Delete(OpenSoulPaths.GatewayTokenFile); } catch { }
+        }
+    }
+
+    private static bool SystemProxyNeedsInjection()
+    {
+        try
+        {
+            var systemProxy = System.Net.WebRequest.GetSystemWebProxy();
+            var testUri = new Uri("https://generativelanguage.googleapis.com");
+            var proxyUri = systemProxy.GetProxy(testUri);
+            return proxyUri != null && proxyUri != testUri;
+        }
+        catch
+        {
+            return false;
         }
     }
 
