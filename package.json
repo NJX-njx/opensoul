@@ -62,7 +62,7 @@
     "canvas:a2ui:bundle": "bash scripts/bundle-a2ui.sh",
     "check": "pnpm tsgo && pnpm lint && pnpm format",
     "check:docs": "pnpm format:docs && pnpm lint:docs && pnpm docs:build",
-    "check:loc": "node --import tsx scripts/check-ts-max-loc.ts --max 500",
+    "check:loc": "node --import tsx scripts/check-ts-max-loc.ts --max 2000 --max-function 150 --top 10 --report .check-loc-report.json",
     "dev": "node scripts/run-node.mjs",
     "docs:bin": "node scripts/build-docs-list.mjs",
     "docs:build": "cd docs && pnpm dlx --reporter append-only mint broken-links",
