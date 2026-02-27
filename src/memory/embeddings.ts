@@ -1,14 +1,11 @@
 import type { Llama, LlamaEmbeddingContext, LlamaModel } from "node-llama-cpp";
 import fsSync from "node:fs";
 import type { OpenSoulConfig } from "../config/config.js";
-import { createSubsystemLogger } from "../logging/subsystem.js";
 import { resolveUserPath } from "../utils.js";
 import { createGeminiEmbeddingProvider, type GeminiEmbeddingClient } from "./embeddings-gemini.js";
 import { createOpenAiEmbeddingProvider, type OpenAiEmbeddingClient } from "./embeddings-openai.js";
 import { createVoyageEmbeddingProvider, type VoyageEmbeddingClient } from "./embeddings-voyage.js";
 import { importNodeLlamaCpp } from "./node-llama.js";
-
-const log = createSubsystemLogger("memory/embeddings");
 
 function sanitizeAndNormalizeEmbedding(vec: number[]): number[] {
   const sanitized = vec.map((value) => (Number.isFinite(value) ? value : 0));
@@ -85,11 +82,6 @@ async function createLocalEmbeddingProvider(
 ): Promise<EmbeddingProvider> {
   const modelPath = options.local?.modelPath?.trim() || DEFAULT_LOCAL_MODEL;
   const modelCacheDir = options.local?.modelCacheDir?.trim();
-  if (/^(hf:|https?:)/i.test(modelPath)) {
-    log.info(
-      "Local embedding model may download ~0.6 GB on first use; pre-download or switch to a remote provider to avoid startup delays.",
-    );
-  }
 
   // Lazy-load node-llama-cpp to keep startup light unless local is enabled.
   const { getLlama, resolveModelFile, LlamaLogLevel } = await importNodeLlamaCpp();

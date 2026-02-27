@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Release.Name }}-preflight-sqlite-vec
-data:
-  preflight-sqlite-vec.sh: |-
-{{ .Files.Get "files/preflight-sqlite-vec.sh" | indent 4 }}

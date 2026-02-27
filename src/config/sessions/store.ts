@@ -203,11 +203,6 @@ async function saveSessionStoreUnlocked(
   if (process.platform === "win32") {
     try {
       await fs.promises.writeFile(storePath, json, "utf-8");
-      try {
-        await fs.promises.chmod(storePath, 0o600);
-      } catch {
-        return;
-      }
     } catch (err) {
       const code =
         err && typeof err === "object" && "code" in err

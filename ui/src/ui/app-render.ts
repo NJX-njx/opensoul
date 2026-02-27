@@ -3,7 +3,7 @@ import type { AppViewState } from "./app-view-state.ts";
 import type { UsageState } from "./controllers/usage.ts";
 import { parseAgentSessionKey } from "../../../src/routing/session-key.js";
 import { refreshChatAvatar } from "./app-chat.ts";
-import { renderChatControls, renderOperateZoomControl, renderTab } from "./app-render.helpers.ts";
+import { renderChatControls, renderTab } from "./app-render.helpers.ts";
 import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
 import { loadAgentSkills } from "./controllers/agent-skills.ts";
@@ -187,17 +187,6 @@ export function renderApp(state: AppViewState) {
   const cronNext = state.cronStatus?.nextWakeAtMs ?? null;
   const chatDisabledReason = state.connected
     ? null
-    : t("Disconnected from gateway.", "与网关断开连接。");
-  const isChat = state.tab === "chat";
-  const isOperate =
-    state.tab === "channels" ||
-    state.tab === "instances" ||
-    state.tab === "sessions" ||
-    state.tab === "usage" ||
-    state.tab === "cron";
-  const zoomLevel = isOperate ? state.operateZoomLevel : 1;
-  const contentStyle =
-    zoomLevel === 1
       ? ""
       : `transform: scale(${zoomLevel}); transform-origin: top left; width: ${100 / zoomLevel}%;`;
   const chatFocus = isChat && (state.settings.chatFocusMode || state.onboarding);
@@ -283,7 +272,6 @@ export function renderApp(state: AppViewState) {
               >
                 <span class="nav-label__text">${groupLabel}</span>
                 <span class="nav-label__chevron">${isGroupCollapsed ? "+" : "-"}</span>
-              </button>
               <div class="nav-group__items">
                 ${group.tabs.map((tab) => renderTab(state, tab))}
               </div>
@@ -294,7 +282,7 @@ export function renderApp(state: AppViewState) {
           ${renderOperateZoomControl(state)}
           <button
             class="nav-settings-btn"
-            @click=${() => state.openSettings()}
+      <main class="content ${isChat ? "content--chat" : ""}">
             title=${t("Settings", "设置")}
           >
             <span class="nav-settings-btn__icon">${icons.settings}</span>

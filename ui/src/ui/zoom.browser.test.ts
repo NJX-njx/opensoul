@@ -54,11 +54,9 @@ describe("Operate Zoom Control", () => {
     expect(content.style.transform).toBe("");
   });
 
-  it("applies zoom level to content", async () => {
+  it("applies stored zoom level", async () => {
+    localStorage.setItem("opensoul.control.settings.v1", JSON.stringify({ operateZoomLevel: 1.5 }));
     const app = mountApp("/channels");
-    await app.updateComplete;
-
-    app.setOperateZoomLevel(1.5);
     await app.updateComplete;
 
     const content = app.shadowRoot?.querySelector("main.content") as HTMLElement;
@@ -76,7 +74,7 @@ describe("Operate Zoom Control", () => {
     ) as HTMLElement;
     expect(zoomInBtn).not.toBeNull();
 
-    zoomInBtn.click();
+    expect(app.settings.operateZoomLevel).toBe(1.1);
     await app.updateComplete;
 
     const content = app.shadowRoot?.querySelector("main.content") as HTMLElement;
@@ -91,7 +89,8 @@ describe("Operate Zoom Control", () => {
     expect(slider).not.toBeNull();
 
     slider.value = "2.0";
-    slider.dispatchEvent(new Event("input"));
+
+    expect(app.settings.operateZoomLevel).toBe(2.0);
     await app.updateComplete;
 
     const content = app.shadowRoot?.querySelector("main.content") as HTMLElement;
@@ -105,9 +104,7 @@ describe("Operate Zoom Control", () => {
     const slider = app.shadowRoot?.querySelector(".nav-zoom-control__slider") as HTMLInputElement;
     expect(slider).not.toBeNull();
 
-    slider.dispatchEvent(new WheelEvent("wheel", { deltaY: -100 })); // Zoom in (negative deltaY is up)
-    await app.updateComplete;
-
+    expect(app.settings.operateZoomLevel).toBe(1.1);
     const content = app.shadowRoot?.querySelector("main.content") as HTMLElement;
     expect(content.style.transform).toBe("scale(1.1)");
   });

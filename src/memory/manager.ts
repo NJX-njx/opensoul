@@ -150,7 +150,6 @@ export class MemoryIndexManager implements MemorySearchManager {
     loadError?: string;
   };
   private vectorReady: Promise<boolean> | null = null;
-  private vectorPathWarned = false;
   private watcher: FSWatcher | null = null;
   private watchTimer: NodeJS.Timeout | null = null;
   private sessionWatchTimer: NodeJS.Timeout | null = null;
@@ -649,12 +648,6 @@ export class MemoryIndexManager implements MemorySearchManager {
       return false;
     }
     try {
-      if (!this.vector.extensionPath && !this.vectorPathWarned) {
-        this.vectorPathWarned = true;
-        log.warn(
-          "sqlite-vec extensionPath is not configured; set memory.store.vector.extensionPath or install sqlite-vec to avoid JS fallback",
-        );
-      }
       const resolvedPath = this.vector.extensionPath?.trim()
         ? resolveUserPath(this.vector.extensionPath)
         : undefined;

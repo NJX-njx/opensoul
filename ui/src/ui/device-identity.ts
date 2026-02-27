@@ -59,8 +59,7 @@ async function generateIdentity(): Promise<DeviceIdentity> {
 
 export async function loadOrCreateDeviceIdentity(): Promise<DeviceIdentity> {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(STORAGE_KEY);
-    if (raw) {
+    const raw = localStorage.getItem(STORAGE_KEY);
       const parsed = JSON.parse(raw) as StoredIdentity;
       if (
         parsed?.version === 1 &&
@@ -75,17 +74,13 @@ export async function loadOrCreateDeviceIdentity(): Promise<DeviceIdentity> {
             deviceId: derivedId,
           };
           sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-          return {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
             deviceId: derivedId,
             publicKey: parsed.publicKey,
             privateKey: parsed.privateKey,
           };
         }
         if (localStorage.getItem(STORAGE_KEY)) {
-          localStorage.removeItem(STORAGE_KEY);
-          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-        }
-        return {
           deviceId: parsed.deviceId,
           publicKey: parsed.publicKey,
           privateKey: parsed.privateKey,
@@ -105,7 +100,7 @@ export async function loadOrCreateDeviceIdentity(): Promise<DeviceIdentity> {
     createdAtMs: Date.now(),
   };
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
-  return identity;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
 }
 
 export async function signDevicePayload(privateKeyBase64Url: string, payload: string) {

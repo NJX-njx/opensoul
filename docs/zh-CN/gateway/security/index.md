@@ -89,7 +89,7 @@ OpenSoul 既是产品也是实验：你正在将前沿模型的行为连接到�
 
 ## 反向代理配置
 
-如果你在反向代理（nginx、Caddy、Traefik 等）后面运行 Gateway 网关，应该配置 `gateway.trustedProxies` 以正确检测客户端 IP。请仅使用明确的代理 IP 地址（不要使用通配符）。
+如果你在反向代理（nginx、Caddy、Traefik 等）后面运行 Gateway 网关，应该配置 `gateway.trustedProxies` 以正确检测客户端 IP。
 
 当 Gateway 网关从**不在** `trustedProxies` 中的地址检测到代理头（`X-Forwarded-For` 或 `X-Real-IP`）时，它将**不会**将连接视为本地客户端。如果禁用了 Gateway 网关认证，这些连接会被拒绝。这可以防止认证绕过，否则代理的连接会看起来来自 localhost 并获得自动信任。
 

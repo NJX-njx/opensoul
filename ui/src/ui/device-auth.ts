@@ -33,9 +33,7 @@ function normalizeScopes(scopes: string[] | undefined): string[] {
 
 function readStore(): DeviceAuthStore | null {
   try {
-    const raw =
-      window.sessionStorage.getItem(STORAGE_KEY) ?? window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
       return null;
     }
     const parsed = JSON.parse(raw) as DeviceAuthStore;
@@ -49,10 +47,6 @@ function readStore(): DeviceAuthStore | null {
       return null;
     }
     if (window.localStorage.getItem(STORAGE_KEY)) {
-      window.localStorage.removeItem(STORAGE_KEY);
-      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-    }
-    return parsed;
   } catch {
     return null;
   }
@@ -61,7 +55,7 @@ function readStore(): DeviceAuthStore | null {
 function writeStore(store: DeviceAuthStore) {
   try {
     window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-  } catch {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
     // best-effort
   }
 }

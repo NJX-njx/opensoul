@@ -125,7 +125,7 @@ describe("abort detection", () => {
     enqueueFollowupRun(
       sessionKey,
       followupRun,
-      { mode: "collect", debounceMs: 0, cap: 50, dropPolicy: "summarize" },
+      { mode: "collect", debounceMs: 0, cap: 20, dropPolicy: "summarize" },
       "none",
     );
     expect(getFollowupQueueDepth(sessionKey)).toBe(1);

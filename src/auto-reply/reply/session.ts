@@ -85,13 +85,6 @@ function forkSessionFromParent(params: {
       parentSession: parentSessionFile,
     };
     fs.writeFileSync(sessionFile, `${JSON.stringify(header)}\n`, "utf-8");
-    if (process.platform !== "win32") {
-      try {
-        fs.chmodSync(sessionFile, 0o600);
-      } catch {
-        return { sessionId, sessionFile };
-      }
-    }
     return { sessionId, sessionFile };
   } catch {
     return null;

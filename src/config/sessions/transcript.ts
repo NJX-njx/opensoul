@@ -73,13 +73,6 @@ async function ensureSessionHeader(params: {
     cwd: process.cwd(),
   };
   await fs.promises.writeFile(params.sessionFile, `${JSON.stringify(header)}\n`, "utf-8");
-  if (process.platform !== "win32") {
-    try {
-      await fs.promises.chmod(params.sessionFile, 0o600);
-    } catch {
-      return;
-    }
-  }
 }
 
 export async function appendAssistantMessageToSessionTranscript(params: {

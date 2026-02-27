@@ -67,7 +67,7 @@ Options apply to `followup`, `collect`, and `steer-backlog` (and to `steer` when
 - `drop`: overflow policy (`old`, `new`, `summarize`).
 
 Summarize keeps a short bullet list of dropped messages and injects it as a synthetic followup prompt.
-Defaults: `debounceMs: 500`, `cap: 50`, `drop: summarize`.
+Defaults: `debounceMs: 1000`, `cap: 20`, `drop: summarize`.
 
 ## Per-session overrides
 

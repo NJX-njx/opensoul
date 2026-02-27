@@ -13,8 +13,8 @@ export type FollowupQueueState = {
   lastRun?: FollowupRun["run"];
 };
 
-export const DEFAULT_QUEUE_DEBOUNCE_MS = 500;
-export const DEFAULT_QUEUE_CAP = 50;
+export const DEFAULT_QUEUE_DEBOUNCE_MS = 1000;
+export const DEFAULT_QUEUE_CAP = 20;
 export const DEFAULT_QUEUE_DROP: QueueDropPolicy = "summarize";
 
 export const FOLLOWUP_QUEUES = new Map<string, FollowupQueueState>();

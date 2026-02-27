@@ -1,6 +1,6 @@
 import type { OpenSoulConfig } from "./types.js";
 
-export const DEFAULT_AGENT_MAX_CONCURRENT = 6;
+export const DEFAULT_AGENT_MAX_CONCURRENT = 4;
 export const DEFAULT_SUBAGENT_MAX_CONCURRENT = 8;
 
 export function resolveAgentMaxConcurrent(cfg?: OpenSoulConfig): number {
