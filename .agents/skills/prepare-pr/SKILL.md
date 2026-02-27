@@ -53,7 +53,7 @@ Create a checklist of all prep steps, print it, then continue and execute the co
 Use an isolated worktree for all prep work.
 
 ```sh
-cd ~/opensoul
+cd ~/dev/opensoul
 # Sanity: confirm you are in the repo
 git rev-parse --show-toplevel
 
@@ -167,7 +167,7 @@ git commit -m "fix: <summary> (#<PR>) (thanks @$contrib)"
 
 ```sh
 pnpm install
-pnpm build
+OPENSOUL_A2UI_SKIP_MISSING=1 pnpm build
 pnpm ui:build
 pnpm check
 pnpm test
