@@ -2,6 +2,7 @@ import type { Command } from "commander";
 import { dashboardCommand } from "../../commands/dashboard.js";
 import { doctorCommand } from "../../commands/doctor.js";
 import { resetCommand } from "../../commands/reset.js";
+import { sessionLogPruneCommand } from "../../commands/session-log-prune.js";
 import { uninstallCommand } from "../../commands/uninstall.js";
 import { defaultRuntime } from "../../runtime.js";
 import { formatDocsLink } from "../../terminal/links.js";
@@ -75,6 +76,38 @@ export function registerMaintenanceCommands(program: Command) {
           yes: Boolean(opts.yes),
           nonInteractive: Boolean(opts.nonInteractive),
           dryRun: Boolean(opts.dryRun),
+        });
+      });
+    });
+
+  program
+    .command("session-log-prune")
+    .description("Prune session logs with retention, optional user filter, and S3 archive")
+    .option("--days <days>", "Retention window in days (default: 30)")
+    .option("--user <id>", "Only prune sessions matching a user id")
+    .option("--agent <id>", "Agent id to prune (default: main)")
+    .option("--store <path>", "Override session store path")
+    .option("--archive-dir <path>", "Archive directory for compressed logs")
+    .option("--dry-run", "Report actions without deleting logs", false)
+    .option("--s3-bucket <bucket>", "Upload archives to the given S3 bucket")
+    .option("--s3-prefix <prefix>", "S3 key prefix (default: opensoul/session-logs)")
+    .option("--s3-region <region>", "AWS region for S3 uploads")
+    .option("--report <path>", "Write JSON report to the given path")
+    .option("--metrics-path <path>", "Write Prometheus metrics to the given path")
+    .action(async (opts) => {
+      await runCommandWithRuntime(defaultRuntime, async () => {
+        await sessionLogPruneCommand(defaultRuntime, {
+          days: opts.days ? Number(opts.days) : undefined,
+          user: opts.user,
+          agentId: opts.agent,
+          store: opts.store,
+          archiveDir: opts.archiveDir,
+          dryRun: Boolean(opts.dryRun),
+          s3Bucket: opts.s3Bucket,
+          s3Prefix: opts.s3Prefix,
+          s3Region: opts.s3Region,
+          report: opts.report,
+          metricsPath: opts.metricsPath,
         });
       });
     });

@@ -33,6 +33,7 @@ type LifecycleHost = {
   basePath: string;
   tab: Tab;
   connected: boolean;
+  lastError?: string | null;
   chatHasAutoScrolled: boolean;
   chatManualRefreshInFlight: boolean;
   chatLoading: boolean;
@@ -47,6 +48,15 @@ type LifecycleHost = {
 };
 
 export function handleConnected(host: LifecycleHost) {
+  const isLoopback =
+    location.hostname === "127.0.0.1" ||
+    location.hostname === "localhost" ||
+    location.hostname === "::1";
+  if (location.protocol === "http:" && !isLoopback) {
+    host.connected = false;
+    host.lastError = "Control UI must be accessed via HTTPS or 127.0.0.1 to avoid insecure HTTP.";
+    return;
+  }
   host.basePath = inferBasePath();
   applySettingsFromUrl(host as unknown as Parameters<typeof applySettingsFromUrl>[0]);
   syncTabWithLocation(host as unknown as Parameters<typeof syncTabWithLocation>[0], true);
