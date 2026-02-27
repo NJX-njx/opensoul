@@ -1,0 +1,14 @@
+{
+  "name": "@opensoul/open-prose",
+  "version": "0.2.1",
+  "description": "OpenProse VM skill pack plugin (slash command + telemetry).",
+  "type": "module",
+  "devDependencies": {
+    "opensoul": "workspace:*"
+  },
+  "opensoul": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

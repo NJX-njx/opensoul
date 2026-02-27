@@ -1,0 +1,36 @@
+{
+  "name": "@opensoul/matrix",
+  "version": "0.2.1",
+  "description": "OpenSoul Matrix channel plugin",
+  "type": "module",
+  "dependencies": {
+    "@matrix-org/matrix-sdk-crypto-nodejs": "^0.4.0",
+    "@vector-im/matrix-bot-sdk": "0.8.0-element.3",
+    "markdown-it": "14.1.1",
+    "music-metadata": "^11.11.2",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "opensoul": "workspace:*"
+  },
+  "opensoul": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "matrix",
+      "label": "Matrix",
+      "selectionLabel": "Matrix (plugin)",
+      "docsPath": "/channels/matrix",
+      "docsLabel": "matrix",
+      "blurb": "open protocol; install the plugin to enable.",
+      "order": 70,
+      "quickstartAllowFrom": true
+    },
+    "install": {
+      "npmSpec": "@opensoul/matrix",
+      "localPath": "extensions/matrix",
+      "defaultChoice": "npm"
+    }
+  }
+}

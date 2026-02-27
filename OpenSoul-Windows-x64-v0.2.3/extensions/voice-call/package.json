@@ -1,0 +1,19 @@
+{
+  "name": "@opensoul/voice-call",
+  "version": "0.2.1",
+  "description": "OpenSoul voice-call plugin",
+  "type": "module",
+  "dependencies": {
+    "@sinclair/typebox": "0.34.48",
+    "ws": "^8.19.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "opensoul": "workspace:*"
+  },
+  "opensoul": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

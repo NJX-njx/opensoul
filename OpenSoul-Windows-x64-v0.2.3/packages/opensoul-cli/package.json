@@ -1,0 +1,16 @@
+{
+  "name": "opensoul-cli",
+  "version": "0.1.0",
+  "description": "OpenSoul CLI entry point",
+  "bin": {
+    "opensoul-cli": "./bin/opensoul-cli.js"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./cli-entry": "./bin/opensoul-cli.js"
+  },
+  "dependencies": {
+    "opensoul": "workspace:*"
+  }
+}

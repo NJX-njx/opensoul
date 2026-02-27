@@ -1,0 +1,14 @@
+{
+  "name": "@opensoul/signal",
+  "version": "0.2.1",
+  "description": "OpenSoul Signal channel plugin",
+  "type": "module",
+  "devDependencies": {
+    "opensoul": "workspace:*"
+  },
+  "opensoul": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@opensoul/memory-lancedb",
+  "version": "0.2.1",
+  "description": "OpenSoul LanceDB-backed long-term memory plugin with auto-recall/capture",
+  "type": "module",
+  "dependencies": {
+    "@lancedb/lancedb": "^0.24.1",
+    "@sinclair/typebox": "0.34.48",
+    "openai": "^6.18.0"
+  },
+  "devDependencies": {
+    "opensoul": "workspace:*"
+  },
+  "opensoul": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

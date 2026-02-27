@@ -1,0 +1,29 @@
+{
+  "name": "@opensoul/line",
+  "version": "0.2.1",
+  "description": "OpenSoul LINE channel plugin",
+  "type": "module",
+  "devDependencies": {
+    "opensoul": "workspace:*"
+  },
+  "opensoul": {
+    "extensions": [
+      "./index.ts"
+    ],
+    "channel": {
+      "id": "line",
+      "label": "LINE",
+      "selectionLabel": "LINE (Messaging API)",
+      "docsPath": "/channels/line",
+      "docsLabel": "line",
+      "blurb": "LINE Messaging API bot for Japan/Taiwan/Thailand markets.",
+      "order": 75,
+      "quickstartAllowFrom": true
+    },
+    "install": {
+      "npmSpec": "@opensoul/line",
+      "localPath": "extensions/line",
+      "defaultChoice": "npm"
+    }
+  }
+}

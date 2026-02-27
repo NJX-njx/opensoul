@@ -1,0 +1,16 @@
+{
+  "name": "opensoul-bot",
+  "version": "0.1.0",
+  "description": "OpenSoul bot entry point",
+  "bin": {
+    "opensoul-bot": "./bin/opensoul-bot.js"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./cli-entry": "./bin/opensoul-bot.js"
+  },
+  "dependencies": {
+    "opensoul": "workspace:*"
+  }
+}

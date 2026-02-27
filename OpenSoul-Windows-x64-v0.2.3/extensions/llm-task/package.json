@@ -1,0 +1,14 @@
+{
+  "name": "@opensoul/llm-task",
+  "version": "0.2.1",
+  "description": "OpenSoul JSON-only LLM task plugin",
+  "type": "module",
+  "devDependencies": {
+    "opensoul": "workspace:*"
+  },
+  "opensoul": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

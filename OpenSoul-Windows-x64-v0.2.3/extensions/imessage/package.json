@@ -1,0 +1,14 @@
+{
+  "name": "@opensoul/imessage",
+  "version": "0.2.1",
+  "description": "OpenSoul iMessage channel plugin",
+  "type": "module",
+  "devDependencies": {
+    "opensoul": "workspace:*"
+  },
+  "opensoul": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}
