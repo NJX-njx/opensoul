@@ -355,6 +355,14 @@ export class GatewayClient {
       this.tickTimer = null;
     }
     const delay = this.backoffMs;
+    this.backoffMs = Math.min(this.backoffMs * 1.5, 10_000);
+    setTimeout(() => {
+      if (this.closed) {
+        return;
+      }
+      this.start();
+    }, delay);
+  }
 
   private flushPendingErrors(err: Error) {
     for (const [, p] of this.pending) {
