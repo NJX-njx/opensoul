@@ -2,9 +2,7 @@ import { AVAILABLE_LOCALES, detectLocale, type Locale } from "./views/onboarding
 
 export const UI_LOCALE_STORAGE_KEY = "opensoul.ui.locale";
 
-const SUPPORTED_LOCALES = new Set<Locale>(
-  AVAILABLE_LOCALES.map((entry) => entry.value),
-);
+const SUPPORTED_LOCALES = new Set<Locale>(AVAILABLE_LOCALES.map((entry) => entry.value));
 
 export function resolveUiLocale(value: string | null | undefined): Locale {
   const trimmed = String(value ?? "").trim();
@@ -39,7 +37,7 @@ export function saveUiLocale(locale: Locale): void {
   }
 }
 
-export function isChineseLocale(locale: Locale | string | null | undefined): boolean {
+export function isChineseLocale(locale: string | null | undefined): boolean {
   return String(locale ?? "")
     .trim()
     .toLowerCase()
@@ -47,7 +45,7 @@ export function isChineseLocale(locale: Locale | string | null | undefined): boo
 }
 
 export function uiText(
-  locale: Locale | string | null | undefined,
+  locale: string | null | undefined,
   english: string,
   chinese: string,
 ): string {

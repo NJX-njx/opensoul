@@ -44,7 +44,6 @@ function matchesUser(entry: SessionEntry, userId: string): boolean {
     entry.lastTo,
     entry.lastAccountId,
     entry.deliveryContext?.to,
-    entry.deliveryContext?.from,
   ].filter(Boolean);
   return candidates.some((value) => String(value).includes(userId));
 }

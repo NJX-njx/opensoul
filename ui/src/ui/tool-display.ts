@@ -1,5 +1,5 @@
 import type { IconName } from "./icons.ts";
-import rawConfig from "./tool-display.json";
+import rawConfigText from "./tool-display.json?raw";
 
 type ToolDisplayActionSpec = {
   label?: string;
@@ -29,7 +29,7 @@ export type ToolDisplay = {
   detail?: string;
 };
 
-const TOOL_DISPLAY_CONFIG = rawConfig as ToolDisplayConfig;
+const TOOL_DISPLAY_CONFIG = JSON.parse(rawConfigText) as ToolDisplayConfig;
 const FALLBACK = TOOL_DISPLAY_CONFIG.fallback ?? { icon: "puzzle" };
 const TOOL_MAP = TOOL_DISPLAY_CONFIG.tools ?? {};
 

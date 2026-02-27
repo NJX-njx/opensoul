@@ -1,6 +1,5 @@
 import type { CanvasHostServer } from "../canvas-host/server.js";
 import type { PluginServicesHandle } from "../plugins/services.js";
-import type { RuntimeEnv } from "../runtime.js";
 import type { ControlUiRootState } from "./control-ui.js";
 import type { startBrowserControlServerIfEnabled } from "./server-browser.js";
 import { registerSkillsChangeListener } from "../agents/skills/refresh.js";
@@ -140,7 +139,6 @@ export async function startGatewayServer(
   const {
     cfgAtStart,
     diagnosticsEnabled,
-    defaultAgentId,
     defaultWorkspaceDir,
     pluginRegistry,
     gatewayMethods,

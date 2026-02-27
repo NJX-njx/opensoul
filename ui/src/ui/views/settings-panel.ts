@@ -7,9 +7,9 @@
  */
 import { html, nothing } from "lit";
 import type { AppViewState } from "../app-view-state.ts";
-import { resolveUiLocale, uiText } from "../i18n.ts";
 import type { SettingsTab } from "../navigation.ts";
 import { renderThemeToggle } from "../app-render.helpers.ts";
+import { resolveUiLocale, uiText } from "../i18n.ts";
 import { icons } from "../icons.ts";
 import { AVAILABLE_LOCALES, type Locale } from "./onboarding/i18n.ts";
 
@@ -78,7 +78,7 @@ function renderGeneralSection(state: AppViewState) {
       return;
     }
     const next = resolveUiLocale(select.value);
-    state.setUiLocale(next as Locale);
+    state.setUiLocale(next);
   };
 
   return html`

@@ -546,7 +546,9 @@ export function renderConfig(props: ConfigProps) {
               const def = SECTIONS.find((d) => d.key === s.key);
               return def ? def.category === cat : cat === "developer";
             });
-            if (catSections.length === 0) return nothing;
+            if (catSections.length === 0) {
+              return nothing;
+            }
             return html`
               <div class="config-nav__group">
                 <div class="config-nav__group-label">${configText(props.locale, catLabel.en, catLabel.zh)}</div>

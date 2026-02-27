@@ -1,0 +1,62 @@
+{
+  "agent:dev:main": {
+    "sessionId": "e3a32146-1b94-447f-818e-0d7a61b2ff1d",
+    "updatedAt": 1772188919619,
+    "systemSent": true,
+    "abortedLastRun": false,
+    "chatType": "direct",
+    "deliveryContext": {
+      "to": "heartbeat"
+    },
+    "lastTo": "heartbeat",
+    "origin": {
+      "label": "heartbeat",
+      "provider": "heartbeat",
+      "from": "heartbeat",
+      "to": "heartbeat"
+    },
+    "sessionFile": "C:\\Users\\ZhuanZ2\\projects\\opensoul\\.opensoul-state\\agents\\dev\\sessions\\e3a32146-1b94-447f-818e-0d7a61b2ff1d.jsonl",
+    "compactionCount": 0,
+    "skillsSnapshot": {
+      "prompt": "\n\nThe following skills provide specialized instructions for specific tasks.\nUse the read tool to load a skill's file when the task matches its description.\nWhen a skill file references a relative path, resolve it against the skill directory (parent of SKILL.md / dirname of the path) and use that absolute path in tool commands.\n\n<available_skills>\n  <skill>\n    <name>coding-agent</name>\n    <description>Run Codex CLI, Claude Code, OpenCode, or Pi Coding Agent via background process for programmatic control.</description>\n    <location>C:\\Users\\ZhuanZ2\\projects\\opensoul\\skills\\coding-agent\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>healthcheck</name>\n    <description>Host security hardening and risk-tolerance configuration for OpenSoul deployments. Use when a user asks for security audits, firewall/SSH/update hardening, risk posture, exposure review, OpenSoul cron scheduling for periodic checks, or version status checks on a machine running OpenSoul (laptop, workstation, Pi, VPS).</description>\n    <location>C:\\Users\\ZhuanZ2\\projects\\opensoul\\skills\\healthcheck\\SKILL.md</location>\n  </skill>\n  <skill>\n    <name>skill-creator</name>\n    <description>Create or update AgentSkills. Use when designing, structuring, or packaging skills with scripts, references, and assets.</description>\n    <location>C:\\Users\\ZhuanZ2\\projects\\opensoul\\skills\\skill-creator\\SKILL.md</location>\n  </skill>\n</available_skills>",
+      "skills": [
+        {
+          "name": "coding-agent"
+        },
+        {
+          "name": "healthcheck"
+        },
+        {
+          "name": "skill-creator"
+        }
+      ],
+      "resolvedSkills": [
+        {
+          "name": "coding-agent",
+          "description": "Run Codex CLI, Claude Code, OpenCode, or Pi Coding Agent via background process for programmatic control.",
+          "filePath": "C:\\Users\\ZhuanZ2\\projects\\opensoul\\skills\\coding-agent\\SKILL.md",
+          "baseDir": "C:\\Users\\ZhuanZ2\\projects\\opensoul\\skills\\coding-agent",
+          "source": "opensoul-workspace",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "healthcheck",
+          "description": "Host security hardening and risk-tolerance configuration for OpenSoul deployments. Use when a user asks for security audits, firewall/SSH/update hardening, risk posture, exposure review, OpenSoul cron scheduling for periodic checks, or version status checks on a machine running OpenSoul (laptop, workstation, Pi, VPS).",
+          "filePath": "C:\\Users\\ZhuanZ2\\projects\\opensoul\\skills\\healthcheck\\SKILL.md",
+          "baseDir": "C:\\Users\\ZhuanZ2\\projects\\opensoul\\skills\\healthcheck",
+          "source": "opensoul-workspace",
+          "disableModelInvocation": false
+        },
+        {
+          "name": "skill-creator",
+          "description": "Create or update AgentSkills. Use when designing, structuring, or packaging skills with scripts, references, and assets.",
+          "filePath": "C:\\Users\\ZhuanZ2\\projects\\opensoul\\skills\\skill-creator\\SKILL.md",
+          "baseDir": "C:\\Users\\ZhuanZ2\\projects\\opensoul\\skills\\skill-creator",
+          "source": "opensoul-workspace",
+          "disableModelInvocation": false
+        }
+      ],
+      "version": 0
+    }
+  }
+}

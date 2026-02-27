@@ -13,10 +13,12 @@ import type {
   WhatsAppStatus,
 } from "../types.ts";
 import type { NostrProfileFormState } from "./channels.nostr-profile-form.ts";
+import type { Locale } from "./onboarding/i18n.ts";
 
 export type ChannelKey = string;
 
 export type ChannelsProps = {
+  locale: Locale;
   connected: boolean;
   loading: boolean;
   snapshot: ChannelsStatusSnapshot | null;

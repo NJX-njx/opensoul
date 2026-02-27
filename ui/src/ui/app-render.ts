@@ -3,7 +3,7 @@ import type { AppViewState } from "./app-view-state.ts";
 import type { UsageState } from "./controllers/usage.ts";
 import { parseAgentSessionKey } from "../../../src/routing/session-key.js";
 import { refreshChatAvatar } from "./app-chat.ts";
-import { renderChatControls, renderTab } from "./app-render.helpers.ts";
+import { renderChatControls, renderOperateZoomControl, renderTab } from "./app-render.helpers.ts";
 import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
 import { loadAgentSkills } from "./controllers/agent-skills.ts";
@@ -60,6 +60,7 @@ import {
   TAB_GROUPS,
   subtitleForTab,
   titleForTab,
+  type Tab,
 } from "./navigation.ts";
 
 // Module-scope debounce for usage date changes (avoids type-unsafe hacks on state object)
@@ -185,7 +186,9 @@ export function renderApp(state: AppViewState) {
   const presenceCount = state.presenceEntries.length;
   const sessionsCount = state.sessionsResult?.count ?? null;
   const cronNext = state.cronStatus?.nextWakeAtMs ?? null;
-  const operateTabs = TAB_GROUPS.find((group) => group.label === "Operate")?.tabs ?? [];
+  const isChat = state.tab === "chat";
+  const operateTabs: readonly Tab[] =
+    TAB_GROUPS.find((group) => group.label === "Operate")?.tabs ?? [];
   const isOperateTab = operateTabs.includes(state.tab);
   const operateZoomLevel =
     typeof state.settings.operateZoomLevel === "number" ? state.settings.operateZoomLevel : 1;
@@ -359,6 +362,7 @@ export function renderApp(state: AppViewState) {
         ${
           state.tab === "channels"
             ? renderChannels({
+                locale: state.uiLocale,
                 connected: state.connected,
                 loading: state.channelsLoading,
                 snapshot: state.channelsSnapshot,

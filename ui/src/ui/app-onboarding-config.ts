@@ -90,7 +90,7 @@ export function buildOnboardingConfigPatch(
       const fieldNames = Object.keys(channelMeta.tokenFields);
       if (fieldNames.length === 1) {
         // Single token field — set directly
-        const fieldName = fieldNames[0]!;
+        const fieldName = fieldNames[0];
         patch.channels = {
           [selectedChannel]: { [fieldName]: tokenValue },
         };
@@ -103,7 +103,7 @@ export function buildOnboardingConfigPatch(
           .filter(Boolean);
         const channelPatch: Record<string, string> = {};
         for (let i = 0; i < fieldNames.length; i++) {
-          const field = fieldNames[i]!;
+          const field = fieldNames[i];
           channelPatch[field] = parts[i] ?? "";
         }
         // Only include fields that have values

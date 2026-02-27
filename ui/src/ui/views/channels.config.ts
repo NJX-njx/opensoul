@@ -5,6 +5,7 @@ import { analyzeConfigSchema, renderNode, schemaType, type JsonSchema } from "./
 
 type ChannelConfigFormProps = {
   channelId: string;
+  locale: ChannelsProps["locale"];
   configValue: Record<string, unknown> | null;
   schema: unknown;
   uiHints: ConfigUiHints;
@@ -122,6 +123,7 @@ export function renderChannelConfigForm(props: ChannelConfigFormProps) {
   return html`
     <div class="config-form">
       ${renderNode({
+        locale: props.locale,
         schema: node,
         value,
         path: ["channels", props.channelId],
@@ -148,6 +150,7 @@ export function renderChannelConfigSection(params: { channelId: string; props: C
             `
           : renderChannelConfigForm({
               channelId,
+              locale: props.locale,
               configValue: props.configForm,
               schema: props.configSchema,
               uiHints: props.configUiHints,

@@ -60,7 +60,8 @@ export function renderTab(state: AppViewState, tab: Tab) {
 }
 
 export function renderOperateZoomControl(state: AppViewState) {
-  const operateTabs = TAB_GROUPS.find((group) => group.label === "Operate")?.tabs ?? [];
+  const operateTabs: readonly Tab[] =
+    TAB_GROUPS.find((group) => group.label === "Operate")?.tabs ?? [];
   if (!operateTabs.includes(state.tab)) {
     return nothing;
   }
