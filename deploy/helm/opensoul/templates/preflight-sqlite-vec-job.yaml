@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-preflight-sqlite-vec
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: preflight-sqlite-vec
+          image: "{{ .Values.preflight.image.repository }}:{{ .Values.preflight.image.tag }}"
+          imagePullPolicy: {{ .Values.preflight.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - "chmod +x /opt/preflight/preflight-sqlite-vec.sh && /opt/preflight/preflight-sqlite-vec.sh"
+          env:
+            - name: SQLITE_VEC_EXTENSION_PATH
+              value: {{ .Values.preflight.sqliteVecExtensionPath | quote }}
+            - name: MODEL_CACHE_DIR
+              value: {{ .Values.preflight.modelCacheDir | quote }}
+            - name: MODEL_MD5_FILE
+              value: {{ .Values.preflight.modelMd5File | quote }}
+          volumeMounts:
+            - name: preflight-script
+              mountPath: /opt/preflight
+      volumes:
+        - name: preflight-script
+          configMap:
+            name: {{ .Release.Name }}-preflight-sqlite-vec

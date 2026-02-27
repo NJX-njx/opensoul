@@ -8,8 +8,8 @@ import { refreshChat } from "./app-chat.ts";
 import { syncUrlWithSessionKey } from "./app-settings.ts";
 import { OpenSoulApp } from "./app.ts";
 import { ChatState, loadChatHistory } from "./controllers/chat.ts";
-import { icons } from "./icons.ts";
 import { uiText } from "./i18n.ts";
+import { icons } from "./icons.ts";
 import { iconForTab, navHintForTab, pathForTab, titleForTab, type Tab } from "./navigation.ts";
 
 export function renderTab(state: AppViewState, tab: Tab) {
@@ -41,8 +41,71 @@ export function renderTab(state: AppViewState, tab: Tab) {
         <span class="nav-item__text">${tabTitle}</span>
         ${tabHint ? html`<span class="nav-item__hint">${tabHint}</span>` : nothing}
       </span>
-      ${state.tab === tab ? html`<span class="nav-item__active-dot" aria-hidden="true"></span>` : nothing}
+      ${
+        state.tab === tab
+          ? html`
+              <span class="nav-item__active-dot" aria-hidden="true"></span>
+            `
+          : nothing
+      }
     </a>
+  `;
+}
+
+const OPERATE_TABS: ReadonlySet<Tab> = new Set([
+  "channels",
+  "instances",
+  "sessions",
+  "usage",
+  "cron",
+]);
+
+export function renderOperateZoomControl(state: AppViewState) {
+  if (!OPERATE_TABS.has(state.tab)) {
+    return nothing;
+  }
+  const t = (english: string, chinese: string) => uiText(state.uiLocale, english, chinese);
+  const zoomLevel = state.operateZoomLevel;
+  const applyDelta = (delta: number) => state.setOperateZoomLevel(zoomLevel + delta);
+  const onSliderInput = (event: Event) => {
+    const value = Number((event.currentTarget as HTMLInputElement | null)?.value ?? 1);
+    state.setOperateZoomLevel(value);
+  };
+  const onSliderWheel = (event: WheelEvent) => {
+    event.preventDefault();
+    const delta = event.deltaY < 0 ? 0.1 : -0.1;
+    applyDelta(delta);
+  };
+  return html`
+    <div class="nav-zoom-control" role="group" aria-label=${t("Zoom", "缩放")}>
+      <button
+        class="nav-zoom-control__btn"
+        title=${t("Zoom Out", "缩小")}
+        @click=${() => applyDelta(-0.1)}
+        aria-label=${t("Zoom Out", "缩小")}
+      >
+        −
+      </button>
+      <input
+        class="nav-zoom-control__slider"
+        type="range"
+        min="0.6"
+        max="2"
+        step="0.1"
+        .value=${String(zoomLevel)}
+        @input=${onSliderInput}
+        @wheel=${onSliderWheel}
+        aria-label=${t("Zoom level", "缩放级别")}
+      />
+      <button
+        class="nav-zoom-control__btn"
+        title=${t("Zoom In", "放大")}
+        @click=${() => applyDelta(0.1)}
+        aria-label=${t("Zoom In", "放大")}
+      >
+        +
+      </button>
+    </div>
   `;
 }
 

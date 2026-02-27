@@ -3,7 +3,7 @@ import type { AppViewState } from "./app-view-state.ts";
 import type { UsageState } from "./controllers/usage.ts";
 import { parseAgentSessionKey } from "../../../src/routing/session-key.js";
 import { refreshChatAvatar } from "./app-chat.ts";
-import { renderChatControls, renderTab } from "./app-render.helpers.ts";
+import { renderChatControls, renderOperateZoomControl, renderTab } from "./app-render.helpers.ts";
 import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
 import { loadAgentSkills } from "./controllers/agent-skills.ts";
@@ -51,8 +51,8 @@ import {
   updateSkillEnabled,
 } from "./controllers/skills.ts";
 import { loadUsage, loadSessionTimeSeries, loadSessionLogs } from "./controllers/usage.ts";
-import { icons } from "./icons.ts";
 import { uiText } from "./i18n.ts";
+import { icons } from "./icons.ts";
 import {
   iconForTab,
   labelForTabGroup,
@@ -185,8 +185,21 @@ export function renderApp(state: AppViewState) {
   const presenceCount = state.presenceEntries.length;
   const sessionsCount = state.sessionsResult?.count ?? null;
   const cronNext = state.cronStatus?.nextWakeAtMs ?? null;
-  const chatDisabledReason = state.connected ? null : t("Disconnected from gateway.", "与网关断开连接。");
+  const chatDisabledReason = state.connected
+    ? null
+    : t("Disconnected from gateway.", "与网关断开连接。");
   const isChat = state.tab === "chat";
+  const isOperate =
+    state.tab === "channels" ||
+    state.tab === "instances" ||
+    state.tab === "sessions" ||
+    state.tab === "usage" ||
+    state.tab === "cron";
+  const zoomLevel = isOperate ? state.operateZoomLevel : 1;
+  const contentStyle =
+    zoomLevel === 1
+      ? ""
+      : `transform: scale(${zoomLevel}); transform-origin: top left; width: ${100 / zoomLevel}%;`;
   const chatFocus = isChat && (state.settings.chatFocusMode || state.onboarding);
   const showThinking = state.onboarding ? false : state.settings.chatShowThinking;
   const assistantAvatarUrl = resolveAssistantAvatarUrl(state);
@@ -202,7 +215,9 @@ export function renderApp(state: AppViewState) {
   const pageTitle = titleForTab(state.tab, state.uiLocale);
   const pageSubtitle = subtitleForTab(state.tab, state.uiLocale);
   const pageIcon = icons[iconForTab(state.tab)];
-  const pageHealthLabel = state.connected ? t("Gateway online", "Gateway online") : t("Gateway offline", "Gateway offline");
+  const pageHealthLabel = state.connected
+    ? t("Gateway online", "Gateway online")
+    : t("Gateway offline", "Gateway offline");
 
   return html`
     <div class="shell ${isChat ? "shell--chat" : ""} ${chatFocus ? "shell--chat-focus" : ""} ${state.settings.navCollapsed ? "shell--nav-collapsed" : ""} ${state.onboarding ? "shell--onboarding" : ""}">
@@ -215,12 +230,16 @@ export function renderApp(state: AppViewState) {
                 ...state.settings,
                 navCollapsed: !state.settings.navCollapsed,
               })}
-            title="${state.settings.navCollapsed
-              ? t("Expand sidebar", "展开侧栏")
-              : t("Collapse sidebar", "收起侧栏")}"
-            aria-label="${state.settings.navCollapsed
-              ? t("Expand sidebar", "展开侧栏")
-              : t("Collapse sidebar", "收起侧栏")}"
+            title="${
+              state.settings.navCollapsed
+                ? t("Expand sidebar", "展开侧栏")
+                : t("Collapse sidebar", "收起侧栏")
+            }"
+            aria-label="${
+              state.settings.navCollapsed
+                ? t("Expand sidebar", "展开侧栏")
+                : t("Collapse sidebar", "收起侧栏")
+            }"
           >
             <span class="nav-collapse-toggle__icon">${icons.menu}</span>
           </button>
@@ -272,6 +291,7 @@ export function renderApp(state: AppViewState) {
           `;
         })}
         <div class="nav-bottom">
+          ${renderOperateZoomControl(state)}
           <button
             class="nav-settings-btn"
             @click=${() => state.openSettings()}
@@ -282,7 +302,7 @@ export function renderApp(state: AppViewState) {
           </button>
         </div>
       </aside>
-      <main class="content ${isChat ? "content--chat" : ""}">
+      <main class="content ${isChat ? "content--chat" : ""}" style=${contentStyle}>
         <section class="content-header">
           <div class="content-header__main">
             <div class="page-title-row">
@@ -294,14 +314,16 @@ export function renderApp(state: AppViewState) {
             </div>
           </div>
           <div class="page-meta">
-            ${isChat
-              ? nothing
-              : html`
+            ${
+              isChat
+                ? nothing
+                : html`
                 <div class="page-health-pill">
                   <span class="statusDot ${state.connected ? "ok" : ""}"></span>
                   <span>${pageHealthLabel}</span>
                 </div>
-              `}
+              `
+            }
             ${state.lastError ? html`<div class="pill danger">${state.lastError}</div>` : nothing}
             ${isChat ? renderChatControls(state) : nothing}
           </div>

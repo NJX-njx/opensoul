@@ -40,6 +40,7 @@ export type AppViewState = {
   settings: UiSettings;
   password: string;
   tab: Tab;
+  operateZoomLevel: number;
   onboarding: boolean;
   basePath: string;
   uiLocale: Locale;
@@ -229,6 +230,7 @@ export type AppViewState = {
   setTab: (tab: Tab) => void;
   setTheme: (theme: ThemeMode, context?: ThemeTransitionContext) => void;
   applySettings: (next: UiSettings) => void;
+  setOperateZoomLevel: (next: number) => void;
   loadOverview: () => Promise<void>;
   loadAssistantIdentity: () => Promise<void>;
   loadCron: () => Promise<void>;

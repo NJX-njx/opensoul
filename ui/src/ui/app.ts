@@ -340,6 +340,8 @@ export class OpenSoulApp extends LitElement {
   @state() logsMaxBytes = 250_000;
   @state() logsAtBottom = true;
 
+  @state() operateZoomLevel = 1;
+
   // Settings panel state
   @state() settingsOpen = false;
   @state() settingsSection: import("./navigation.ts").SettingsTab | "general" = "general";
@@ -463,6 +465,11 @@ export class OpenSoulApp extends LitElement {
 
   setTab(next: Tab) {
     setTabInternal(this as unknown as Parameters<typeof setTabInternal>[0], next);
+  }
+
+  setOperateZoomLevel(next: number) {
+    const clamped = Math.min(2, Math.max(0.6, Number.isFinite(next) ? next : 1));
+    this.operateZoomLevel = Math.round(clamped * 10) / 10;
   }
 
   setTheme(next: ThemeMode, context?: Parameters<typeof setThemeInternal>[2]) {
@@ -749,7 +756,9 @@ export class OpenSoulApp extends LitElement {
   }
 
   async onboardingEmailRegister() {
-    if (!this.validateLoginForm()) return;
+    if (!this.validateLoginForm()) {
+      return;
+    }
     this.onboardingLoginStatus = "loading";
     this.onboardingLoginError = null;
     try {
@@ -784,7 +793,9 @@ export class OpenSoulApp extends LitElement {
   }
 
   async onboardingEmailLogin() {
-    if (!this.validateLoginForm()) return;
+    if (!this.validateLoginForm()) {
+      return;
+    }
     this.onboardingLoginStatus = "loading";
     this.onboardingLoginError = null;
     try {

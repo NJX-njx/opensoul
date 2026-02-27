@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+data:
+  opensoul.json: |-
+    {
+      "gateway": {
+        "controlUi": {
+          "allowInsecureAuth": {{ .Values.gateway.controlUi.allowInsecureAuth | toJson }},
+          "dangerouslyDisableDeviceAuth": {{ .Values.gateway.controlUi.dangerouslyDisableDeviceAuth | toJson }}
+        }
+      },
+      "approvals": {
+        "exec": {
+          "enabled": {{ .Values.approval.enabled | toJson }}
+        }
+      },
+      "tools": {
+        "exec": {
+          "host": "gateway",
+          "ask": {{ ternary "\"on-miss\"" "\"off\"" .Values.approval.enabled }},
+          "security": {{ ternary "\"allowlist\"" "\"deny\"" .Values.allowlist.enabled }}
+        }
+      }
+    }

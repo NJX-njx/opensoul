@@ -1,0 +1,25 @@
+image:
+  repository: opensoul/gateway
+  tag: latest
+  pullPolicy: IfNotPresent
+
+gateway:
+  controlUi:
+    allowInsecureAuth: false
+    dangerouslyDisableDeviceAuth: false
+
+approval:
+  enabled: false # OPS-0000
+
+allowlist:
+  enabled: false # OPS-0000
+
+preflight:
+  enabled: true
+  image:
+    repository: alpine
+    tag: "3.20"
+    pullPolicy: IfNotPresent
+  sqliteVecExtensionPath: "/usr/lib/sqlite-vec/vec0.so"
+  modelCacheDir: "/var/lib/ai-models"
+  modelMd5File: "/var/lib/ai-models/manifest.md5"
