@@ -1,4 +1,5 @@
 const KEY = "opensoul.control.settings.v1";
+const TOKEN_KEY = "opensoul.control.token.v1";
 
 import type { ThemeMode } from "./theme.ts";
 
@@ -34,18 +35,33 @@ export function loadSettings(): UiSettings {
     navGroupsCollapsed: {},
   };
 
+  let token = "";
+  try {
+    token = sessionStorage.getItem(TOKEN_KEY) ?? "";
+  } catch {
+    token = "";
+  }
+
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) {
-      return defaults;
+      return { ...defaults, token };
     }
     const parsed = JSON.parse(raw) as Partial<UiSettings>;
+    if (!token && typeof parsed.token === "string") {
+      token = parsed.token;
+      try {
+        sessionStorage.setItem(TOKEN_KEY, token);
+      } catch {
+        token = parsed.token;
+      }
+    }
     return {
       gatewayUrl:
         typeof parsed.gatewayUrl === "string" && parsed.gatewayUrl.trim()
           ? parsed.gatewayUrl.trim()
           : defaults.gatewayUrl,
-      token: typeof parsed.token === "string" ? parsed.token : defaults.token,
+      token,
       sessionKey:
         typeof parsed.sessionKey === "string" && parsed.sessionKey.trim()
           ? parsed.sessionKey.trim()
@@ -79,10 +95,20 @@ export function loadSettings(): UiSettings {
           : defaults.navGroupsCollapsed,
     };
   } catch {
-    return defaults;
+    return { ...defaults, token };
   }
 }
 
 export function saveSettings(next: UiSettings) {
-  localStorage.setItem(KEY, JSON.stringify(next));
+  const { token, ...rest } = next;
+  try {
+    if (token) {
+      sessionStorage.setItem(TOKEN_KEY, token);
+    } else {
+      sessionStorage.removeItem(TOKEN_KEY);
+    }
+  } catch {
+    return;
+  }
+  localStorage.setItem(KEY, JSON.stringify({ ...rest, token: "" }));
 }

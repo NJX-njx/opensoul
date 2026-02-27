@@ -2221,7 +2221,7 @@ Z.AI 模型可通过 `zai/<model>` 使用（例如 `zai/glm-4.7`），需要环�
 - 提升的 `exec` 在主机上运行并绕过沙箱。
 - 工具策略仍然适用；如果 `exec` 被拒绝，则无法使用提升。
 
-`agents.defaults.maxConcurrent` 设置跨会话可并行执行的内置智能体运行的最大数量。每个会话仍然是串行的（每个会话键同时只有一个运行）。默认：1。
+`agents.defaults.maxConcurrent` 设置跨会话可并行执行的内置智能体运行的最大数量。每个会话仍然是串行的（每个会话键同时只有一个运行）。默认：6。
 
 ### `agents.defaults.sandbox`
 
@@ -2902,8 +2902,8 @@ OpenSoul 可以为 OpenSoul 启动一个**专用、隔离的** Chrome/Brave/Edge
 - 示例：`"/ui"`、`"/opensoul"`、`"/apps/opensoul"`。
 - 默认：根路径（`/`）（不变）。
 - `gateway.controlUi.root` 设置控制台 UI 资产的文件系统根目录（默认：`dist/control-ui`）。
-- `gateway.controlUi.allowInsecureAuth` 允许在省略设备身份时对控制台 UI 进行仅 token 认证（通常通过 HTTP）。默认：`false`。建议使用 HTTPS（Tailscale Serve）或 `127.0.0.1`。
-- `gateway.controlUi.dangerouslyDisableDeviceAuth` 禁用控制台 UI 的设备身份检查（仅 token/密码）。默认：`false`。仅用于紧急情况。
+- `gateway.controlUi.allowInsecureAuth` 允许在省略设备身份时对控制台 UI 进行仅 token 认证（通常通过 HTTP）。默认：`false`。建议使用 HTTPS（Tailscale Serve）或 `127.0.0.1`。在非 loopback 绑定上将被拒绝。
+- `gateway.controlUi.dangerouslyDisableDeviceAuth` 禁用控制台 UI 的设备身份检查（仅 token/密码）。默认：`false`。仅用于紧急情况。在非 loopback 绑定上将被拒绝。
 
 相关文档：
 
@@ -2914,7 +2914,7 @@ OpenSoul 可以为 OpenSoul 启动一个**专用、隔离的** Chrome/Brave/Edge
 
 信任的代理：
 
-- `gateway.trustedProxies`：在 Gateway 网关前面终止 TLS 的反向代理 IP 列表。
+- `gateway.trustedProxies`：在 Gateway 网关前面终止 TLS 的反向代理 IP 列表（不要使用通配符）。
 - 当连接来自这些 IP 之一时，OpenSoul 使用 `x-forwarded-for`（或 `x-real-ip`）来确定客户端 IP，用于本地配对检查和 HTTP 认证/本地检查。
 - 仅列出你完全控制的代理，并确保它们**覆盖**传入的 `x-forwarded-for`。
 

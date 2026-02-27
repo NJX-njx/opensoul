@@ -2281,7 +2281,7 @@ Notes:
 
 `agents.defaults.maxConcurrent` sets the maximum number of embedded agent runs that can
 execute in parallel across sessions. Each session is still serialized (one run
-per session key at a time). Default: 1.
+per session key at a time). Default: 6.
 
 ### `agents.defaults.sandbox`
 
@@ -2982,10 +2982,12 @@ Control UI base path:
 - Default: root (`/`) (unchanged).
 - `gateway.controlUi.root` sets the filesystem root for Control UI assets (default: `dist/control-ui`).
 - `gateway.controlUi.allowInsecureAuth` allows token-only auth for the Control UI when
-  device identity is omitted (typically over HTTP). Default: `false`. Prefer HTTPS
-  (Tailscale Serve) or `127.0.0.1`.
+  device identity is omitted (typically over HTTP). Default: `false`. Prefer
+  HTTPS (Tailscale Serve) or `127.0.0.1`. The Gateway refuses this option on
+  non-loopback binds.
 - `gateway.controlUi.dangerouslyDisableDeviceAuth` disables device identity checks for the
-  Control UI (token/password only). Default: `false`. Break-glass only.
+  Control UI (token/password only). Default: `false`. Break-glass only. The
+  Gateway refuses this option on non-loopback binds.
 
 Related docs:
 
@@ -2996,7 +2998,7 @@ Related docs:
 
 Trusted proxies:
 
-- `gateway.trustedProxies`: list of reverse proxy IPs that terminate TLS in front of the Gateway.
+- `gateway.trustedProxies`: list of explicit reverse proxy IPs that terminate TLS in front of the Gateway (no wildcards).
 - When a connection comes from one of these IPs, OpenSoul uses `x-forwarded-for` (or `x-real-ip`) to determine the client IP for local pairing checks and HTTP auth/local checks.
 - Only list proxies you fully control, and ensure they **overwrite** incoming `x-forwarded-for`.
 

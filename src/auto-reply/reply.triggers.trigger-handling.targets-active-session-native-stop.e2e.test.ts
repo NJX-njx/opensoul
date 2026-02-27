@@ -136,7 +136,7 @@ describe("trigger handling", () => {
       enqueueFollowupRun(
         targetSessionKey,
         followupRun,
-        { mode: "collect", debounceMs: 0, cap: 20, dropPolicy: "summarize" },
+        { mode: "collect", debounceMs: 0, cap: 50, dropPolicy: "summarize" },
         "none",
       );
       expect(getFollowupQueueDepth(targetSessionKey)).toBe(1);

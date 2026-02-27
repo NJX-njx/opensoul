@@ -354,7 +354,9 @@ export class GatewayClient {
       clearInterval(this.tickTimer);
       this.tickTimer = null;
     }
-    const delay = this.backoffMs;
+    const baseDelay = this.backoffMs;
+    const jitter = Math.min(5_000, Math.max(0, Math.round(baseDelay * 0.2)));
+    const delay = Math.max(0, Math.round(baseDelay + (Math.random() * 2 - 1) * jitter));
     this.backoffMs = Math.min(this.backoffMs * 2, 30_000);
     setTimeout(() => this.start(), delay).unref();
   }

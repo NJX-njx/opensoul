@@ -43,12 +43,12 @@ function resolveExecDefaults(params: {
       (params.sessionEntry?.execHost as ExecHost | undefined) ??
       (agentExec?.host as ExecHost | undefined) ??
       (globalExec?.host as ExecHost | undefined) ??
-      "sandbox",
+      "gateway",
     security:
       (params.sessionEntry?.execSecurity as ExecSecurity | undefined) ??
       (agentExec?.security as ExecSecurity | undefined) ??
       (globalExec?.security as ExecSecurity | undefined) ??
-      "deny",
+      "allowlist",
     ask:
       (params.sessionEntry?.execAsk as ExecAsk | undefined) ??
       (agentExec?.ask as ExecAsk | undefined) ??

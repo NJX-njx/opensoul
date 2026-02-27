@@ -873,6 +873,7 @@ export function startHeartbeatRunner(opts: {
     agents: new Map<string, HeartbeatAgentState>(),
     timer: null as NodeJS.Timeout | null,
     stopped: false,
+    nextDueMs: Number.POSITIVE_INFINITY,
   };
   let initialized = false;
 
@@ -894,20 +895,10 @@ export function startHeartbeatRunner(opts: {
       clearTimeout(state.timer);
       state.timer = null;
     }
-    if (state.agents.size === 0) {
+    if (state.agents.size === 0 || !Number.isFinite(state.nextDueMs)) {
       return;
     }
-    const now = Date.now();
-    let nextDue = Number.POSITIVE_INFINITY;
-    for (const agent of state.agents.values()) {
-      if (agent.nextDueMs < nextDue) {
-        nextDue = agent.nextDueMs;
-      }
-    }
-    if (!Number.isFinite(nextDue)) {
-      return;
-    }
-    const delay = Math.max(0, nextDue - now);
+    const delay = Math.max(0, state.nextDueMs - Date.now());
     state.timer = setTimeout(() => {
       requestHeartbeatNow({ reason: "interval", coalesceMs: 0 });
     }, delay);
@@ -923,6 +914,7 @@ export function startHeartbeatRunner(opts: {
     const prevEnabled = prevAgents.size > 0;
     const nextAgents = new Map<string, HeartbeatAgentState>();
     const intervals: number[] = [];
+    let minNextDue = Number.POSITIVE_INFINITY;
     for (const agent of resolveHeartbeatAgents(cfg)) {
       const intervalMs = resolveHeartbeatIntervalMs(cfg, undefined, agent.heartbeat);
       if (!intervalMs) {
@@ -931,6 +923,9 @@ export function startHeartbeatRunner(opts: {
       intervals.push(intervalMs);
       const prevState = prevAgents.get(agent.agentId);
       const nextDueMs = resolveNextDue(now, intervalMs, prevState);
+      if (nextDueMs < minNextDue) {
+        minNextDue = nextDueMs;
+      }
       nextAgents.set(agent.agentId, {
         agentId: agent.agentId,
         heartbeat: agent.heartbeat,
@@ -942,6 +937,7 @@ export function startHeartbeatRunner(opts: {
 
     state.cfg = cfg;
     state.agents = nextAgents;
+    state.nextDueMs = minNextDue;
     const nextEnabled = nextAgents.size > 0;
     if (!initialized) {
       if (!nextEnabled) {
@@ -980,9 +976,13 @@ export function startHeartbeatRunner(opts: {
     const startedAt = Date.now();
     const now = startedAt;
     let ran = false;
+    let minNextDue = Number.POSITIVE_INFINITY;
 
     for (const agent of state.agents.values()) {
       if (isInterval && now < agent.nextDueMs) {
+        if (agent.nextDueMs < minNextDue) {
+          minNextDue = agent.nextDueMs;
+        }
         continue;
       }
 
@@ -1000,11 +1000,15 @@ export function startHeartbeatRunner(opts: {
         agent.lastRunMs = now;
         agent.nextDueMs = now + agent.intervalMs;
       }
+      if (agent.nextDueMs < minNextDue) {
+        minNextDue = agent.nextDueMs;
+      }
       if (res.status === "ran") {
         ran = true;
       }
     }
 
+    state.nextDueMs = minNextDue;
     scheduleNext();
     if (ran) {
       return { status: "ran", durationMs: Date.now() - startedAt };

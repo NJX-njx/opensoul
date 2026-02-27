@@ -29,7 +29,7 @@ Background sessions are scoped per agent; `process` only sees sessions from the 
 
 Notes:
 
-- `host` defaults to `sandbox`.
+- `host` defaults to `gateway`.
 - `elevated` is ignored when sandboxing is off (exec already runs on the host).
 - `gateway`/`node` approvals are controlled by `~/.opensoul/exec-approvals.json`.
 - `node` requires a paired node (companion app or headless node host).
@@ -39,14 +39,13 @@ Notes:
 - Host execution (`gateway`/`node`) rejects `env.PATH` and loader overrides (`LD_*`/`DYLD_*`) to
   prevent binary hijacking or injected code.
 - Important: sandboxing is **off by default**. If sandboxing is off, `host=sandbox` runs directly on
-  the gateway host (no container) and **does not require approvals**. To require approvals, run with
-  `host=gateway` and configure exec approvals (or enable sandboxing).
+  the gateway host (no container) and **does not require approvals**.
 
 ## Config
 
 - `tools.exec.notifyOnExit` (default: true): when true, backgrounded exec sessions enqueue a system event and request a heartbeat on exit.
 - `tools.exec.approvalRunningNoticeMs` (default: 10000): emit a single “running” notice when an approval-gated exec runs longer than this (0 disables).
-- `tools.exec.host` (default: `sandbox`)
+- `tools.exec.host` (default: `gateway`)
 - `tools.exec.security` (default: `deny` for sandbox, `allowlist` for gateway + node when unset)
 - `tools.exec.ask` (default: `on-miss`)
 - `tools.exec.node` (default: unset)

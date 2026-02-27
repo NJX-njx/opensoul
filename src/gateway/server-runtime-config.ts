@@ -51,8 +51,11 @@ export async function resolveGatewayRuntimeConfig(params: {
     false;
   const openResponsesConfig = params.cfg.gateway?.http?.endpoints?.responses;
   const openResponsesEnabled = params.openResponsesEnabled ?? openResponsesConfig?.enabled ?? false;
-  const controlUiBasePath = normalizeControlUiBasePath(params.cfg.gateway?.controlUi?.basePath);
-  const controlUiRootRaw = params.cfg.gateway?.controlUi?.root;
+  const controlUiConfig = params.cfg.gateway?.controlUi;
+  const controlUiBasePath = normalizeControlUiBasePath(controlUiConfig?.basePath);
+  const controlUiRootRaw = controlUiConfig?.root;
+  const allowInsecureAuth = controlUiConfig?.allowInsecureAuth === true;
+  const disableDeviceAuth = controlUiConfig?.dangerouslyDisableDeviceAuth === true;
   const controlUiRoot =
     typeof controlUiRootRaw === "string" && controlUiRootRaw.trim().length > 0
       ? controlUiRootRaw.trim()
@@ -97,6 +100,11 @@ export async function resolveGatewayRuntimeConfig(params: {
   if (!isLoopbackHost(bindHost) && !hasSharedSecret) {
     throw new Error(
       `refusing to bind gateway to ${bindHost}:${params.port} without auth (set gateway.auth.token/password, or set OPENSOUL_GATEWAY_TOKEN/OPENSOUL_GATEWAY_PASSWORD)`,
+    );
+  }
+  if ((allowInsecureAuth || disableDeviceAuth) && !isLoopbackHost(bindHost)) {
+    throw new Error(
+      "refusing to enable insecure control UI auth on non-loopback binds (use HTTPS or localhost)",
     );
   }
 

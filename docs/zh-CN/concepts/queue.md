@@ -72,7 +72,7 @@ steer-backlog 意味着你可以在被引导的运行之后获得后续响应，
 - `drop`：溢出策略（`old`、`new`、`summarize`）。
 
 summarize 保留被丢弃消息的简短要点列表，并将其作为合成的后续提示注入。
-默认值：`debounceMs: 1000`、`cap: 20`、`drop: summarize`。
+默认值：`debounceMs: 500`、`cap: 50`、`drop: summarize`。
 
 ## 按会话覆盖
 

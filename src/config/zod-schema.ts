@@ -12,6 +12,17 @@ import {
   SessionSendPolicySchema,
 } from "./zod-schema.session.js";
 
+const TrustedProxySchema = z.string().refine((value) => {
+  const normalized = value.trim().toLowerCase();
+  return (
+    normalized !== "*" &&
+    normalized !== "0.0.0.0" &&
+    normalized !== "0.0.0.0/0" &&
+    normalized !== "::" &&
+    normalized !== "::/0"
+  );
+}, "trusted proxy must be a specific IP address");
+
 const BrowserSnapshotDefaultsSchema = z
   .object({
     mode: z.literal("efficient").optional(),
@@ -397,7 +408,7 @@ export const OpenSoulSchema = z
           })
           .strict()
           .optional(),
-        trustedProxies: z.array(z.string()).optional(),
+        trustedProxies: z.array(TrustedProxySchema).optional(),
         tailscale: z
           .object({
             mode: z.union([z.literal("off"), z.literal("serve"), z.literal("funnel")]).optional(),

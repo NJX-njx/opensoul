@@ -36,20 +36,20 @@ x-i18n:
 
 注意事项：
 
-- `host` 默认为 `sandbox`。
+- `host` 默认为 `gateway`。
 - 当沙箱隔离关闭时，`elevated` 会被忽略（exec 已在主机上运行）。
 - `gateway`/`node` 审批由 `~/.opensoul/exec-approvals.json` 控制。
 - `node` 需要已配对的节点（配套应用或无头节点主机）。
 - 如果有多个可用节点，设置 `exec.node` 或 `tools.exec.node` 来选择一个。
 - 在非 Windows 主机上，exec 会使用已设置的 `SHELL`；如果 `SHELL` 是 `fish`，它会优先从 `PATH` 中选择 `bash`（或 `sh`）以避免 fish 不兼容的脚本，如果两者都不存在则回退到 `SHELL`。
 - 主机执行（`gateway`/`node`）会拒绝 `env.PATH` 和加载器覆盖（`LD_*`/`DYLD_*`），以防止二进制劫持或代码注入。
-- 重要提示：沙箱隔离**默认关闭**。如果沙箱隔离关闭，`host=sandbox` 将直接在 Gateway 网关主机上运行（无容器）且**不需要审批**。如需审批，请使用 `host=gateway` 运行并配置 exec 审批（或启用沙箱隔离）。
+- 重要提示：沙箱隔离**默认关闭**。如果沙箱隔离关闭，`host=sandbox` 将直接在 Gateway 网关主机上运行（无容器）且**不需要审批**。
 
 ## 配置
 
 - `tools.exec.notifyOnExit`（默认：true）：为 true 时，后台 exec 会话在退出时会入队系统事件并请求心跳。
 - `tools.exec.approvalRunningNoticeMs`（默认：10000）：当需要审批的 exec 运行时间超过此值时发出单次"运行中"通知（0 表示禁用）。
-- `tools.exec.host`（默认：`sandbox`）
+- `tools.exec.host`（默认：`gateway`）
 - `tools.exec.security`（默认：sandbox 为 `deny`，gateway + node 未设置时为 `allowlist`）
 - `tools.exec.ask`（默认：`on-miss`）
 - `tools.exec.node`（默认：未设置）
