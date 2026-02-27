@@ -34,6 +34,7 @@ function normalizeScopes(scopes: string[] | undefined): string[] {
 function readStore(): DeviceAuthStore | null {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
       return null;
     }
     const parsed = JSON.parse(raw) as DeviceAuthStore;
@@ -46,7 +47,7 @@ function readStore(): DeviceAuthStore | null {
     if (!parsed.tokens || typeof parsed.tokens !== "object") {
       return null;
     }
-    if (window.localStorage.getItem(STORAGE_KEY)) {
+    return parsed;
   } catch {
     return null;
   }
@@ -57,7 +58,7 @@ function writeStore(store: DeviceAuthStore) {
     window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(store));
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
     // best-effort
-  }
+  } catch {}
 }
 
 export function loadDeviceAuthToken(params: {

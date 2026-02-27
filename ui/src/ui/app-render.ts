@@ -185,10 +185,15 @@ export function renderApp(state: AppViewState) {
   const presenceCount = state.presenceEntries.length;
   const sessionsCount = state.sessionsResult?.count ?? null;
   const cronNext = state.cronStatus?.nextWakeAtMs ?? null;
-  const chatDisabledReason = state.connected
-    ? null
-      ? ""
-      : `transform: scale(${zoomLevel}); transform-origin: top left; width: ${100 / zoomLevel}%;`;
+  const operateTabs = TAB_GROUPS.find((group) => group.label === "Operate")?.tabs ?? [];
+  const isOperateTab = operateTabs.includes(state.tab);
+  const operateZoomLevel =
+    typeof state.settings.operateZoomLevel === "number" ? state.settings.operateZoomLevel : 1;
+  const contentStyle =
+    isOperateTab && operateZoomLevel !== 1
+      ? `transform: scale(${operateZoomLevel}); transform-origin: top left; width: ${100 / operateZoomLevel}%;`
+      : "";
+  const chatDisabledReason = state.connected ? null : t("Gateway offline", "Gateway 离线");
   const chatFocus = isChat && (state.settings.chatFocusMode || state.onboarding);
   const showThinking = state.onboarding ? false : state.settings.chatShowThinking;
   const assistantAvatarUrl = resolveAssistantAvatarUrl(state);

@@ -1,0 +1,25 @@
+{
+  "gateway": {
+    "mode": "local",
+    "bind": "loopback",
+    "auth": {
+      "token": "dev-token"
+    }
+  },
+  "agents": {
+    "defaults": {
+      "workspace": "C:\\Users\\ZhuanZ2\\projects\\opensoul",
+      "skipBootstrap": true
+    },
+    "list": [
+      {
+        "id": "dev",
+        "default": true,
+        "workspace": "C:\\Users\\ZhuanZ2\\projects\\opensoul"
+      }
+    ]
+  },
+  "logging": {
+    "file": "C:\\Users\\ZhuanZ2\\projects\\opensoul\\opensoul.dev.log"
+  }
+}

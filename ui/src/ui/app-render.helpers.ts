@@ -10,7 +10,14 @@ import { OpenSoulApp } from "./app.ts";
 import { ChatState, loadChatHistory } from "./controllers/chat.ts";
 import { uiText } from "./i18n.ts";
 import { icons } from "./icons.ts";
-import { iconForTab, navHintForTab, pathForTab, titleForTab, type Tab } from "./navigation.ts";
+import {
+  TAB_GROUPS,
+  iconForTab,
+  navHintForTab,
+  pathForTab,
+  titleForTab,
+  type Tab,
+} from "./navigation.ts";
 
 export function renderTab(state: AppViewState, tab: Tab) {
   const href = pathForTab(tab, state.basePath);
@@ -46,10 +53,61 @@ export function renderTab(state: AppViewState, tab: Tab) {
           ? html`
               <span class="nav-item__active-dot" aria-hidden="true"></span>
             `
+          : nothing
+      }
+    </a>
+  `;
+}
+
+export function renderOperateZoomControl(state: AppViewState) {
+  const operateTabs = TAB_GROUPS.find((group) => group.label === "Operate")?.tabs ?? [];
+  if (!operateTabs.includes(state.tab)) {
+    return nothing;
+  }
+  const t = (english: string, chinese: string) => uiText(state.uiLocale, english, chinese);
+  const minZoom = 0.5;
+  const maxZoom = 2.5;
+  const step = 0.1;
+  const zoomLevel =
+    typeof state.settings.operateZoomLevel === "number" ? state.settings.operateZoomLevel : 1;
+  const clamp = (value: number) => Math.min(maxZoom, Math.max(minZoom, value));
+  const applyZoom = (value: number) => {
+    const normalized = Math.round(clamp(value) * 10) / 10;
+    state.applySettings({ ...state.settings, operateZoomLevel: normalized });
+  };
+  return html`
+    <div class="nav-zoom-control">
+      <button
+        class="nav-zoom-control__btn"
+        title=${t("Zoom Out", "缩小")}
+        @click=${() => applyZoom(zoomLevel - step)}
+        aria-label=${t("Zoom Out", "缩小")}
+      >
+        -
+      </button>
+      <input
+        class="nav-zoom-control__slider"
+        type="range"
+        min=${minZoom}
+        max=${maxZoom}
+        step=${step}
+        .value=${String(zoomLevel)}
+        @input=${(event: Event) => {
+          const next = Number((event.currentTarget as HTMLInputElement).value);
+          if (Number.isFinite(next)) {
+            applyZoom(next);
+          }
+        }}
+        @wheel=${(event: WheelEvent) => {
+          event.preventDefault();
+          const delta = event.deltaY > 0 ? -step : step;
+          applyZoom(zoomLevel + delta);
+        }}
+      />
       <button
         class="nav-zoom-control__btn"
         title=${t("Zoom In", "放大")}
-        @click=${() => applyDelta(0.1)}
+        @click=${() => applyZoom(zoomLevel + step)}
         aria-label=${t("Zoom In", "放大")}
       >
         +
