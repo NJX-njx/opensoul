@@ -1,14 +1,16 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import type { OpenSoulConfig } from "../../config/types.js";
 import { resolveWorkspaceTemplateDir } from "../../agents/workspace-templates.js";
 import { resolveDefaultAgentWorkspaceDir } from "../../agents/workspace.js";
 import { handleReset } from "../../commands/onboard-helpers.js";
-import { createConfigIO, writeConfigFile } from "../../config/config.js";
+import { createConfigIO, loadConfig, writeConfigFile } from "../../config/config.js";
 import { defaultRuntime } from "../../runtime.js";
 import { resolveUserPath, shortenHomePath } from "../../utils.js";
 
-const DEV_IDENTITY_NAME = "sophie";
+/** Canonical dev agent defaults (immutable). */
+export const DEV_IDENTITY_NAME = "sophie";
 const DEV_IDENTITY_THEME = "protocol droid";
 const DEV_IDENTITY_EMOJI = "🤖";
 const DEV_AGENT_WORKSPACE_SUFFIX = "dev";
@@ -87,6 +89,38 @@ async function ensureDevWorkspace(dir: string) {
   await writeFileIfMissing(path.join(resolvedDir, "USER.md"), user);
 }
 
+const DEV_AGENT_ID = "dev";
+
+/** Canonical dev agent entry (immutable defaults). */
+function buildCanonicalDevAgent(workspace: string) {
+  return {
+    id: DEV_AGENT_ID,
+    default: true as const,
+    workspace,
+    identity: {
+      name: DEV_IDENTITY_NAME,
+      theme: DEV_IDENTITY_THEME,
+      emoji: DEV_IDENTITY_EMOJI,
+    },
+  };
+}
+
+/** Enforce canonical dev agent in config; overwrites user edits to dev agent fields. */
+function enforceDevAgentInConfig(cfg: OpenSoulConfig, workspace: string): OpenSoulConfig {
+  const canonical = buildCanonicalDevAgent(workspace);
+  const list = Array.isArray(cfg.agents?.list) ? cfg.agents.list.filter((e) => e?.id) : [];
+  const others = list.filter((e) => e?.id !== DEV_AGENT_ID).map((e) => ({ ...e, default: false }));
+  const nextList = [canonical, ...others];
+  return {
+    ...cfg,
+    agents: {
+      ...cfg.agents,
+      defaults: { ...cfg.agents?.defaults, workspace, skipBootstrap: true },
+      list: nextList,
+    },
+  };
+}
+
 export async function ensureDevGatewayConfig(opts: { reset?: boolean }) {
   const workspace = resolveDevWorkspaceDir();
   if (opts.reset) {
@@ -96,34 +130,27 @@ export async function ensureDevGatewayConfig(opts: { reset?: boolean }) {
   const io = createConfigIO();
   const configPath = io.configPath;
   const configExists = fs.existsSync(configPath);
-  if (!opts.reset && configExists) {
-    return;
+
+  if (configExists && !opts.reset) {
+    const cfg = loadConfig();
+    const enforced = enforceDevAgentInConfig(cfg, workspace);
+    await writeConfigFile(enforced);
+  } else {
+    await writeConfigFile({
+      gateway: {
+        mode: "local",
+        bind: "loopback",
+      },
+      agents: {
+        defaults: {
+          workspace,
+          skipBootstrap: true,
+        },
+        list: [buildCanonicalDevAgent(workspace)],
+      },
+    });
   }
 
-  await writeConfigFile({
-    gateway: {
-      mode: "local",
-      bind: "loopback",
-    },
-    agents: {
-      defaults: {
-        workspace,
-        skipBootstrap: true,
-      },
-      list: [
-        {
-          id: "dev",
-          default: true,
-          workspace,
-          identity: {
-            name: DEV_IDENTITY_NAME,
-            theme: DEV_IDENTITY_THEME,
-            emoji: DEV_IDENTITY_EMOJI,
-          },
-        },
-      ],
-    },
-  });
   await ensureDevWorkspace(workspace);
   defaultRuntime.log(`Dev config ready: ${shortenHomePath(configPath)}`);
   defaultRuntime.log(`Dev workspace ready: ${shortenHomePath(resolveUserPath(workspace))}`);
