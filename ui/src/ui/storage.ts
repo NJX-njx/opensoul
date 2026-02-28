@@ -16,15 +16,25 @@ export type UiSettings = {
   navGroupsCollapsed: Record<string, boolean>; // Which nav groups are collapsed
 };
 
+/** Default token for local dev when gateway is started with OPENSOUL_GATEWAY_TOKEN=dev-token */
+const DEV_TOKEN = "dev-token";
+
+function isLocalhost(): boolean {
+  const h = location.hostname.toLowerCase();
+  return h === "localhost" || h === "127.0.0.1" || h === "[::1]";
+}
+
 export function loadSettings(): UiSettings {
   const defaultUrl = (() => {
     const proto = location.protocol === "https:" ? "wss" : "ws";
     return `${proto}://${location.host}`;
   })();
 
+  const defaultToken = isLocalhost() ? DEV_TOKEN : "";
+
   const defaults: UiSettings = {
     gatewayUrl: defaultUrl,
-    token: "",
+    token: defaultToken,
     sessionKey: "main",
     lastActiveSessionKey: "main",
     theme: "system",
@@ -47,7 +57,13 @@ export function loadSettings(): UiSettings {
         typeof parsed.gatewayUrl === "string" && parsed.gatewayUrl.trim()
           ? parsed.gatewayUrl.trim()
           : defaults.gatewayUrl,
-      token: typeof parsed.token === "string" ? parsed.token : defaults.token,
+      token: (() => {
+        const saved = typeof parsed.token === "string" ? parsed.token : defaults.token;
+        if (saved && saved.trim()) {
+          return saved;
+        }
+        return isLocalhost() ? DEV_TOKEN : "";
+      })(),
       sessionKey:
         typeof parsed.sessionKey === "string" && parsed.sessionKey.trim()
           ? parsed.sessionKey.trim()

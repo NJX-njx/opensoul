@@ -147,7 +147,27 @@ git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
 pnpm install
 pnpm build
-pnpm start
+```
+
+**启动 Gateway**（Web 控制台与渠道均依赖此服务）：
+
+```bash
+# 开发模式（跳过需外部 API 凭证的渠道；端口 19001）
+export OPENSOUL_SKIP_CHANNELS=1
+export OPENSOUL_GATEWAY_TOKEN=dev-token   # 必填，否则 Gateway 无法启动
+pnpm gateway:dev
+```
+
+或生产模式（需先执行 `opensoul onboard` 完成配置）：
+
+```bash
+opensoul gateway run
+```
+
+**Windows 用户**：`gateway:dev` 脚本使用 Unix 风格环境变量语法。建议使用 WSL，或在 PowerShell 中执行：
+
+```powershell
+$env:OPENSOUL_SKIP_CHANNELS = "1"; $env:OPENSOUL_GATEWAY_TOKEN = "dev-token"; node scripts/run-node.mjs --dev gateway
 ```
 
 ### 环境变量模板
@@ -162,18 +182,20 @@ GEMINI_API_KEY=
 MINIMAX_API_KEY=
 OPENCODE_API_KEY=
 ZAI_API_KEY=
-OPENSOUL_GATEWAY_TOKEN=
+OPENSOUL_GATEWAY_TOKEN=    # Gateway 启动必填
 ```
 
 环境变量加载顺序与说明请见 [Environment](docs/help/environment.md)。
 
 ### 常见问题排查
 
-| 现象                           | 原因                      | 解决方案                                              |
-| ------------------------------ | ------------------------- | ----------------------------------------------------- |
-| Gateway 启动失败且提示端口占用 | 18789 端口被占用          | 更换 `gateway.port` 或使用 `pnpm test:force` 清理残留 |
-| 服务模式下 API key 失效        | 守护进程未继承 shell 环境 | 将密钥放入 `~/.opensoul/.env` 或启用 `env.shellEnv`   |
-| 控制台无法访问                 | Token 未配置或未放行      | 设置 `gateway.auth.token` 并使用正确的 token          |
+| 现象                                       | 原因                            | 解决方案                                                                                                                                                                                                                                                            |
+| ------------------------------------------ | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gateway 启动后立即退出                     | 未设置 `OPENSOUL_GATEWAY_TOKEN` | 设置环境变量或 `gateway.auth.token`，参见上方启动说明                                                                                                                                                                                                               |
+| Gateway 启动失败且提示端口占用             | 18789 端口被占用                | 更换 `gateway.port` 或使用 `pnpm test:force` 清理残留                                                                                                                                                                                                               |
+| 服务模式下 API key 失效                    | 守护进程未继承 shell 环境       | 将密钥放入 `~/.opensoul/.env` 或启用 `env.shellEnv`                                                                                                                                                                                                                 |
+| 控制台无法访问                             | Token 未配置或未放行            | 设置 `gateway.auth.token` 并使用正确的 token                                                                                                                                                                                                                        |
+| 引导页配置 Gemini / MiniMax 后聊天一直加载 | 配置未生效或 Gateway 未重启     | 1) 确保 Gateway 在引导页完成前已启动；2) 若引导页提示「配置应用失败」，点击重试；3) 手动重启 Gateway（`Ctrl+C` 后重新运行 `gateway:dev`）；4) 检查 `~/.opensoul-dev/opensoul.json` 是否包含 `env.GEMINI_API_KEY` / `env.MINIMAX_API_KEY` 和 `agents.defaults.model` |
 
 ## 使用示例
 

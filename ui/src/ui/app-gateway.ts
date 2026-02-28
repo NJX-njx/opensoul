@@ -15,8 +15,12 @@ import {
 import { handleAgentEvent, resetToolStream, type AgentEventPayload } from "./app-tool-stream.ts";
 import { loadAgents } from "./controllers/agents.ts";
 import { loadAssistantIdentity } from "./controllers/assistant-identity.ts";
-import { loadChatHistory } from "./controllers/chat.ts";
-import { handleChatEvent, type ChatEventPayload } from "./controllers/chat.ts";
+import {
+  handleChatEvent,
+  loadChatHistory,
+  parseChatEventResult,
+  type ChatEventPayload,
+} from "./controllers/chat.ts";
 import { loadDevices } from "./controllers/devices.ts";
 import {
   addExecApproval,
@@ -116,7 +120,9 @@ function applySessionDefaults(host: GatewayHost, defaults?: SessionDefaultsSnaps
   }
 }
 
-function inferDisconnectStage(info: GatewayCloseInfo): "dns" | "handshake" | "auth" | "reconnecting" | "network" {
+function inferDisconnectStage(
+  info: GatewayCloseInfo,
+): "dns" | "handshake" | "auth" | "reconnecting" | "network" {
   const failure = info.failure?.toLowerCase() ?? "";
   if (
     failure.includes("unauthorized") ||
@@ -244,7 +250,8 @@ function handleGatewayEventUnsafe(host: GatewayHost, evt: GatewayEventFrame) {
         payload.sessionKey,
       );
     }
-    const state = handleChatEvent(host as unknown as OpenSoulApp, payload);
+    const result = handleChatEvent(host as unknown as OpenSoulApp, payload);
+    const { state, preserveError } = parseChatEventResult(result);
     if (state === "final" || state === "error" || state === "aborted") {
       resetToolStream(host as unknown as Parameters<typeof resetToolStream>[0]);
       void flushChatQueueForEvent(host as unknown as Parameters<typeof flushChatQueueForEvent>[0]);
@@ -259,7 +266,9 @@ function handleGatewayEventUnsafe(host: GatewayHost, evt: GatewayEventFrame) {
       }
     }
     if (state === "final") {
-      void loadChatHistory(host as unknown as OpenSoulApp);
+      void loadChatHistory(host as unknown as OpenSoulApp, {
+        clearError: !preserveError,
+      });
     }
     return;
   }

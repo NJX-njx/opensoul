@@ -42,6 +42,9 @@ export function stripEnvelope(text: string): string {
 }
 
 export function extractText(message: unknown): string | null {
+  if (message == null || typeof message !== "object") {
+    return null;
+  }
   const m = message as Record<string, unknown>;
   const role = typeof m.role === "string" ? m.role : "";
   const content = m.content;
@@ -86,6 +89,9 @@ export function extractTextCached(message: unknown): string | null {
 }
 
 export function extractThinking(message: unknown): string | null {
+  if (message == null || typeof message !== "object") {
+    return null;
+  }
   const m = message as Record<string, unknown>;
   const content = m.content;
   const parts: string[] = [];
@@ -130,6 +136,9 @@ export function extractThinkingCached(message: unknown): string | null {
 }
 
 export function extractRawText(message: unknown): string | null {
+  if (message == null || typeof message !== "object") {
+    return null;
+  }
   const m = message as Record<string, unknown>;
   const content = m.content;
   if (typeof content === "string") {

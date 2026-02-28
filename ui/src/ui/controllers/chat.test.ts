@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { handleChatEvent, type ChatEventPayload, type ChatState } from "./chat.ts";
+import {
+  handleChatEvent,
+  parseChatEventResult,
+  type ChatEventPayload,
+  type ChatState,
+} from "./chat.ts";
 
 function createState(overrides: Partial<ChatState> = {}): ChatState {
   return {
@@ -69,7 +74,7 @@ describe("handleChatEvent", () => {
         content: [{ type: "text", text: "Sub-agent findings" }],
       },
     };
-    expect(handleChatEvent(state, payload)).toBe("final");
+    expect(parseChatEventResult(handleChatEvent(state, payload)).state).toBe("final");
     expect(state.chatRunId).toBe("run-user");
     expect(state.chatStream).toBe("Working...");
     expect(state.chatStreamStartedAt).toBe(123);
@@ -87,7 +92,8 @@ describe("handleChatEvent", () => {
       sessionKey: "main",
       state: "final",
     };
-    expect(handleChatEvent(state, payload)).toBe("final");
+    const result = handleChatEvent(state, payload);
+    expect(parseChatEventResult(result).state).toBe("final");
     expect(state.chatRunId).toBe(null);
     expect(state.chatStream).toBe(null);
     expect(state.chatStreamStartedAt).toBe(null);

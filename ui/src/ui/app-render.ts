@@ -134,6 +134,7 @@ export function renderApp(state: AppViewState) {
       providerSearchQuery: state.onboardingProviderSearchQuery,
       selectedChannel: state.onboardingSelectedChannel,
       channelToken: state.onboardingChannelToken,
+      configApplyError: state.onboardingConfigError,
       onLocaleChange: (locale) => state.setOnboardingLocale(locale),
       onLoginModeChange: (mode) => state.setOnboardingLoginMode(mode),
       onLoginFormEmailChange: (email) => state.setOnboardingLoginFormEmail(email),

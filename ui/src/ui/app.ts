@@ -93,6 +93,7 @@ import { loadLogs as loadLogsInternal } from "./controllers/logs.ts";
 import { loadUiLocale, resolveUiLocale, saveUiLocale } from "./i18n.ts";
 import { loadSettings, type UiSettings } from "./storage.ts";
 import { type ChatAttachment, type ChatQueueItem, type CronFormState } from "./ui-types.ts";
+import { getMessages } from "./views/onboarding/i18n.ts";
 
 declare global {
   interface Window {
@@ -370,6 +371,7 @@ export class OpenSoulApp extends LitElement {
   @state() onboardingProviderSearchQuery = "";
   @state() onboardingSelectedChannel: string | null = null;
   @state() onboardingChannelToken = "";
+  @state() onboardingConfigError: string | null = null;
 
   client: GatewayBrowserClient | null = null;
   private chatScrollFrame: number | null = null;
@@ -657,6 +659,9 @@ export class OpenSoulApp extends LitElement {
   // Onboarding wizard methods
   setOnboardingStep(step: 1 | 2 | 3 | 4 | 5) {
     this.onboardingStep = step;
+    if (step === 5) {
+      this.onboardingConfigError = null;
+    }
   }
 
   setUiLocale(locale: Locale) {
@@ -904,35 +909,33 @@ export class OpenSoulApp extends LitElement {
   async finishOnboarding() {
     this.uiLocale = this.onboardingLocale;
     saveUiLocale(this.onboardingLocale);
+    this.onboardingConfigError = null;
 
     // Import provider/channel selections into gateway config
-    console.log(
-      "[finishOnboarding] client connected:",
-      this.client?.connected,
-      "client:",
-      !!this.client,
-    );
-    if (this.client) {
+    const hasProviderConfig =
+      this.onboardingSelectedProvider && this.onboardingProviderApiKey.trim().length > 0;
+    if (hasProviderConfig) {
+      if (!this.client?.connected) {
+        this.onboardingConfigError = getMessages(this.onboardingLocale).confirmConfigError;
+        return;
+      }
       const selections = {
         selectedProvider: this.onboardingSelectedProvider,
         providerApiKey: this.onboardingProviderApiKey,
         selectedChannel: this.onboardingSelectedChannel,
         channelToken: this.onboardingChannelToken,
       };
-      console.log("[finishOnboarding] selections:", {
+      console.log("[finishOnboarding] Applying config, selections:", {
         selectedProvider: selections.selectedProvider,
         hasApiKey: !!selections.providerApiKey,
-        selectedChannel: selections.selectedChannel,
-        hasToken: !!selections.channelToken,
       });
-      const result = await applyOnboardingConfig(this.client, selections);
+      const result = await applyOnboardingConfig(this.client!, selections);
       console.log("[finishOnboarding] applyOnboardingConfig result:", result);
       if (!result.ok) {
-        console.error("[finishOnboarding] Config apply failed:", result.error);
+        this.onboardingConfigError = result.error ?? "Config apply failed";
+        return;
       }
       saveOnboardingSelectionsToAccount(this.onboardingLoginEmail, selections);
-    } else {
-      console.warn("[finishOnboarding] No gateway client available, skipping config apply");
     }
 
     localStorage.setItem("opensoul.onboarding.done", "1");

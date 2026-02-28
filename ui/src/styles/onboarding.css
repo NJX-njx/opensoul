@@ -20,7 +20,8 @@
   content: "";
   position: absolute;
   inset: -50%;
-  background: radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 60%),
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 60%),
     radial-gradient(ellipse at 70% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 60%);
   animation: onboarding-bg-drift 20s ease-in-out infinite alternate;
   pointer-events: none;
@@ -45,7 +46,9 @@
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.03);
   overflow: hidden;
   animation: onboarding-card-enter 0.5s var(--ease-out);
 }
@@ -67,6 +70,7 @@
   gap: 4px;
   padding: 20px 32px 0;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .onboarding-progress__step {
@@ -111,6 +115,7 @@
 .onboarding-header {
   padding: 24px 32px 0;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .onboarding-header__step-label {
@@ -153,6 +158,7 @@
   padding: 16px 32px 24px;
   gap: 12px;
   border-top: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 .onboarding-footer__left {
@@ -761,8 +767,12 @@
 }
 
 @keyframes onboarding-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ===========================================
@@ -828,7 +838,9 @@
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--bg-elevated);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .onboarding-login-field__input-wrap:focus-within {
@@ -933,7 +945,8 @@
 }
 
 [data-theme="light"] .onboarding-wizard::before {
-  background: radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.06) 0%, transparent 60%),
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.06) 0%, transparent 60%),
     radial-gradient(ellipse at 70% 80%, rgba(168, 85, 247, 0.04) 0%, transparent 60%);
 }
 

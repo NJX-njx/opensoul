@@ -14,6 +14,7 @@ export function renderStepConfirm(state: OnboardingWizardState) {
   const channelName =
     ONBOARDING_CHANNELS.find((ch) => ch.id === state.selectedChannel)?.label ?? null;
   const loginName = state.loginStatus === "success" ? state.loginDisplayName : null;
+  const configError = state.configApplyError;
 
   return html`
     <div class="onboarding-confirm-hero">
@@ -44,5 +45,14 @@ export function renderStepConfirm(state: OnboardingWizardState) {
         </span>
       </div>
     </div>
+    ${
+      configError
+        ? html`
+          <div class="callout danger" style="margin-top: 16px;">
+            ${configError}
+          </div>
+        `
+        : ""
+    }
   `;
 }

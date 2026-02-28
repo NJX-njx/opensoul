@@ -6,8 +6,12 @@ import type { NormalizedMessage, MessageContentItem } from "../types/chat-types.
 
 /**
  * Normalize a raw message object into a consistent structure.
+ * Returns a safe fallback when message is null/undefined or malformed.
  */
 export function normalizeMessage(message: unknown): NormalizedMessage {
+  if (message == null || typeof message !== "object") {
+    return { role: "unknown", content: [], timestamp: Date.now(), id: undefined };
+  }
   const m = message as Record<string, unknown>;
   let role = typeof m.role === "string" ? m.role : "unknown";
 

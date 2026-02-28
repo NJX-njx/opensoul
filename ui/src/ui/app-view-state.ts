@@ -317,6 +317,7 @@ export type AppViewState = {
   onboardingProviderSearchQuery: string;
   onboardingSelectedChannel: string | null;
   onboardingChannelToken: string;
+  onboardingConfigError: string | null;
   setOnboardingStep: (step: 1 | 2 | 3 | 4 | 5) => void;
   setOnboardingLocale: (locale: Locale) => void;
   setOnboardingLoginMode: (mode: "login" | "register") => void;

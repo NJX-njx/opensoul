@@ -72,6 +72,8 @@ const EN = {
   confirmChannel: "Channel",
   confirmChannelNone: "None (configure later)",
   confirmLaunch: "Launch OpenSoul",
+  confirmConfigError: "Config apply failed. Ensure Gateway is running and connected, then retry.",
+  confirmRetry: "Retry",
 
   // Common
   next: "Next",
@@ -137,6 +139,8 @@ const ZH_CN: I18nMessages = {
   confirmChannel: "聊天渠道",
   confirmChannelNone: "无（稍后配置）",
   confirmLaunch: "启动 OpenSoul",
+  confirmConfigError: "配置应用失败。请确保 Gateway 已启动且已连接，然后重试。",
+  confirmRetry: "重试",
 
   next: "下一步",
   back: "上一步",
@@ -201,6 +205,8 @@ const ZH_TW: I18nMessages = {
   confirmChannel: "聊天頻道",
   confirmChannelNone: "無（稍後設定）",
   confirmLaunch: "啟動 OpenSoul",
+  confirmConfigError: "配置應用失敗。請確保 Gateway 已啟動且已連接，然後重試。",
+  confirmRetry: "重試",
 
   next: "下一步",
   back: "上一步",
@@ -266,6 +272,9 @@ const JA: I18nMessages = {
   confirmChannel: "チャンネル",
   confirmChannelNone: "なし（後で設定）",
   confirmLaunch: "OpenSoul を起動",
+  confirmConfigError:
+    "設定の適用に失敗しました。Gateway が起動して接続されていることを確認してから、再試行してください。",
+  confirmRetry: "再試行",
 
   next: "次へ",
   back: "戻る",
@@ -331,6 +340,9 @@ const KO: I18nMessages = {
   confirmChannel: "채널",
   confirmChannelNone: "없음 (나중에 설정)",
   confirmLaunch: "OpenSoul 시작",
+  confirmConfigError:
+    "구성 적용에 실패했습니다. Gateway가 실행 중이고 연결되어 있는지 확인한 후 다시 시도하세요.",
+  confirmRetry: "다시 시도",
 
   next: "다음",
   back: "뒤로",
@@ -344,7 +356,8 @@ const ES: I18nMessages = {
   langSubtitle: "Elige tu idioma preferido para comenzar.",
   langLabel: "Idioma",
   loginTitle: "Iniciar sesión",
-  loginSubtitle: "Inicia sesión para sincronizar tu configuración y desbloquear todas las funciones.",
+  loginSubtitle:
+    "Inicia sesión para sincronizar tu configuración y desbloquear todas las funciones.",
   loginWithGoogle: "Continuar con Google",
   loginWithGithub: "Continuar con GitHub",
   loginOrDivider: "o",
@@ -391,6 +404,9 @@ const ES: I18nMessages = {
   confirmChannel: "Canal",
   confirmChannelNone: "Ninguno (configurar después)",
   confirmLaunch: "Iniciar OpenSoul",
+  confirmConfigError:
+    "Error al aplicar la configuración. Asegúrate de que Gateway esté en ejecución y conectado, luego reintenta.",
+  confirmRetry: "Reintentar",
   next: "Siguiente",
   back: "Atrás",
   skip: "Omitir",
@@ -403,7 +419,8 @@ const FR: I18nMessages = {
   langSubtitle: "Choisissez votre langue préférée pour commencer.",
   langLabel: "Langue",
   loginTitle: "Connexion",
-  loginSubtitle: "Connectez-vous pour synchroniser vos paramètres et débloquer toutes les fonctionnalités.",
+  loginSubtitle:
+    "Connectez-vous pour synchroniser vos paramètres et débloquer toutes les fonctionnalités.",
   loginWithGoogle: "Continuer avec Google",
   loginWithGithub: "Continuer avec GitHub",
   loginOrDivider: "ou",
@@ -450,6 +467,9 @@ const FR: I18nMessages = {
   confirmChannel: "Canal",
   confirmChannelNone: "Aucun (configurer plus tard)",
   confirmLaunch: "Lancer OpenSoul",
+  confirmConfigError:
+    "Échec de l'application de la configuration. Vérifiez que Gateway est en cours d'exécution et connecté, puis réessayez.",
+  confirmRetry: "Réessayer",
   next: "Suivant",
   back: "Retour",
   skip: "Passer",
@@ -513,6 +533,9 @@ const DE: I18nMessages = {
   confirmChannel: "Kanal",
   confirmChannelNone: "Keiner (später konfigurieren)",
   confirmLaunch: "OpenSoul starten",
+  confirmConfigError:
+    "Konfiguration konnte nicht angewendet werden. Stellen Sie sicher, dass Gateway läuft und verbunden ist, dann erneut versuchen.",
+  confirmRetry: "Erneut versuchen",
   next: "Weiter",
   back: "Zurück",
   skip: "Überspringen",
@@ -574,6 +597,9 @@ const PT_BR: I18nMessages = {
   confirmChannel: "Canal",
   confirmChannelNone: "Nenhum (configurar depois)",
   confirmLaunch: "Iniciar OpenSoul",
+  confirmConfigError:
+    "Falha ao aplicar a configuração. Verifique se o Gateway está em execução e conectado, depois tente novamente.",
+  confirmRetry: "Tentar novamente",
   next: "Próximo",
   back: "Voltar",
   skip: "Pular",
@@ -633,6 +659,9 @@ const RU: I18nMessages = {
   confirmChannel: "Канал",
   confirmChannelNone: "Нет (настроить позже)",
   confirmLaunch: "Запустить OpenSoul",
+  confirmConfigError:
+    "Не удалось применить конфигурацию. Убедитесь, что Gateway запущен и подключен, затем повторите попытку.",
+  confirmRetry: "Повторить",
   next: "Далее",
   back: "Назад",
   skip: "Пропустить",

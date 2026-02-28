@@ -223,7 +223,7 @@ export function renderOnboardingWizard(state: OnboardingWizardState) {
               isFirstStep
                 ? nothing
                 : html`
-                  <button class="onboarding-btn onboarding-btn--ghost" @click=${state.onBack}>
+                  <button type="button" class="onboarding-btn onboarding-btn--ghost" @click=${state.onBack}>
                     ← ${t.back}
                   </button>
                 `
@@ -233,7 +233,7 @@ export function renderOnboardingWizard(state: OnboardingWizardState) {
             ${
               canSkip
                 ? html`
-                  <button class="onboarding-btn onboarding-btn--outline" @click=${state.onSkip}>
+                  <button type="button" class="onboarding-btn onboarding-btn--outline" @click=${state.onSkip}>
                     ${t.skip}
                   </button>
                 `
@@ -242,12 +242,13 @@ export function renderOnboardingWizard(state: OnboardingWizardState) {
             ${
               isLastStep
                 ? html`
-                  <button class="onboarding-btn onboarding-btn--primary" @click=${state.onFinish}>
-                    ${t.confirmLaunch} 🚀
+                  <button type="button" class="onboarding-btn onboarding-btn--primary" @click=${state.onFinish}>
+                    ${state.configApplyError ? t.confirmRetry : t.confirmLaunch} ${state.configApplyError ? "" : "🚀"}
                   </button>
                 `
                 : html`
                   <button
+                    type="button"
                     class="onboarding-btn onboarding-btn--primary ${!nextAllowed ? "onboarding-btn--disabled" : ""}"
                     @click=${state.onNext}
                     ?disabled=${!nextAllowed}

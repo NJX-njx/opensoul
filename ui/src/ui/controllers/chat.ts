@@ -27,12 +27,14 @@ export type ChatEventPayload = {
   errorMessage?: string;
 };
 
-export async function loadChatHistory(state: ChatState) {
+export async function loadChatHistory(state: ChatState, opts?: { clearError?: boolean }) {
   if (!state.client || !state.connected) {
     return;
   }
   state.chatLoading = true;
-  state.lastError = null;
+  if (opts?.clearError !== false) {
+    state.lastError = null;
+  }
   try {
     const res = await state.client.request<{ messages?: Array<unknown>; thinkingLevel?: string }>(
       "chat.history",
@@ -180,22 +182,24 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
   // See https://github.com/opensoul/opensoul/issues/1909
   if (payload.runId && state.chatRunId && payload.runId !== state.chatRunId) {
     if (payload.state === "final") {
-      return "final";
+      return { state: "final" as const, preserveError: false };
     }
     return null;
   }
 
   if (payload.state === "delta") {
-    const next = extractText(payload.message);
+    const next = payload.message != null ? extractText(payload.message) : null;
     if (typeof next === "string") {
       const current = state.chatStream ?? "";
       if (!current || next.length >= current.length) {
         state.chatStream = next;
       }
     }
-  } else if (payload.state === "final") {
+    return { state: "delta" as const, preserveError: false };
+  }
+  if (payload.state === "final") {
     const hadRun = Boolean(state.chatRunId);
-    const hasContent = Boolean(extractText(payload.message));
+    const hasContent = Boolean(payload.message != null ? extractText(payload.message) : null);
     state.chatStream = null;
     state.chatRunId = null;
     state.chatStreamStartedAt = null;
@@ -203,16 +207,39 @@ export function handleChatEvent(state: ChatState, payload?: ChatEventPayload) {
     if (hadRun && !hasContent) {
       state.lastError =
         "模型未返回内容。请检查：1) 网络连接或 VPN 是否影响 API 访问；2) API Key 是否有效；3) 尝试在设置中切换模型（如 Claude）";
+      return { state: "final" as const, preserveError: true };
     }
-  } else if (payload.state === "aborted") {
+    return { state: "final" as const, preserveError: false };
+  }
+  if (payload.state === "aborted") {
     state.chatStream = null;
     state.chatRunId = null;
     state.chatStreamStartedAt = null;
-  } else if (payload.state === "error") {
+    return { state: "aborted" as const, preserveError: false };
+  }
+  if (payload.state === "error") {
     state.chatStream = null;
     state.chatRunId = null;
     state.chatStreamStartedAt = null;
     state.lastError = payload.errorMessage ?? "chat error";
+    return { state: "error" as const, preserveError: true };
   }
-  return payload.state;
+  return { state: payload.state as "delta" | "final" | "aborted" | "error", preserveError: false };
+}
+
+/** Extract state string and preserveError flag from handleChatEvent result. */
+export function parseChatEventResult(result: ReturnType<typeof handleChatEvent>): {
+  state: string | null;
+  preserveError: boolean;
+} {
+  if (result == null) {
+    return { state: null, preserveError: false };
+  }
+  if (typeof result === "object" && "state" in result) {
+    return {
+      state: result.state,
+      preserveError: Boolean(result.preserveError),
+    };
+  }
+  return { state: result as string, preserveError: false };
 }

@@ -87,6 +87,33 @@ describe("message-normalizer", () => {
       expect(result.role).toBe("toolResult");
     });
 
+    it("handles null or undefined message", () => {
+      const resultNull = normalizeMessage(null);
+      expect(resultNull).toEqual({
+        role: "unknown",
+        content: [],
+        timestamp: Date.now(),
+        id: undefined,
+      });
+      const resultUndef = normalizeMessage(undefined);
+      expect(resultUndef).toEqual({
+        role: "unknown",
+        content: [],
+        timestamp: Date.now(),
+        id: undefined,
+      });
+    });
+
+    it("handles non-object message (e.g. string)", () => {
+      const result = normalizeMessage("invalid");
+      expect(result).toEqual({
+        role: "unknown",
+        content: [],
+        timestamp: Date.now(),
+        id: undefined,
+      });
+    });
+
     it("handles missing role", () => {
       const result = normalizeMessage({ content: "No role" });
       expect(result.role).toBe("unknown");

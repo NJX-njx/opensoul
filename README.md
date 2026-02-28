@@ -147,7 +147,27 @@ git clone https://github.com/NJX-njx/opensoul.git
 cd opensoul
 pnpm install
 pnpm build
-pnpm start
+```
+
+**Start the Gateway** (required for Web Control UI and channels):
+
+```bash
+# Dev mode (skips channels that need external API credentials; port 19001)
+export OPENSOUL_SKIP_CHANNELS=1
+export OPENSOUL_GATEWAY_TOKEN=dev-token   # Required — Gateway exits without it
+pnpm gateway:dev
+```
+
+Or for production (after `opensoul onboard`):
+
+```bash
+opensoul gateway run
+```
+
+**Windows users**: The `gateway:dev` script uses Unix-style env syntax. Use WSL, or run:
+
+```powershell
+$env:OPENSOUL_SKIP_CHANNELS = "1"; $env:OPENSOUL_GATEWAY_TOKEN = "dev-token"; node scripts/run-node.mjs --dev gateway
 ```
 
 ### Environment Template / 环境变量模板
@@ -162,18 +182,19 @@ GEMINI_API_KEY=
 MINIMAX_API_KEY=
 OPENCODE_API_KEY=
 ZAI_API_KEY=
-OPENSOUL_GATEWAY_TOKEN=
+OPENSOUL_GATEWAY_TOKEN=    # Required for Gateway to start
 ```
 
 环境变量加载顺序与说明请见 [Environment](docs/help/environment.md)。
 
 ### Common Troubleshooting / 常见问题排查
 
-| Symptom                        | Cause                     | Fix                                                   |
-| ------------------------------ | ------------------------- | ----------------------------------------------------- |
-| Gateway 启动失败且提示端口占用 | 18789 端口被占用          | 更换 `gateway.port` 或使用 `pnpm test:force` 清理残留 |
-| 服务模式下 API key 失效        | 守护进程未继承 shell 环境 | 将密钥放入 `~/.opensoul/.env` 或启用 `env.shellEnv`   |
-| 控制台无法访问                 | Token 未配置或未放行      | 设置 `gateway.auth.token` 并使用正确的 token          |
+| Symptom                        | Cause                           | Fix                                                   |
+| ------------------------------ | ------------------------------- | ----------------------------------------------------- |
+| Gateway 启动后立即退出         | 未设置 `OPENSOUL_GATEWAY_TOKEN` | 设置环境变量或 `gateway.auth.token`，参见上方启动说明 |
+| Gateway 启动失败且提示端口占用 | 18789 端口被占用                | 更换 `gateway.port` 或使用 `pnpm test:force` 清理残留 |
+| 服务模式下 API key 失效        | 守护进程未继承 shell 环境       | 将密钥放入 `~/.opensoul/.env` 或启用 `env.shellEnv`   |
+| 控制台无法访问                 | Token 未配置或未放行            | 设置 `gateway.auth.token` 并使用正确的 token          |
 
 ## Usage Examples / 使用示例
 

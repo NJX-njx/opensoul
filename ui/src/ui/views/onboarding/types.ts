@@ -60,6 +60,9 @@ export type OnboardingWizardState = {
   /** Token entered for the selected channel. */
   channelToken: string;
 
+  /** Error from last config apply attempt (e.g. gateway not connected). */
+  configApplyError: string | null;
+
   /** Callbacks */
   onLocaleChange: (locale: Locale) => void;
   onProviderSelect: (providerId: string | null) => void;
@@ -123,12 +126,7 @@ export const PROVIDER_CONFIG_MAP: Record<string, ProviderConfigMeta> = {
   copilot: { kind: "builtin", envVar: "COPILOT_GITHUB_TOKEN" },
   "ai-gateway": { kind: "builtin", envVar: "AI_GATEWAY_API_KEY" },
   "opencode-zen": { kind: "builtin", envVar: "OPENCODE_API_KEY" },
-  minimax: {
-    kind: "custom",
-    envVar: "MINIMAX_API_KEY",
-    baseUrl: "https://api.minimax.chat/v1",
-    api: "openai-completions",
-  },
+  minimax: { kind: "builtin", envVar: "MINIMAX_API_KEY" },
   moonshot: {
     kind: "custom",
     envVar: "MOONSHOT_API_KEY",
@@ -298,6 +296,32 @@ export const BUILTIN_PROVIDER_MODELS: Record<string, BuiltinProviderConfig> = {
         cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
         contextWindow: 128000,
         maxTokens: 16384,
+      },
+    ],
+  },
+  minimax: {
+    baseUrl: "https://api.minimax.io/anthropic",
+    api: "anthropic-messages",
+    models: [
+      {
+        id: "MiniMax-M2.1",
+        name: "MiniMax M2.1",
+        api: "anthropic-messages",
+        reasoning: false,
+        input: ["text"],
+        cost: { input: 15, output: 60, cacheRead: 2, cacheWrite: 10 },
+        contextWindow: 200000,
+        maxTokens: 8192,
+      },
+      {
+        id: "MiniMax-M2.1-lightning",
+        name: "MiniMax M2.1 Lightning",
+        api: "anthropic-messages",
+        reasoning: false,
+        input: ["text"],
+        cost: { input: 15, output: 60, cacheRead: 2, cacheWrite: 10 },
+        contextWindow: 200000,
+        maxTokens: 8192,
       },
     ],
   },
