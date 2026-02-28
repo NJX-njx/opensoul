@@ -28,7 +28,7 @@ export type ChatEventPayload = {
 };
 
 export async function loadChatHistory(state: ChatState, opts?: { clearError?: boolean }) {
-  if (!state.client || !state.connected) {
+  if (!state.client || !state.connected || !state.sessionKey?.trim()) {
     return;
   }
   state.chatLoading = true;

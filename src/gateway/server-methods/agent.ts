@@ -11,6 +11,7 @@ import {
   updateSessionStore,
 } from "../../config/sessions.js";
 import { registerAgentRunContext } from "../../infra/agent-events.js";
+import { resolveControlUiRootSync } from "../../infra/control-ui-assets.js";
 import {
   resolveAgentDeliveryPlan,
   resolveAgentOutboundTarget,
@@ -27,7 +28,8 @@ import {
 } from "../../utils/message-channel.js";
 import { resolveAssistantIdentity } from "../assistant-identity.js";
 import { parseMessageWithAttachments } from "../chat-attachments.js";
-import { resolveAssistantAvatarUrl } from "../control-ui-shared.js";
+import { normalizeControlUiBasePath, resolveAssistantAvatarUrl } from "../control-ui-shared.js";
+import { loadDefaultAvatarAsDataUrl } from "../control-ui.js";
 import { GATEWAY_CLIENT_CAPS, hasGatewayClientCap } from "../protocol/client-info.js";
 import {
   ErrorCodes,
@@ -466,12 +468,36 @@ export const agentHandlers: GatewayRequestHandlers = {
     }
     const cfg = loadConfig();
     const identity = resolveAssistantIdentity({ cfg, agentId });
-    const avatarValue =
+    const basePath = normalizeControlUiBasePath(cfg.gateway?.controlUi?.basePath);
+    let avatarValue =
       resolveAssistantAvatarUrl({
         avatar: identity.avatar,
         agentId: identity.agentId,
-        basePath: cfg.gateway?.controlUi?.basePath,
+        basePath,
       }) ?? identity.avatar;
+    // Use data URL for default avatar to avoid path resolution issues.
+    // Also replace non-URL avatars (e.g. name "C3-PO" mistaken as avatar) with default image.
+    const isValidAvatarUrl =
+      typeof avatarValue === "string" &&
+      (avatarValue.startsWith("/") ||
+        avatarValue.startsWith("data:image") ||
+        /^https?:\/\//i.test(avatarValue));
+    if (
+      !isValidAvatarUrl ||
+      avatarValue === "/avatar.png" ||
+      (basePath && avatarValue === `${basePath}/avatar.png`)
+    ) {
+      const root = resolveControlUiRootSync({
+        argv1: process.argv[1],
+        cwd: process.cwd(),
+      });
+      const dataUrl = root ? loadDefaultAvatarAsDataUrl(root) : undefined;
+      if (dataUrl) {
+        avatarValue = dataUrl;
+      } else if (!isValidAvatarUrl) {
+        avatarValue = "/avatar.png";
+      }
+    }
     respond(true, { ...identity, avatar: avatarValue }, undefined);
   },
   "agent.wait": async ({ params, respond }) => {

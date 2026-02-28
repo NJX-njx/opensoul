@@ -39,6 +39,8 @@ export async function loadSessions(
     const params: Record<string, unknown> = {
       includeGlobal,
       includeUnknown,
+      includeLastMessage: true,
+      includeDerivedTitles: true,
     };
     if (activeMinutes > 0) {
       params.activeMinutes = activeMinutes;

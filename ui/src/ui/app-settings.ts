@@ -1,5 +1,6 @@
 import type { OpenSoulApp } from "./app.ts";
 import type { AgentsListResult } from "./types.ts";
+import type { Locale } from "./views/onboarding/i18n.ts";
 import { refreshChat } from "./app-chat.ts";
 import {
   startLogsPolling,
@@ -37,7 +38,6 @@ import {
 import { saveSettings, type UiSettings } from "./storage.ts";
 import { startThemeTransition, type ThemeTransitionContext } from "./theme-transition.ts";
 import { resolveTheme, type ResolvedTheme, type ThemeMode } from "./theme.ts";
-import type { Locale } from "./views/onboarding/i18n.ts";
 
 type SettingsHost = {
   settings: UiSettings;
@@ -405,8 +405,15 @@ export function syncUrlWithTab(host: SettingsHost, tab: Tab, replace: boolean) {
   const currentPath = normalizePath(window.location.pathname);
   const url = new URL(window.location.href);
 
-  if (tab === "chat" && host.sessionKey) {
-    url.searchParams.set("session", host.sessionKey);
+  if (tab === "chat") {
+    const sessionFromUrl = url.searchParams.get("session")?.trim();
+    if (sessionFromUrl) {
+      host.sessionKey = sessionFromUrl;
+      url.searchParams.set("session", sessionFromUrl);
+    } else {
+      host.sessionKey = "";
+      url.searchParams.delete("session");
+    }
   } else {
     url.searchParams.delete("session");
   }

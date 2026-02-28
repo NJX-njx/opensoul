@@ -240,7 +240,7 @@ function buildAvatarMetaUrl(basePath: string, agentId: string): string {
 }
 
 export async function refreshChatAvatar(host: ChatHost) {
-  if (!host.connected) {
+  if (!host.connected || !host.sessionKey?.trim()) {
     host.chatAvatarUrl = null;
     return;
   }

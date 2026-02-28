@@ -279,7 +279,7 @@ type SessionDefaultsSnapshot = {
   mainKey?: string;
 };
 
-function resolveMainSessionKey(
+export function resolveMainSessionKey(
   hello: AppViewState["hello"],
   sessions: SessionsListResult | null,
 ): string | null {

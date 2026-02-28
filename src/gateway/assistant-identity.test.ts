@@ -17,7 +17,7 @@ describe("resolveAssistantIdentity avatar normalization", () => {
     );
   });
 
-  it("keeps short text avatars", () => {
+  it("rejects short text as avatar (avatar must be image URL/path)", () => {
     const cfg: OpenSoulConfig = {
       ui: {
         assistant: {
@@ -26,7 +26,9 @@ describe("resolveAssistantIdentity avatar normalization", () => {
       },
     };
 
-    expect(resolveAssistantIdentity({ cfg, workspaceDir: "" }).avatar).toBe("PS");
+    expect(resolveAssistantIdentity({ cfg, workspaceDir: "" }).avatar).toBe(
+      DEFAULT_ASSISTANT_IDENTITY.avatar,
+    );
   });
 
   it("keeps path avatars", () => {

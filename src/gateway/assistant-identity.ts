@@ -10,8 +10,8 @@ const MAX_ASSISTANT_EMOJI = 16;
 
 export const DEFAULT_ASSISTANT_IDENTITY: AssistantIdentity = {
   agentId: "main",
-  name: "Assistant",
-  avatar: "A",
+  name: "sophie",
+  avatar: "/avatar.png",
 };
 
 export type AssistantIdentity = {
@@ -60,9 +60,7 @@ function normalizeAvatarValue(value: string | undefined): string | undefined {
   if (looksLikeAvatarPath(trimmed)) {
     return trimmed;
   }
-  if (!/\s/.test(trimmed) && trimmed.length <= 4) {
-    return trimmed;
-  }
+  // Do not treat emoji or short text as avatar — avatar must be an image URL/path.
   return undefined;
 }
 
@@ -110,12 +108,12 @@ export function resolveAssistantIdentity(params: {
     coerceIdentityValue(fileIdentity?.name, MAX_ASSISTANT_NAME) ??
     DEFAULT_ASSISTANT_IDENTITY.name;
 
+  // Avatar must be an image (URL/path). Never use emoji as avatar — emoji is for reactions only.
   const avatarCandidates = [
     coerceIdentityValue(configAssistant?.avatar, MAX_ASSISTANT_AVATAR),
     coerceIdentityValue(agentIdentity?.avatar, MAX_ASSISTANT_AVATAR),
-    coerceIdentityValue(agentIdentity?.emoji, MAX_ASSISTANT_AVATAR),
     coerceIdentityValue(fileIdentity?.avatar, MAX_ASSISTANT_AVATAR),
-    coerceIdentityValue(fileIdentity?.emoji, MAX_ASSISTANT_AVATAR),
+    DEFAULT_ASSISTANT_IDENTITY.avatar,
   ];
   const avatar =
     avatarCandidates.map((candidate) => normalizeAvatarValue(candidate)).find(Boolean) ??

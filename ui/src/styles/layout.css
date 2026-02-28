@@ -10,6 +10,7 @@
   --shell-topbar-height: 56px;
   --shell-focus-duration: 200ms;
   --shell-focus-ease: var(--ease-out);
+  position: relative;
   height: 100vh;
   display: grid;
   grid-template-columns: var(--shell-nav-width) minmax(0, 1fr);
@@ -22,8 +23,16 @@
   transition: grid-template-columns var(--shell-focus-duration) var(--shell-focus-ease);
   overflow: hidden;
   background:
-    radial-gradient(1200px 520px at -12% -20%, color-mix(in srgb, var(--info) 12%, transparent), transparent 68%),
-    radial-gradient(780px 420px at 112% 0%, color-mix(in srgb, var(--ok) 10%, transparent), transparent 72%),
+    radial-gradient(
+      1200px 520px at -12% -20%,
+      color-mix(in srgb, var(--info) 12%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      780px 420px at 112% 0%,
+      color-mix(in srgb, var(--ok) 10%, transparent),
+      transparent 72%
+    ),
     var(--bg);
 }
 
@@ -377,31 +386,39 @@
 }
 
 .nav-settings-btn {
+  position: relative;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 10px;
   width: 100%;
-  padding: 9px 10px;
-  border: none;
+  padding: 10px 10px;
+  border: 1px solid color-mix(in srgb, var(--border) 35%, transparent);
   border-radius: var(--radius-md);
-  background: transparent;
+  background: color-mix(in srgb, var(--card) 66%, transparent);
   color: var(--muted);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   text-align: left;
   transition:
+    border-color var(--duration-fast) ease,
     background var(--duration-fast) ease,
     color var(--duration-fast) ease;
 }
 
 .nav-settings-btn:hover {
-  background: var(--bg-hover);
   color: var(--text);
+  background: color-mix(in srgb, var(--bg-hover) 72%, transparent);
+  border-color: color-mix(in srgb, var(--border-strong) 76%, transparent);
 }
 
 :root[data-theme="light"] .nav-settings-btn:hover {
-  background: rgba(0, 0, 0, 0.04);
+  background: color-mix(in srgb, var(--bg-hover) 72%, transparent);
+}
+
+.nav-settings-btn:hover .nav-settings-btn__icon {
+  opacity: 1;
 }
 
 .nav-settings-btn__icon {
@@ -410,12 +427,18 @@
   justify-content: center;
   width: 16px;
   height: 16px;
-  opacity: 0.65;
+  flex-shrink: 0;
+  opacity: 0.7;
 }
 
 .nav-settings-btn__icon svg {
   width: 16px;
   height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .nav-settings-btn__text {
@@ -431,10 +454,12 @@
 
 /* Collapsed nav: hide settings text */
 .nav--collapsed .nav-settings-btn__text {
+  position: absolute;
+  width: 0;
+  height: 0;
   opacity: 0;
-  max-width: 0;
   overflow: hidden;
-  white-space: nowrap;
+  pointer-events: none;
 }
 
 .nav--collapsed .nav-settings-btn {
@@ -535,12 +560,11 @@
 
 .nav-item.active {
   color: var(--text-strong);
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--info) 18%, transparent),
-      color-mix(in srgb, var(--bg-hover) 82%, transparent)
-    );
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--info) 18%, transparent),
+    color-mix(in srgb, var(--bg-hover) 82%, transparent)
+  );
   border-color: color-mix(in srgb, var(--info) 48%, var(--border) 52%);
 }
 
@@ -551,7 +575,10 @@
 
 /* Collapsed nav overrides */
 .nav--collapsed .nav-item {
+  display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 0;
   width: 44px;
   height: 38px;
   margin: 0 auto;
@@ -563,10 +590,12 @@
 .nav--collapsed .nav-item__text,
 .nav--collapsed .nav-item__hint,
 .nav--collapsed .nav-item__active-dot {
+  position: absolute;
+  width: 0;
+  height: 0;
   opacity: 0;
-  max-width: 0;
   overflow: hidden;
-  white-space: nowrap;
+  pointer-events: none;
 }
 
 .nav--collapsed .nav-label {
@@ -589,7 +618,15 @@
 }
 
 .nav--collapsed .nav-item__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
   opacity: 0.82;
+}
+
+.nav--collapsed .nav-item__icon svg {
+  display: block;
 }
 
 .nav--collapsed .nav-item.active {
@@ -602,6 +639,10 @@
 }
 
 .nav--collapsed .nav-settings-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
   width: 44px;
   height: 38px;
   margin: 0 auto;
@@ -610,7 +651,15 @@
 }
 
 .nav--collapsed .nav-settings-btn__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
   opacity: 0.82;
+}
+
+.nav--collapsed .nav-settings-btn__icon svg {
+  display: block;
 }
 
 /* ===========================================
@@ -633,7 +682,7 @@
 }
 
 :root[data-theme="light"] .content {
-  background: var(--bg-content);
+  background: color-mix(in srgb, var(--bg-content) 94%, transparent);
 }
 
 .content--chat {
@@ -657,12 +706,11 @@
   padding: 12px 14px;
   border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
   border-radius: var(--radius-lg);
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--card) 82%, transparent),
-      color-mix(in srgb, var(--bg-elevated) 88%, transparent)
-    );
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--card) 82%, transparent),
+    color-mix(in srgb, var(--bg-elevated) 88%, transparent)
+  );
   box-shadow: var(--shadow-sm);
   overflow: visible;
   transform-origin: top center;
@@ -855,8 +903,8 @@
   }
 
   .nav-group {
-    grid-auto-flow: column;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-auto-flow: row;
+    grid-template-columns: 1fr;
     margin-bottom: 0;
   }
 

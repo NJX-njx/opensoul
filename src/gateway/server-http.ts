@@ -1,5 +1,6 @@
 import type { TlsOptions } from "node:tls";
 import type { WebSocketServer } from "ws";
+import fs from "node:fs";
 import {
   createServer as createHttpServer,
   type Server as HttpServer,
@@ -7,6 +8,7 @@ import {
   type ServerResponse,
 } from "node:http";
 import { createServer as createHttpsServer } from "node:https";
+import path from "node:path";
 import type { CanvasHostHandler } from "../canvas-host/server.js";
 import type { createSubsystemLogger } from "../logging/subsystem.js";
 import type { GatewayWsClient } from "./server/ws-types.js";
@@ -18,6 +20,7 @@ import {
   handleA2uiHttpRequest,
 } from "../canvas-host/a2ui.js";
 import { loadConfig } from "../config/config.js";
+import { resolveControlUiRootSync } from "../infra/control-ui-assets.js";
 import { handleSlackHttpRequest } from "../slack/http/index.js";
 import { authorizeGatewayConnect, isLocalDirectRequest, type ResolvedGatewayAuth } from "./auth.js";
 import {
@@ -377,10 +380,29 @@ export function createGatewayHttpServer(opts: {
         }
       }
       if (controlUiEnabled) {
+        const controlUiRootPath =
+          controlUiRoot?.kind === "resolved"
+            ? controlUiRoot.path
+            : resolveControlUiRootSync({ cwd: process.cwd() });
+        const defaultAvatarPath = controlUiRootPath
+          ? path.join(controlUiRootPath, "avatar.png")
+          : null;
         if (
           handleControlUiAvatarRequest(req, res, {
             basePath: controlUiBasePath,
-            resolveAvatar: (agentId) => resolveAgentAvatar(configSnapshot, agentId),
+            resolveAvatar: (agentId) => {
+              const resolved = resolveAgentAvatar(configSnapshot, agentId);
+              if (resolved.kind === "none" && defaultAvatarPath) {
+                try {
+                  if (fs.existsSync(defaultAvatarPath) && fs.statSync(defaultAvatarPath).isFile()) {
+                    return { kind: "local" as const, filePath: defaultAvatarPath };
+                  }
+                } catch {
+                  // Fall through to 404
+                }
+              }
+              return resolved;
+            },
           })
         ) {
           return;

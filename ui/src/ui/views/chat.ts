@@ -1,4 +1,4 @@
-﻿import { html, nothing } from "lit";
+import { html, nothing } from "lit";
 import { ref } from "lit/directives/ref.js";
 import { repeat } from "lit/directives/repeat.js";
 import type { SessionsListResult } from "../types.ts";
@@ -62,6 +62,9 @@ export type ChatProps = {
   // Event handlers
   onRefresh: () => void;
   onToggleFocusMode: () => void;
+  onToggleThinking?: () => void;
+  /** When true, thinking toggle is disabled (e.g. during onboarding) */
+  onboarding?: boolean;
   onDraftChange: (next: string) => void;
   onSend: () => void;
   onAbort?: () => void;
@@ -311,8 +314,51 @@ export function renderChat(props: ChatProps) {
     </div>
   `;
 
+  const refreshIcon = html`
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
+      <path d="M21 3v5h-5"></path>
+    </svg>
+  `;
+
   return html`
     <section class="card chat">
+      <div class="chat-header-row">
+        <div class="chat-header-row__spacer" aria-hidden="true"></div>
+        <div class="chat-header-row__title">${props.assistantName}</div>
+        <div class="chat-header-row__actions">
+        <details class="chat-toolbar__settings">
+          <summary class="chat-toolbar__settings-btn" title=${t("Chat settings", "聊天设置")}>
+            ${icons.settings}
+          </summary>
+          <div class="chat-toolbar__popover">
+            <button
+              type="button"
+              class="chat-toolbar__action"
+              ?disabled=${props.loading || !props.connected}
+              @click=${(e: Event) => {
+                (e.target as HTMLElement).closest("details")?.removeAttribute("open");
+                props.onRefresh();
+              }}
+            >
+              ${refreshIcon}
+              <span>${t("Refresh", "刷新")}</span>
+            </button>
+            <label class="chat-toolbar__action chat-toolbar__action--toggle">
+              <input
+                type="checkbox"
+                ?checked=${props.showThinking}
+                ?disabled=${props.onboarding ?? false}
+                @change=${() => props.onToggleThinking?.()}
+              />
+              ${icons.brain}
+              <span>${t("Show thinking", "显示思考")}</span>
+            </label>
+          </div>
+        </details>
+        </div>
+      </div>
+
       ${props.disabledReason ? html`<div class="callout">${props.disabledReason}</div>` : nothing}
 
       ${props.error ? html`<div class="callout danger">${props.error}</div>` : nothing}

@@ -346,7 +346,7 @@ export class OpenSoulApp extends LitElement {
   @state() settingsSection: import("./navigation.ts").SettingsTab | "general" = "general";
 
   // Onboarding wizard state
-  @state() showOnboardingWizard = true; // TODO: restore to !localStorage.getItem("opensoul.onboarding.done")
+  @state() showOnboardingWizard = false; // Disabled: go directly to main page. Set true to restore onboarding.
   @state() onboardingStep: 1 | 2 | 3 | 4 | 5 = 1;
   @state() onboardingLocale: Locale = this.initialLocale;
   @state() onboardingLoginStatus: "idle" | "loading" | "success" | "error" = "idle";

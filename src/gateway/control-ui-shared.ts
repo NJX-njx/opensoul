@@ -57,6 +57,11 @@ export function resolveAssistantAvatarUrl(params: {
     return avatar;
   }
 
+  // Root-relative static file path (e.g. /avatar.png) — serve from control-ui root, not agent avatar API.
+  if (avatar.startsWith("/") && looksLikeLocalAvatarPath(avatar)) {
+    return basePath ? `${basePath}${avatar}` : avatar;
+  }
+
   if (!params.agentId) {
     return avatar;
   }

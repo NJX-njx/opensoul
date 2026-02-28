@@ -2,13 +2,13 @@
    Mobile Layout
    =========================================== */
 
-/* Tablet: Horizontal nav */
+/* Tablet: Horizontal nav, each group vertical (parent above, sub-items below) */
 @media (max-width: 1100px) {
   .nav {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    gap: 4px;
+    gap: 12px;
     padding: 10px 14px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -20,19 +20,28 @@
   }
 
   .nav-group {
-    display: contents;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    gap: 4px;
   }
 
   .nav-group__items {
-    display: contents;
-  }
-
-  .nav-label {
-    display: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
   .nav-group--collapsed .nav-group__items {
-    display: contents;
+    display: none;
+  }
+
+  .nav-label {
+    display: flex;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
   }
 
   .nav-item {

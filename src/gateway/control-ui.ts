@@ -193,6 +193,22 @@ interface ServeIndexHtmlOpts {
   basePath: string;
   config?: OpenSoulConfig;
   agentId?: string;
+  root?: ControlUiRootState;
+}
+
+/** Load avatar.png from control-ui root as data URL to avoid path resolution issues. */
+export function loadDefaultAvatarAsDataUrl(controlUiRoot: string): string | undefined {
+  const avatarPath = path.join(controlUiRoot, "avatar.png");
+  try {
+    if (fs.existsSync(avatarPath) && fs.statSync(avatarPath).isFile()) {
+      const buf = fs.readFileSync(avatarPath);
+      const b64 = buf.toString("base64");
+      return `data:image/png;base64,${b64}`;
+    }
+  } catch {
+    // Ignore; fall back to path
+  }
+  return undefined;
 }
 
 function serveIndexHtml(res: ServerResponse, indexPath: string, opts: ServeIndexHtmlOpts) {
@@ -204,12 +220,20 @@ function serveIndexHtml(res: ServerResponse, indexPath: string, opts: ServeIndex
     typeof (identity as { agentId?: string }).agentId === "string"
       ? (identity as { agentId?: string }).agentId
       : agentId;
-  const avatarValue =
+  let avatarValue =
     resolveAssistantAvatarUrl({
       avatar: identity.avatar,
       agentId: resolvedAgentId,
       basePath,
     }) ?? identity.avatar;
+  // Use data URL for default avatar to avoid path/basePath resolution issues.
+  if (avatarValue === "/avatar.png" || avatarValue === `${basePath}/avatar.png`) {
+    const root = opts.root?.kind === "resolved" ? opts.root.path : path.dirname(indexPath);
+    const dataUrl = root ? loadDefaultAvatarAsDataUrl(root) : undefined;
+    if (dataUrl) {
+      avatarValue = dataUrl;
+    }
+  }
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "no-cache");
   const raw = fs.readFileSync(indexPath, "utf8");
@@ -345,6 +369,7 @@ export function handleControlUiHttpRequest(
         basePath,
         config: opts?.config,
         agentId: opts?.agentId,
+        root: opts?.root,
       });
       return true;
     }
@@ -359,6 +384,7 @@ export function handleControlUiHttpRequest(
       basePath,
       config: opts?.config,
       agentId: opts?.agentId,
+      root: opts?.root,
     });
     return true;
   }
