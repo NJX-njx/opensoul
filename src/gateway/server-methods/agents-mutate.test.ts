@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   ensureAgentWorkspace: vi.fn(async () => {}),
   resolveAgentDir: vi.fn(() => "/agents/test-agent"),
   resolveAgentWorkspaceDir: vi.fn(() => "/workspace/test-agent"),
+  resolveDefaultAgentId: vi.fn(() => "main"),
   resolveSessionTranscriptsDirForAgent: vi.fn(() => "/transcripts/test-agent"),
   listAgentsForGateway: vi.fn(() => ({
     defaultId: "main",
@@ -21,8 +22,7 @@ const mocks = vi.hoisted(() => ({
     scope: "global",
     agents: [],
   })),
-  movePathToTrash: vi.fn(async () => "/trashed"),
-  fsAccess: vi.fn(async () => {}),
+  fsRm: vi.fn(async () => {}),
   fsMkdir: vi.fn(async () => undefined),
   fsAppendFile: vi.fn(async () => {}),
 }));
@@ -43,6 +43,7 @@ vi.mock("../../agents/agent-scope.js", () => ({
   listAgentIds: () => ["main"],
   resolveAgentDir: mocks.resolveAgentDir,
   resolveAgentWorkspaceDir: mocks.resolveAgentWorkspaceDir,
+  resolveDefaultAgentId: mocks.resolveDefaultAgentId,
 }));
 
 vi.mock("../../agents/workspace.js", async () => {
@@ -57,10 +58,6 @@ vi.mock("../../agents/workspace.js", async () => {
 
 vi.mock("../../config/sessions/paths.js", () => ({
   resolveSessionTranscriptsDirForAgent: mocks.resolveSessionTranscriptsDirForAgent,
-}));
-
-vi.mock("../../browser/trash.js", () => ({
-  movePathToTrash: mocks.movePathToTrash,
 }));
 
 vi.mock("../../utils.js", () => ({
@@ -78,9 +75,10 @@ vi.mock("node:fs/promises", async () => {
   const actual = await vi.importActual<typeof import("node:fs/promises")>("node:fs/promises");
   const patched = {
     ...actual,
-    access: mocks.fsAccess,
+    access: vi.fn(async () => {}),
     mkdir: mocks.fsMkdir,
     appendFile: mocks.fsAppendFile,
+    rm: mocks.fsRm,
   };
   return { ...patched, default: patched };
 });
@@ -298,9 +296,10 @@ describe("agents.delete", () => {
     mocks.loadConfigReturn = {};
     mocks.findAgentEntryIndex.mockReturnValue(0);
     mocks.pruneAgentConfig.mockReturnValue({ config: {}, removedBindings: 2 });
+    mocks.resolveDefaultAgentId.mockReturnValue("main");
   });
 
-  it("deletes an existing agent and trashes files by default", async () => {
+  it("deletes an existing agent and permanently removes files by default", async () => {
     const { respond, promise } = makeCall("agents.delete", {
       agentId: "test-agent",
     });
@@ -312,12 +311,11 @@ describe("agents.delete", () => {
       undefined,
     );
     expect(mocks.writeConfigFile).toHaveBeenCalled();
-    // moveToTrashBestEffort calls fs.access then movePathToTrash for each dir
-    expect(mocks.movePathToTrash).toHaveBeenCalled();
+    expect(mocks.fsRm).toHaveBeenCalled();
   });
 
   it("skips file deletion when deleteFiles is false", async () => {
-    mocks.fsAccess.mockClear();
+    mocks.fsRm.mockClear();
 
     const { respond, promise } = makeCall("agents.delete", {
       agentId: "test-agent",
@@ -326,13 +324,29 @@ describe("agents.delete", () => {
     await promise;
 
     expect(respond).toHaveBeenCalledWith(true, expect.objectContaining({ ok: true }), undefined);
-    // moveToTrashBestEffort should not be called at all
-    expect(mocks.fsAccess).not.toHaveBeenCalled();
+    expect(mocks.fsRm).not.toHaveBeenCalled();
   });
 
-  it("rejects deleting the main agent", async () => {
+  it("rejects deleting the default agent", async () => {
+    mocks.resolveDefaultAgentId.mockReturnValue("main");
     const { respond, promise } = makeCall("agents.delete", {
       agentId: "main",
+    });
+    await promise;
+
+    expect(respond).toHaveBeenCalledWith(
+      false,
+      undefined,
+      expect.objectContaining({ message: expect.stringContaining("cannot be deleted") }),
+    );
+    expect(mocks.writeConfigFile).not.toHaveBeenCalled();
+  });
+
+  it("rejects deleting a non-main default agent (e.g. dev mode)", async () => {
+    mocks.resolveDefaultAgentId.mockReturnValue("dev");
+    mocks.findAgentEntryIndex.mockReturnValue(0);
+    const { respond, promise } = makeCall("agents.delete", {
+      agentId: "dev",
     });
     await promise;
 

@@ -80,7 +80,7 @@ export type AgentsDeleteResult = {
 };
 
 /**
- * 删除 agent，调用 agents.delete。main 不可删除。
+ * 删除 agent，调用 agents.delete。默认智能体不可删除；删除后不可恢复。
  */
 export async function deleteAgent(
   state: AgentsState,

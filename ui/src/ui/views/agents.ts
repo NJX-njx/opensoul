@@ -81,7 +81,7 @@ export type AgentsProps = {
   onAgentSkillToggle: (agentId: string, skillName: string, enabled: boolean) => void;
   onAgentSkillsClear: (agentId: string) => void;
   onAgentSkillsDisableAll: (agentId: string) => void;
-  /** 删除 agent（main 不可删除） */
+  /** 删除 agent（默认智能体不可删除，删除后不可恢复） */
   onDeleteAgent?: (agentId: string) => void;
 };
 
@@ -734,8 +734,6 @@ export function renderAgents(props: AgentsProps) {
   `;
 }
 
-const MAIN_AGENT_ID = "main";
-
 function renderAgentHeader(
   agent: AgentsListResult["agents"][number],
   defaultId: string | null,
@@ -746,7 +744,8 @@ function renderAgentHeader(
   const displayName = normalizeAgentLabel(agent);
   const subtitle = agent.identity?.theme?.trim() || "Agent workspace and routing.";
   const emoji = resolveAgentEmoji(agent, agentIdentity);
-  const canDelete = agent.id !== MAIN_AGENT_ID && onDeleteAgent;
+  /** 仅非默认智能体可删除；删除后不可恢复 */
+  const canDelete = defaultId != null && agent.id !== defaultId && onDeleteAgent;
   return html`
     <section class="card agent-header">
       <div class="agent-header-main">
@@ -771,7 +770,7 @@ function renderAgentHeader(
                   @click=${() => {
                     if (
                       confirm(
-                        `Delete agent "${displayName}" (${agent.id})? Workspace and sessions will be moved to trash.`,
+                        `Delete agent "${displayName}" (${agent.id})? Workspace, sessions, and config will be permanently removed. This cannot be undone.`,
                       )
                     ) {
                       onDeleteAgent(agent.id);

@@ -1,7 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { GatewayRequestHandlers } from "./types.js";
-import { resolveAgentDir, resolveAgentWorkspaceDir } from "../../agents/agent-scope.js";
+import {
+  resolveAgentDir,
+  resolveAgentWorkspaceDir,
+  resolveDefaultAgentId,
+} from "../../agents/agent-scope.js";
 import {
   DEFAULT_AGENTS_FILENAME,
   DEFAULT_BOOTSTRAP_FILENAME,
@@ -14,7 +18,6 @@ import {
   DEFAULT_USER_FILENAME,
   ensureAgentWorkspace,
 } from "../../agents/workspace.js";
-import { movePathToTrash } from "../../browser/trash.js";
 import {
   applyAgentConfig,
   findAgentEntryIndex,
@@ -146,19 +149,15 @@ function resolveOptionalStringParam(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
-async function moveToTrashBestEffort(pathname: string): Promise<void> {
+/** Permanently removes a directory. No recovery. */
+async function removePermanently(pathname: string): Promise<void> {
   if (!pathname) {
     return;
   }
   try {
-    await fs.access(pathname);
+    await fs.rm(pathname, { recursive: true, force: true });
   } catch {
-    return;
-  }
-  try {
-    await movePathToTrash(pathname);
-  } catch {
-    // Best-effort: path may already be gone or trash unavailable.
+    // Best-effort: path may already be gone.
   }
 }
 
@@ -328,11 +327,15 @@ export const agentsHandlers: GatewayRequestHandlers = {
 
     const cfg = loadConfig();
     const agentId = normalizeAgentId(String(params.agentId ?? ""));
-    if (agentId === DEFAULT_AGENT_ID) {
+    const defaultAgentId = normalizeAgentId(resolveDefaultAgentId(cfg));
+    if (agentId === defaultAgentId) {
       respond(
         false,
         undefined,
-        errorShape(ErrorCodes.INVALID_REQUEST, `"${DEFAULT_AGENT_ID}" cannot be deleted`),
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `default agent "${defaultAgentId}" cannot be deleted`,
+        ),
       );
       return;
     }
@@ -355,9 +358,9 @@ export const agentsHandlers: GatewayRequestHandlers = {
 
     if (deleteFiles) {
       await Promise.all([
-        moveToTrashBestEffort(workspaceDir),
-        moveToTrashBestEffort(agentDir),
-        moveToTrashBestEffort(sessionsDir),
+        removePermanently(workspaceDir),
+        removePermanently(agentDir),
+        removePermanently(sessionsDir),
       ]);
     }
 
