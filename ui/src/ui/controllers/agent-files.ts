@@ -96,6 +96,33 @@ export async function loadAgentFileContent(
   }
 }
 
+export async function bootstrapAgentWorkspace(
+  state: AgentFilesState,
+  agentId: string,
+): Promise<boolean> {
+  if (!state.client || !state.connected || state.agentFilesLoading) {
+    return false;
+  }
+  state.agentFilesLoading = true;
+  state.agentFilesError = null;
+  try {
+    const res = await state.client.request<{ ok?: boolean; files?: Array<{ name: string }> }>(
+      "agents.workspace.ensure",
+      { agentId },
+    );
+    if (res?.ok) {
+      await loadAgentFiles(state, agentId);
+      return true;
+    }
+    return false;
+  } catch (err) {
+    state.agentFilesError = String(err);
+    return false;
+  } finally {
+    state.agentFilesLoading = false;
+  }
+}
+
 export async function saveAgentFile(
   state: AgentFilesState,
   agentId: string,

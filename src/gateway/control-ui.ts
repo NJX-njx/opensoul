@@ -128,6 +128,14 @@ export function handleControlUiAvatarRequest(
   }
 
   const resolved = opts.resolveAvatar(agentId);
+  if (resolved.kind === "data") {
+    serveDataUri(res, resolved.url, req.method === "HEAD");
+    return true;
+  }
+  if (resolved.kind === "remote") {
+    respondNotFound(res);
+    return true;
+  }
   if (resolved.kind !== "local") {
     respondNotFound(res);
     return true;
@@ -158,6 +166,41 @@ function serveFile(res: ServerResponse, filePath: string) {
   // browser to revalidate.
   res.setHeader("Cache-Control", "no-cache");
   res.end(fs.readFileSync(filePath));
+}
+
+/** Parse data URI (e.g. data:image/png;base64,...) and return { contentType, buffer }. */
+function parseDataUri(dataUri: string): { contentType: string; buffer: Buffer } | null {
+  const match = dataUri.match(/^data:([^;,]+)(?:;base64)?,(.+)$/);
+  if (!match) {
+    return null;
+  }
+  const contentType = match[1].trim().toLowerCase();
+  const encoded = match[2];
+  if (!encoded) {
+    return null;
+  }
+  try {
+    const buffer = Buffer.from(encoded, "base64");
+    return { contentType, buffer };
+  } catch {
+    return null;
+  }
+}
+
+function serveDataUri(res: ServerResponse, dataUri: string, headOnly: boolean) {
+  const parsed = parseDataUri(dataUri);
+  if (!parsed) {
+    respondNotFound(res);
+    return;
+  }
+  res.statusCode = 200;
+  res.setHeader("Content-Type", parsed.contentType);
+  res.setHeader("Cache-Control", "no-cache");
+  if (headOnly) {
+    res.end();
+  } else {
+    res.end(parsed.buffer);
+  }
 }
 
 interface ControlUiInjectionOpts {

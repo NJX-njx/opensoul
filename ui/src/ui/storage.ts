@@ -13,6 +13,7 @@ export type UiSettings = {
   operateZoomLevel: number;
   splitRatio: number; // Sidebar split ratio (0.4 to 0.7, default 0.6)
   chatListWidth: number; // Chat list sidebar width in px (200-480, default 280)
+  chatListHiddenAgentIds: Array<string>; // Agent IDs to hide from chat list (e.g. ["sophie"])
   navCollapsed: boolean; // Collapsible sidebar state
   navGroupsCollapsed: Record<string, boolean>; // Which nav groups are collapsed
 };
@@ -44,6 +45,7 @@ export function loadSettings(): UiSettings {
     operateZoomLevel: 1,
     splitRatio: 0.6,
     chatListWidth: 280,
+    chatListHiddenAgentIds: ["sophie"],
     navCollapsed: false,
     navGroupsCollapsed: {},
   };
@@ -103,6 +105,11 @@ export function loadSettings(): UiSettings {
         parsed.chatListWidth <= 480
           ? parsed.chatListWidth
           : defaults.chatListWidth,
+      chatListHiddenAgentIds:
+        Array.isArray(parsed.chatListHiddenAgentIds) &&
+        parsed.chatListHiddenAgentIds.every((id) => typeof id === "string")
+          ? parsed.chatListHiddenAgentIds
+          : defaults.chatListHiddenAgentIds,
       navCollapsed:
         typeof parsed.navCollapsed === "boolean" ? parsed.navCollapsed : defaults.navCollapsed,
       navGroupsCollapsed:

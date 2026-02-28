@@ -10,10 +10,15 @@ import {
   resolveMainSessionKey,
 } from "./app-render.helpers.ts";
 import { syncUrlWithSessionKey } from "./app-settings.ts";
-import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
+import {
+  loadAgentFileContent,
+  loadAgentFiles,
+  saveAgentFile,
+  bootstrapAgentWorkspace,
+} from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
 import { loadAgentSkills } from "./controllers/agent-skills.ts";
-import { loadAgents } from "./controllers/agents.ts";
+import { loadAgents, deleteAgent } from "./controllers/agents.ts";
 import { loadChannels } from "./controllers/channels.ts";
 import { loadChatHistory } from "./controllers/chat.ts";
 import {
@@ -85,6 +90,7 @@ import { renderChatList } from "./views/chat-list.ts";
 import { renderChatWelcome } from "./views/chat-welcome.ts";
 import { renderChat } from "./views/chat.ts";
 import { renderConfig } from "./views/config.ts";
+import { renderCreateSoulmateModal } from "./views/create-soulmate-modal.ts";
 import { renderCron } from "./views/cron.ts";
 import { renderDebug } from "./views/debug.ts";
 import { renderExecApprovalPrompt } from "./views/exec-approval.ts";
@@ -826,6 +832,7 @@ export function renderApp(state: AppViewState) {
                   }
                 },
                 onLoadFiles: (agentId) => loadAgentFiles(state, agentId),
+                onBootstrapWorkspace: (agentId) => bootstrapAgentWorkspace(state, agentId),
                 onSelectFile: (name) => {
                   state.agentFileActive = name;
                   if (!resolvedAgentId) {
@@ -1079,6 +1086,18 @@ export function renderApp(state: AppViewState) {
                     : { fallbacks: normalized };
                   updateConfigFormValue(state, basePath, next);
                 },
+                onDeleteAgent: async (agentId) => {
+                  const res = await deleteAgent(state, agentId, true);
+                  if (res?.ok) {
+                    await loadConfig(state);
+                    await loadAgents(state);
+                    await loadSessions(state);
+                    const agentIds = state.agentsList?.agents?.map((entry) => entry.id) ?? [];
+                    if (agentIds.length > 0) {
+                      void loadAgentIdentities(state, agentIds);
+                    }
+                  }
+                },
               })
             : nothing
         }
@@ -1198,6 +1217,8 @@ export function renderApp(state: AppViewState) {
                     agentIdentityById: state.agentIdentityById ?? {},
                     agentsList: state.agentsList ?? null,
                     assistantName: state.assistantName ?? "sophie",
+                    hiddenAgentIds: state.settings.chatListHiddenAgentIds,
+                    onOpenCreateSoulmate: () => state.openCreateSoulmateModal(),
                     onSelect: (next) => {
                       state.sessionKey = next;
                       state.chatMessage = "";
@@ -1222,6 +1243,7 @@ export function renderApp(state: AppViewState) {
                         true,
                       );
                     },
+                    /* onNewGroupChat: omit until group chat creation is implemented */
                   })}
                   <chat-list-resizer
                     .width=${state.settings.chatListWidth ?? 280}
@@ -1419,6 +1441,13 @@ export function renderApp(state: AppViewState) {
       })}
       ${renderExecApprovalPrompt(state)}
       ${renderGatewayUrlConfirmation(state)}
+      ${renderCreateSoulmateModal(
+        state,
+        state.createSoulmateModalState,
+        () => state.closeCreateSoulmateModal(),
+        (field, value) => state.createSoulmateModalFieldChange(field, value),
+        () => state.handleCreateSoulmateSubmit(),
+      )}
     </div>
   `;
 }

@@ -76,6 +76,7 @@ import {
   setTab as setTabInternal,
   setTheme as setThemeInternal,
   onPopState as onPopStateInternal,
+  syncUrlWithSessionKey,
 } from "./app-settings.ts";
 import {
   resetToolStream as resetToolStreamInternal,
@@ -83,6 +84,7 @@ import {
   type CompactionStatus,
 } from "./app-tool-stream.ts";
 import { resolveInjectedAssistantIdentity } from "./assistant-identity.ts";
+import { createAgent, loadAgents } from "./controllers/agents.ts";
 import { loadAssistantIdentity as loadAssistantIdentityInternal } from "./controllers/assistant-identity.ts";
 import {
   loadConfig as loadConfigInternal,
@@ -90,9 +92,14 @@ import {
 } from "./controllers/config.ts";
 import { loadDebug as loadDebugInternal } from "./controllers/debug.ts";
 import { loadLogs as loadLogsInternal } from "./controllers/logs.ts";
+import { loadSessions } from "./controllers/sessions.ts";
 import { loadUiLocale, resolveUiLocale, saveUiLocale } from "./i18n.ts";
 import { loadSettings, type UiSettings } from "./storage.ts";
 import { type ChatAttachment, type ChatQueueItem, type CronFormState } from "./ui-types.ts";
+import {
+  INITIAL_CREATE_SOULMATE_STATE,
+  type CreateSoulmateModalState,
+} from "./views/create-soulmate-modal.ts";
 import { getMessages } from "./views/onboarding/i18n.ts";
 
 declare global {
@@ -177,6 +184,11 @@ export class OpenSoulApp extends LitElement {
   @state() execApprovalBusy = false;
   @state() execApprovalError: string | null = null;
   @state() pendingGatewayUrl: string | null = null;
+
+  @state() showCreateSoulmateModal = false;
+  @state() createSoulmateModalState: CreateSoulmateModalState = {
+    ...INITIAL_CREATE_SOULMATE_STATE,
+  };
 
   @state() configLoading = false;
   @state() configRaw = "{\n}\n";
@@ -580,6 +592,88 @@ export class OpenSoulApp extends LitElement {
 
   handleGatewayUrlCancel() {
     this.pendingGatewayUrl = null;
+  }
+
+  openCreateSoulmateModal() {
+    this.createSoulmateModalState = { ...INITIAL_CREATE_SOULMATE_STATE };
+    this.showCreateSoulmateModal = true;
+  }
+
+  closeCreateSoulmateModal() {
+    this.showCreateSoulmateModal = false;
+  }
+
+  createSoulmateModalFieldChange(
+    field: keyof CreateSoulmateModalState,
+    value: string | null | boolean,
+  ) {
+    this.createSoulmateModalState = {
+      ...this.createSoulmateModalState,
+      [field]: value,
+    };
+  }
+
+  async handleCreateSoulmateSubmit() {
+    const s = this.createSoulmateModalState;
+    if (s.submitting) {
+      return;
+    }
+    const name = s.name.trim();
+    if (!name) {
+      this.createSoulmateModalFieldChange("error", "Name is required");
+      return;
+    }
+    const { defaultWorkspace } = await import("./views/create-soulmate-modal.js");
+    const workspace = s.workspace.trim() || defaultWorkspace(name);
+    this.createSoulmateModalFieldChange("submitting", true);
+    this.createSoulmateModalFieldChange("error", null);
+    try {
+      const result = await createAgent(this as unknown as Parameters<typeof createAgent>[0], {
+        name,
+        workspace,
+        emoji: s.emoji.trim() || undefined,
+        avatar: s.avatarDataUrl ?? undefined,
+      });
+      if (result) {
+        this.closeCreateSoulmateModal();
+        const sessionKey = `agent:${result.agentId}:main`;
+        this.sessionKey = sessionKey;
+        this.chatMessage = "";
+        this.chatAttachments = [];
+        this.chatStream = null;
+        this.chatStreamStartedAt = null;
+        this.chatRunId = null;
+        this.chatQueue = [];
+        this.resetToolStream();
+        this.resetChatScroll();
+        this.applySettings({
+          ...this.settings,
+          sessionKey,
+          lastActiveSessionKey: sessionKey,
+        });
+        void this.loadAssistantIdentity();
+        void loadSessions(this as unknown as Parameters<typeof loadSessions>[0], { reset: true });
+        void loadAgents(this as unknown as Parameters<typeof loadAgents>[0]);
+        const { loadChatHistory } = await import("./controllers/chat.ts");
+        const { refreshChatAvatar } = await import("./app-chat.ts");
+        void loadChatHistory(this as unknown as Parameters<typeof loadChatHistory>[0]);
+        void refreshChatAvatar(this as unknown as Parameters<typeof refreshChatAvatar>[0]);
+        syncUrlWithSessionKey(
+          this as unknown as Parameters<typeof syncUrlWithSessionKey>[0],
+          sessionKey,
+          true,
+        );
+      } else {
+        this.createSoulmateModalFieldChange(
+          "error",
+          "Failed to create agent. Check gateway connection.",
+        );
+      }
+    } catch (err) {
+      this.createSoulmateModalFieldChange("error", String(err));
+    } finally {
+      this.createSoulmateModalFieldChange("submitting", false);
+    }
   }
 
   openSettings(section?: import("./navigation.ts").SettingsTab | "general") {

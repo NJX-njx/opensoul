@@ -25,9 +25,15 @@ export type ChatListProps = {
   agentsList: AgentsListResult | null;
   /** Fallback assistant name (e.g. for main agent when identity not loaded) */
   assistantName: string;
+  /** Agent IDs to hide from the chat list (e.g. ["sophie"]) */
+  hiddenAgentIds?: Array<string>;
   /** Width in px for resizable sidebar (default 280) */
   width?: number;
   onSelect: (key: string) => void;
+  /** Optional: create new group chat (when not provided, option may be disabled or show placeholder) */
+  onNewGroupChat?: () => void;
+  /** Optional: open create soulmate modal (when provided, "Create Soulmate" opens modal instead of selecting main) */
+  onOpenCreateSoulmate?: () => void;
 };
 
 const PREVIEW_MAX_LEN = 40;
@@ -93,8 +99,16 @@ function resolveSessionTitle(
     if (agentName) {
       return agentName;
     }
-    if (agentId === "main" && assistantName?.trim()) {
-      return assistantName.trim();
+    if (agentId === "main") {
+      const defaultId = agentsList?.defaultId ?? "main";
+      const defaultAgent = agentsList?.agents?.find((a) => a.id === defaultId);
+      const defaultName = defaultAgent?.identity?.name?.trim() ?? defaultAgent?.name?.trim();
+      if (defaultName) {
+        return defaultName;
+      }
+      if (assistantName?.trim()) {
+        return assistantName.trim();
+      }
     }
   }
   return (
@@ -106,9 +120,86 @@ function resolveSessionTitle(
   );
 }
 
+/** Remove duplicate: "main" and agent:defaultId:main represent the same session. Keep canonical key, merge data. */
+function deduplicateLegacyMain(
+  sessions: Array<GatewaySessionRow>,
+  defaultId: string,
+): Array<GatewaySessionRow> {
+  const mainRow = sessions.find((s) => s.key === "main");
+  const canonicalKey = `agent:${defaultId}:main`;
+  const canonicalRow = sessions.find((s) => s.key === canonicalKey);
+  if (!mainRow || !canonicalRow) {
+    return sessions;
+  }
+  const merged: GatewaySessionRow = {
+    ...canonicalRow,
+    updatedAt:
+      (canonicalRow.updatedAt ?? 0) >= (mainRow.updatedAt ?? 0)
+        ? canonicalRow.updatedAt
+        : mainRow.updatedAt,
+    lastMessagePreview: canonicalRow.lastMessagePreview ?? mainRow.lastMessagePreview,
+  };
+  return sessions.filter((s) => s.key !== "main" && s.key !== canonicalKey).concat(merged);
+}
+
+/** Merge sessions with agent main sessions so newly created agents appear in the list. */
+function mergeSessionsWithAgents(
+  sessions: Array<GatewaySessionRow>,
+  agentsList: AgentsListResult | null,
+): Array<GatewaySessionRow> {
+  const agents = agentsList?.agents ?? [];
+  if (agents.length === 0) {
+    return sessions;
+  }
+  const defaultId = agentsList?.defaultId ?? "main";
+  const existingKeys = new Set(sessions.map((s) => s.key));
+  const placeholders: Array<GatewaySessionRow> = [];
+  for (const agent of agents) {
+    const agentMainKey = `agent:${agent.id}:main`;
+    const isDefaultAgent = agent.id === defaultId;
+    const hasExistingSession =
+      existingKeys.has(agentMainKey) ||
+      (isDefaultAgent && existingKeys.has("main")) ||
+      (agent.id === "main" && existingKeys.has("main"));
+    if (!hasExistingSession) {
+      placeholders.push({
+        key: agentMainKey,
+        kind: "direct",
+        updatedAt: null,
+      });
+      existingKeys.add(agentMainKey);
+    }
+  }
+  let result = placeholders.length === 0 ? sessions : [...sessions, ...placeholders];
+  result = deduplicateLegacyMain(result, defaultId);
+  return result;
+}
+
+function filterHiddenAgents(
+  sessions: Array<GatewaySessionRow>,
+  hiddenAgentIds: Array<string> | undefined,
+  defaultId: string,
+): Array<GatewaySessionRow> {
+  if (!hiddenAgentIds?.length) {
+    return sessions;
+  }
+  const hidden = new Set(hiddenAgentIds.map((id) => id.toLowerCase()));
+  return sessions.filter((row) => {
+    const parsed = parseAgentSessionKey(row.key);
+    const agentId = parsed?.agentId ?? (row.key === "main" ? defaultId : null);
+    if (!agentId) {
+      return true;
+    }
+    return !hidden.has(agentId.toLowerCase());
+  });
+}
+
 export function renderChatList(props: ChatListProps) {
   const t = (english: string, chinese: string) => uiText(props.locale, english, chinese);
-  const sessions = props.sessions?.sessions ?? [];
+  const rawSessions = props.sessions?.sessions ?? [];
+  const defaultId = props.agentsList?.defaultId ?? "main";
+  let sessions = mergeSessionsWithAgents(rawSessions, props.agentsList);
+  sessions = filterHiddenAgents(sessions, props.hiddenAgentIds, defaultId);
   const isLoading = props.loading;
 
   const mainKey = props.mainSessionKey ?? "main";
@@ -118,15 +209,52 @@ export function renderChatList(props: ChatListProps) {
     <aside class="chat-list" style="width: ${width}px; min-width: ${width}px;">
       <div class="chat-list__header">
         <h2 class="chat-list__title">${t("Chats", "聊天")}</h2>
-        <button
-          type="button"
-          class="chat-list__new-btn"
-          @click=${() => props.onSelect(mainKey)}
-          title=${t("New chat", "新建聊天")}
-        >
-          ${icons.plus}
-          <span>${t("New", "新建")}</span>
-        </button>
+        <details class="chat-list__new-dropdown">
+          <summary class="chat-list__new-btn" title=${t("New chat", "新建聊天")}>
+            ${icons.plus}
+            <span>${t("New", "新建")}</span>
+          </summary>
+          <div class="chat-list__new-menu">
+            <button
+              type="button"
+              class="chat-list__new-menu-item"
+              @click=${(e: Event) => {
+                (e.target as HTMLElement).closest("details")?.removeAttribute("open");
+                if (props.onOpenCreateSoulmate) {
+                  props.onOpenCreateSoulmate();
+                } else {
+                  props.onSelect(mainKey);
+                }
+              }}
+            >
+              <span class="chat-list__new-menu-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+              </span>
+              <span>${t("Create Soulmate", "创建soulmate")}</span>
+            </button>
+            <button
+              type="button"
+              class="chat-list__new-menu-item"
+              ?disabled=${!props.onNewGroupChat}
+              @click=${(e: Event) => {
+                (e.target as HTMLElement).closest("details")?.removeAttribute("open");
+                props.onNewGroupChat?.();
+              }}
+            >
+              <span class="chat-list__new-menu-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </span>
+              <span>${t("Create Group Chat", "创建群聊")}</span>
+            </button>
+          </div>
+        </details>
       </div>
       <div class="chat-list__body">
         ${

@@ -90,6 +90,8 @@ export type AppViewState = {
   execApprovalBusy: boolean;
   execApprovalError: string | null;
   pendingGatewayUrl: string | null;
+  showCreateSoulmateModal: boolean;
+  createSoulmateModalState: import("./views/create-soulmate-modal.js").CreateSoulmateModalState;
   configLoading: boolean;
   configRaw: string;
   configRawOriginal: string;
@@ -246,6 +248,13 @@ export type AppViewState = {
   handleExecApprovalDecision: (decision: "allow-once" | "allow-always" | "deny") => Promise<void>;
   handleGatewayUrlConfirm: () => void;
   handleGatewayUrlCancel: () => void;
+  openCreateSoulmateModal: () => void;
+  closeCreateSoulmateModal: () => void;
+  createSoulmateModalFieldChange: (
+    field: keyof import("./views/create-soulmate-modal.js").CreateSoulmateModalState,
+    value: string | null | boolean,
+  ) => void;
+  handleCreateSoulmateSubmit: () => Promise<void>;
   handleConfigLoad: () => Promise<void>;
   handleConfigSave: () => Promise<void>;
   handleConfigApply: () => Promise<void>;

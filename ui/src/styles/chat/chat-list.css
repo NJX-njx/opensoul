@@ -37,6 +37,10 @@
   color: var(--text-strong);
 }
 
+.chat-list__new-dropdown {
+  position: relative;
+}
+
 .chat-list__new-btn {
   display: inline-flex;
   align-items: center;
@@ -49,9 +53,14 @@
   font-size: 13px;
   font-family: inherit;
   cursor: pointer;
+  list-style: none;
   transition:
     background 150ms ease-out,
     border-color 150ms ease-out;
+}
+
+.chat-list__new-btn::-webkit-details-marker {
+  display: none;
 }
 
 .chat-list__new-btn:hover {
@@ -65,6 +74,83 @@
   stroke: currentColor;
   fill: none;
   stroke-width: 2px;
+}
+
+/* WeChat-style dropdown menu (图2 reference) */
+.chat-list__new-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  min-width: 160px;
+  padding: 6px 0;
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+}
+
+.chat-list__new-menu::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: 16px;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid var(--border);
+}
+
+.chat-list__new-menu::after {
+  content: "";
+  position: absolute;
+  top: -5px;
+  right: 17px;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid var(--popover);
+}
+
+.chat-list__new-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background 150ms ease-out;
+}
+
+.chat-list__new-menu-item:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--secondary) 50%, transparent);
+}
+
+.chat-list__new-menu-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chat-list__new-menu-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.chat-list__new-menu-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
 }
 
 .chat-list__body {

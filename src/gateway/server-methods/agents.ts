@@ -1,11 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { GatewayRequestHandlers } from "./types.js";
-import {
-  listAgentIds,
-  resolveAgentDir,
-  resolveAgentWorkspaceDir,
-} from "../../agents/agent-scope.js";
+import { resolveAgentDir, resolveAgentWorkspaceDir } from "../../agents/agent-scope.js";
 import {
   DEFAULT_AGENTS_FILENAME,
   DEFAULT_BOOTSTRAP_FILENAME,
@@ -131,9 +127,11 @@ async function listAgentFiles(workspaceDir: string) {
   return files;
 }
 
+/** Use same agent IDs as listAgentsForGateway so disk-scanned agents work when agents.list is empty. */
 function resolveAgentIdOrError(agentIdRaw: string, cfg: ReturnType<typeof loadConfig>) {
   const agentId = normalizeAgentId(agentIdRaw);
-  const allowed = new Set(listAgentIds(cfg));
+  const { agents } = listAgentsForGateway(cfg);
+  const allowed = new Set(agents.map((a) => a.id));
   if (!allowed.has(agentId)) {
     return null;
   }
@@ -503,5 +501,21 @@ export const agentsHandlers: GatewayRequestHandlers = {
       },
       undefined,
     );
+  },
+  /** Bootstrap agent workspace with core files (IDENTITY.md, SOUL.md, etc.) when missing. */
+  "agents.workspace.ensure": async ({ params, respond }) => {
+    const cfg = loadConfig();
+    const agentId = resolveAgentIdOrError(String(params?.agentId ?? ""), cfg);
+    if (!agentId) {
+      respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown agent id"));
+      return;
+    }
+    const workspaceDir = resolveAgentWorkspaceDir(cfg, agentId);
+    await ensureAgentWorkspace({
+      dir: workspaceDir,
+      ensureBootstrapFiles: true,
+    });
+    const files = await listAgentFiles(workspaceDir);
+    respond(true, { ok: true, agentId, workspace: workspaceDir, files }, undefined);
   },
 };

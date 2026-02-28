@@ -67,6 +67,7 @@ export type AgentsProps = {
   onFileDraftChange: (name: string, content: string) => void;
   onFileReset: (name: string) => void;
   onFileSave: (name: string) => void;
+  onBootstrapWorkspace?: (agentId: string) => void;
   onToolsProfileChange: (agentId: string, profile: string | null, clearAllow: boolean) => void;
   onToolsOverridesChange: (agentId: string, alsoAllow: string[], deny: string[]) => void;
   onConfigReload: () => void;
@@ -80,6 +81,8 @@ export type AgentsProps = {
   onAgentSkillToggle: (agentId: string, skillName: string, enabled: boolean) => void;
   onAgentSkillsClear: (agentId: string) => void;
   onAgentSkillsDisableAll: (agentId: string) => void;
+  /** 删除 agent（main 不可删除） */
+  onDeleteAgent?: (agentId: string) => void;
 };
 
 const TOOL_SECTIONS = [
@@ -611,6 +614,7 @@ export function renderAgents(props: AgentsProps) {
                 selectedAgent,
                 defaultId,
                 props.agentIdentityById[selectedAgent.id] ?? null,
+                props.onDeleteAgent,
               )}
               ${renderAgentTabs(props.activePanel, (panel) => props.onSelectPanel(panel))}
               ${
@@ -649,6 +653,7 @@ export function renderAgents(props: AgentsProps) {
                       onFileDraftChange: props.onFileDraftChange,
                       onFileReset: props.onFileReset,
                       onFileSave: props.onFileSave,
+                      onBootstrapWorkspace: props.onBootstrapWorkspace,
                     })
                   : nothing
               }
@@ -729,15 +734,19 @@ export function renderAgents(props: AgentsProps) {
   `;
 }
 
+const MAIN_AGENT_ID = "main";
+
 function renderAgentHeader(
   agent: AgentsListResult["agents"][number],
   defaultId: string | null,
   agentIdentity: AgentIdentityResult | null,
+  onDeleteAgent?: (agentId: string) => void,
 ) {
   const badge = agentBadgeText(agent.id, defaultId);
   const displayName = normalizeAgentLabel(agent);
   const subtitle = agent.identity?.theme?.trim() || "Agent workspace and routing.";
   const emoji = resolveAgentEmoji(agent, agentIdentity);
+  const canDelete = agent.id !== MAIN_AGENT_ID && onDeleteAgent;
   return html`
     <section class="card agent-header">
       <div class="agent-header-main">
@@ -752,6 +761,28 @@ function renderAgentHeader(
       <div class="agent-header-meta">
         <div class="mono">${agent.id}</div>
         ${badge ? html`<span class="agent-pill">${badge}</span>` : nothing}
+        ${
+          canDelete
+            ? html`
+                <button
+                  type="button"
+                  class="btn btn--sm danger"
+                  title="Delete agent · 删除智能体"
+                  @click=${() => {
+                    if (
+                      confirm(
+                        `Delete agent "${displayName}" (${agent.id})? Workspace and sessions will be moved to trash.`,
+                      )
+                    ) {
+                      onDeleteAgent(agent.id);
+                    }
+                  }}
+                >
+                  Delete
+                </button>
+              `
+            : nothing
+        }
       </div>
     </section>
   `;
@@ -1304,6 +1335,7 @@ function renderAgentFiles(params: {
   onFileDraftChange: (name: string, content: string) => void;
   onFileReset: (name: string) => void;
   onFileSave: (name: string) => void;
+  onBootstrapWorkspace?: (agentId: string) => void;
 }) {
   const list = params.agentFilesList?.agentId === params.agentId ? params.agentFilesList : null;
   const files = list?.files ?? [];
@@ -1320,13 +1352,29 @@ function renderAgentFiles(params: {
           <div class="card-title">Core Files</div>
           <div class="card-sub">Bootstrap persona, identity, and tool guidance.</div>
         </div>
-        <button
-          class="btn btn--sm"
-          ?disabled=${params.agentFilesLoading}
-          @click=${() => params.onLoadFiles(params.agentId)}
-        >
-          ${params.agentFilesLoading ? "Loading…" : "Refresh"}
-        </button>
+        <div class="row" style="gap: 8px;">
+          ${
+            params.onBootstrapWorkspace
+              ? html`
+                  <button
+                    class="btn btn--sm primary"
+                    ?disabled=${params.agentFilesLoading}
+                    title="Create missing core files (IDENTITY.md, SOUL.md, etc.)"
+                    @click=${() => params.onBootstrapWorkspace?.(params.agentId)}
+                  >
+                    ${params.agentFilesLoading ? "Loading…" : "Bootstrap"}
+                  </button>
+                `
+              : nothing
+          }
+          <button
+            class="btn btn--sm"
+            ?disabled=${params.agentFilesLoading}
+            @click=${() => params.onLoadFiles(params.agentId)}
+          >
+            ${params.agentFilesLoading ? "Loading…" : "Refresh"}
+          </button>
+        </div>
       </div>
       ${list ? html`<div class="muted mono" style="margin-top: 8px;">Workspace: ${list.workspace}</div>` : nothing}
       ${

@@ -6,12 +6,11 @@
 
 .card {
   border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
-  background:
-    linear-gradient(
-      145deg,
-      color-mix(in srgb, var(--card) 92%, transparent),
-      color-mix(in srgb, var(--bg-elevated) 88%, transparent)
-    );
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--card) 92%, transparent),
+    color-mix(in srgb, var(--bg-elevated) 88%, transparent)
+  );
   border-radius: var(--radius-lg);
   padding: 22px 24px;
   animation: rise 0.35s var(--ease-out) backwards;
@@ -209,7 +208,9 @@
   padding: 16px 18px;
   display: grid;
   gap: 6px;
-  transition: border-color var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+  transition:
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease;
 }
 
 .page-summary-card:hover {
@@ -1853,6 +1854,137 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+/* ===========================================
+   Create Soulmate Modal
+   =========================================== */
+
+.create-soulmate-modal {
+  width: min(560px, 100%);
+  padding: 24px 28px;
+}
+
+.create-soulmate-modal .exec-approval-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.create-soulmate-modal .exec-approval-sub {
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.create-soulmate-modal .create-soulmate-form {
+  display: grid;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.create-soulmate-modal .create-soulmate-form .field input {
+  width: 100%;
+}
+
+.create-soulmate-modal .create-soulmate-form .field label {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.create-soulmate-modal .create-soulmate-avatar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.create-soulmate-modal .create-soulmate-avatar-preview {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.create-soulmate-modal .create-soulmate-avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.create-soulmate-modal .create-soulmate-avatar-preview .avatar-placeholder {
+  color: var(--muted);
+}
+
+.create-soulmate-modal .create-soulmate-avatar-preview .avatar-placeholder svg {
+  width: 28px;
+  height: 28px;
+}
+
+.create-soulmate-modal .create-soulmate-avatar-actions {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.create-soulmate-modal .create-soulmate-avatar-file {
+  display: none;
+}
+
+.create-soulmate-modal .create-soulmate-avatar-actions label.btn {
+  cursor: pointer;
+  width: fit-content;
+}
+
+.create-soulmate-modal .create-soulmate-avatar-filename {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.create-soulmate-modal .create-soulmate-advanced summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 8px 0;
+  list-style: none;
+}
+
+.create-soulmate-modal .create-soulmate-advanced summary::-webkit-details-marker {
+  display: none;
+}
+
+.create-soulmate-modal .create-soulmate-advanced summary::before {
+  content: "";
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 5px solid var(--muted);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transition: transform 0.2s ease;
+}
+
+.create-soulmate-modal .create-soulmate-advanced[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.create-soulmate-modal .create-soulmate-advanced .field {
+  margin-top: 12px;
+}
+
+.create-soulmate-modal .create-soulmate-actions {
+  margin-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 /* ===========================================
