@@ -73,20 +73,23 @@ export async function loadTranscripts(
   if (!state.client || !state.connected || !state.sessionKey?.trim()) {
     return;
   }
+  const sessionKeyAtStart = state.sessionKey;
   try {
     const limit = opts?.limit ?? 50;
     const res = await state.client.request<SessionsListTranscriptsResult | undefined>(
       "sessions.listTranscripts",
       {
-        sessionKey: state.sessionKey,
+        sessionKey: sessionKeyAtStart,
         limit,
       },
     );
-    if (res) {
+    if (res && state.sessionKey === sessionKeyAtStart) {
       state.transcriptsResult = res;
     }
   } catch {
-    state.transcriptsResult = null;
+    if (state.sessionKey === sessionKeyAtStart) {
+      state.transcriptsResult = null;
+    }
   }
 }
 

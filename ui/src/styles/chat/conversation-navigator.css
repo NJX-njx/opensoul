@@ -9,6 +9,8 @@
   display: flex;
   align-items: stretch;
   justify-content: flex-end;
+  /* Vertically center in the right side of the chat area */
+  align-self: center;
 }
 
 .conversation-navigator:hover {

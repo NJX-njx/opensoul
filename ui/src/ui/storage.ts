@@ -10,7 +10,6 @@ export type UiSettings = {
   theme: ThemeMode;
   chatFocusMode: boolean;
   chatShowThinking: boolean;
-  operateZoomLevel: number;
   splitRatio: number; // Sidebar split ratio (0.4 to 0.7, default 0.6)
   chatListWidth: number; // Chat list sidebar width in px (200-480, default 280)
   chatListHiddenAgentIds: Array<string>; // Agent IDs to hide from chat list (e.g. ["sophie"])
@@ -42,7 +41,6 @@ export function loadSettings(): UiSettings {
     theme: "system",
     chatFocusMode: false,
     chatShowThinking: true,
-    operateZoomLevel: 1,
     splitRatio: 0.6,
     chatListWidth: 280,
     chatListHiddenAgentIds: ["sophie"],
@@ -87,12 +85,6 @@ export function loadSettings(): UiSettings {
         typeof parsed.chatShowThinking === "boolean"
           ? parsed.chatShowThinking
           : defaults.chatShowThinking,
-      operateZoomLevel:
-        typeof parsed.operateZoomLevel === "number" &&
-        parsed.operateZoomLevel >= 0.5 &&
-        parsed.operateZoomLevel <= 2.5
-          ? parsed.operateZoomLevel
-          : defaults.operateZoomLevel,
       splitRatio:
         typeof parsed.splitRatio === "number" &&
         parsed.splitRatio >= 0.4 &&

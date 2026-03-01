@@ -4,11 +4,7 @@ import "./components/star-background.ts";
 import type { UsageState } from "./controllers/usage.ts";
 import { parseAgentSessionKey } from "../../../src/routing/session-key.js";
 import { refreshChatAvatar } from "./app-chat.ts";
-import {
-  renderOperateZoomControl,
-  renderTab,
-  resolveMainSessionKey,
-} from "./app-render.helpers.ts";
+import { renderTab, resolveMainSessionKey } from "./app-render.helpers.ts";
 import { syncUrlWithSessionKey } from "./app-settings.ts";
 import {
   loadAgentFileContent,
@@ -208,15 +204,6 @@ export function renderApp(state: AppViewState) {
   const sessionsCount = state.sessionsResult?.count ?? null;
   const cronNext = state.cronStatus?.nextWakeAtMs ?? null;
   const isChat = state.tab === "chat";
-  const operateTabs: readonly Tab[] =
-    TAB_GROUPS.find((group) => group.label === "Operate")?.tabs ?? [];
-  const isOperateTab = operateTabs.includes(state.tab);
-  const operateZoomLevel =
-    typeof state.settings.operateZoomLevel === "number" ? state.settings.operateZoomLevel : 1;
-  const contentStyle =
-    isOperateTab && operateZoomLevel !== 1
-      ? `transform: scale(${operateZoomLevel}); transform-origin: top left; width: ${100 / operateZoomLevel}%;`
-      : "";
   const chatDisabledReason = state.connected ? null : t("Gateway offline", "Gateway 离线");
   const chatFocus = isChat && (state.settings.chatFocusMode || state.onboarding);
   const showThinking = state.onboarding ? false : state.settings.chatShowThinking;
@@ -310,7 +297,6 @@ export function renderApp(state: AppViewState) {
           `;
         })}
         <div class="nav-bottom">
-          ${renderOperateZoomControl(state)}
           <button
             class="nav-settings-btn"
             title=${t("Settings", "设置")}
@@ -321,7 +307,7 @@ export function renderApp(state: AppViewState) {
           </button>
         </div>
       </aside>
-      <main class="content ${isChat ? "content--chat" : ""}" style=${contentStyle}>
+      <main class="content ${isChat ? "content--chat" : ""}">
         ${
           !isChat
             ? html`
@@ -1227,6 +1213,7 @@ export function renderApp(state: AppViewState) {
                     onSelect: (next) => {
                       state.sessionKey = next;
                       state.viewingSessionId = null;
+                      state.transcriptsResult = null;
                       state.chatMessage = "";
                       state.chatAttachments = [];
                       state.chatStream = null;
@@ -1270,6 +1257,7 @@ export function renderApp(state: AppViewState) {
                             onSessionKeyChange: (next) => {
                               state.sessionKey = next;
                               state.viewingSessionId = null;
+                              state.transcriptsResult = null;
                               state.chatMessage = "";
                               state.chatAttachments = [];
                               state.chatStream = null;
@@ -1310,7 +1298,10 @@ export function renderApp(state: AppViewState) {
                             disabledReason: chatDisabledReason,
                             error: state.lastError,
                             sessions: state.sessionsResult,
-                            transcripts: state.transcriptsResult?.transcripts ?? [],
+                            transcripts:
+                              state.transcriptsResult?.sessionKey === state.sessionKey
+                                ? (state.transcriptsResult?.transcripts ?? [])
+                                : [],
                             currentSessionId:
                               state.sessionsResult?.sessions?.find(
                                 (s) => s.key === state.sessionKey,
