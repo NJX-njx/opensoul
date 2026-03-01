@@ -323,7 +323,11 @@ export function listAgentsForGateway(cfg: OpenSoulConfig): {
   let agentIds = listConfiguredAgentIds(cfg).filter((id) =>
     allowedIds ? allowedIds.has(id) : true,
   );
-  if (mainKey && !agentIds.includes(mainKey)) {
+  // Only add mainKey when it's the default agent or when we have no config (disk-scan fallback).
+  // In dev mode (default=dev), avoid adding main so we show a single agent at startup.
+  const isMainKeyDefault = defaultId === mainKey;
+  const hasExplicitAgents = explicitIds.size > 0;
+  if (mainKey && !agentIds.includes(mainKey) && (isMainKeyDefault || !hasExplicitAgents)) {
     agentIds = [...agentIds, mainKey];
   }
   const agents = agentIds.map((id) => {

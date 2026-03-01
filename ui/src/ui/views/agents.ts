@@ -744,8 +744,9 @@ function renderAgentHeader(
   const displayName = normalizeAgentLabel(agent);
   const subtitle = agent.identity?.theme?.trim() || "Agent workspace and routing.";
   const emoji = resolveAgentEmoji(agent, agentIdentity);
-  /** 仅非默认智能体可删除；删除后不可恢复 */
-  const canDelete = defaultId != null && agent.id !== defaultId && onDeleteAgent;
+  /** 仅非默认智能体可删除；main 为保留 id；删除后不可恢复 */
+  const canDelete =
+    defaultId != null && agent.id !== defaultId && agent.id !== "main" && Boolean(onDeleteAgent);
   return html`
     <section class="card agent-header">
       <div class="agent-header-main">
