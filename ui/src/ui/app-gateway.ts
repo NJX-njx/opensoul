@@ -29,7 +29,7 @@ import {
   removeExecApproval,
 } from "./controllers/exec-approval.ts";
 import { loadNodes } from "./controllers/nodes.ts";
-import { loadSessions } from "./controllers/sessions.ts";
+import { loadSessions, loadTranscripts } from "./controllers/sessions.ts";
 import { sendConnectionStateChanged } from "./desktop-bridge.ts";
 import { GatewayBrowserClient } from "./gateway.ts";
 
@@ -262,6 +262,7 @@ function handleGatewayEventUnsafe(host: GatewayHost, evt: GatewayEventFrame) {
           void loadSessions(host as unknown as OpenSoulApp, {
             activeMinutes: CHAT_SESSIONS_ACTIVE_MINUTES,
           });
+          void loadTranscripts(host as unknown as OpenSoulApp);
         }
       }
     }

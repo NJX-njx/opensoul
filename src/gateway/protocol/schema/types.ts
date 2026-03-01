@@ -112,6 +112,7 @@ import type {
   SessionsCompactParamsSchema,
   SessionsDeleteParamsSchema,
   SessionsListParamsSchema,
+  SessionsListTranscriptsParamsSchema,
   SessionsPatchParamsSchema,
   SessionsPreviewParamsSchema,
   SessionsResetParamsSchema,
@@ -158,6 +159,7 @@ export type NodeInvokeParams = Static<typeof NodeInvokeParamsSchema>;
 export type NodeInvokeResultParams = Static<typeof NodeInvokeResultParamsSchema>;
 export type NodeEventParams = Static<typeof NodeEventParamsSchema>;
 export type SessionsListParams = Static<typeof SessionsListParamsSchema>;
+export type SessionsListTranscriptsParams = Static<typeof SessionsListTranscriptsParamsSchema>;
 export type SessionsPreviewParams = Static<typeof SessionsPreviewParamsSchema>;
 export type SessionsResolveParams = Static<typeof SessionsResolveParamsSchema>;
 export type SessionsPatchParams = Static<typeof SessionsPatchParamsSchema>;

@@ -1,6 +1,32 @@
 import { Type } from "@sinclair/typebox";
 import { NonEmptyString, SessionLabelString } from "./primitives.js";
 
+export const SessionsListTranscriptsParamsSchema = Type.Object(
+  {
+    sessionKey: NonEmptyString,
+    limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 100 })),
+  },
+  { additionalProperties: false },
+);
+
+export const TranscriptListEntrySchema = Type.Object(
+  {
+    sessionId: NonEmptyString,
+    firstQuestion: Type.Union([Type.String(), Type.Null()]),
+    mtime: Type.Number(),
+  },
+  { additionalProperties: false },
+);
+
+export const SessionsListTranscriptsResultSchema = Type.Object(
+  {
+    ts: Type.Number(),
+    sessionKey: NonEmptyString,
+    transcripts: Type.Array(TranscriptListEntrySchema),
+  },
+  { additionalProperties: false },
+);
+
 export const SessionsListParamsSchema = Type.Object(
   {
     limit: Type.Optional(Type.Integer({ minimum: 1 })),

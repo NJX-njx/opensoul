@@ -21,6 +21,7 @@ import {
   validateSessionsCompactParams,
   validateSessionsDeleteParams,
   validateSessionsListParams,
+  validateSessionsListTranscriptsParams,
   validateSessionsPatchParams,
   validateSessionsPreviewParams,
   validateSessionsResetParams,
@@ -29,6 +30,7 @@ import {
 import {
   archiveFileOnDisk,
   listSessionsFromStore,
+  listTranscriptsForSessionKey,
   loadCombinedSessionStoreForGateway,
   loadSessionEntry,
   readSessionPreviewItemsFromTranscript,
@@ -65,6 +67,37 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       opts: p,
     });
     respond(true, result, undefined);
+  },
+  "sessions.listTranscripts": ({ params, respond }) => {
+    if (!validateSessionsListTranscriptsParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid sessions.listTranscripts params: ${formatValidationErrors(
+            validateSessionsListTranscriptsParams.errors,
+          )}`,
+        ),
+      );
+      return;
+    }
+    const p = params;
+    const sessionKey = String(p.sessionKey ?? "").trim();
+    if (!sessionKey) {
+      respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "sessionKey required"));
+      return;
+    }
+    const limit =
+      typeof p.limit === "number" && Number.isFinite(p.limit)
+        ? Math.max(1, Math.min(100, Math.floor(p.limit)))
+        : 50;
+    const transcripts = listTranscriptsForSessionKey(sessionKey).slice(0, limit);
+    respond(true, {
+      ts: Date.now(),
+      sessionKey,
+      transcripts,
+    });
   },
   "sessions.preview": ({ params, respond }) => {
     if (!validateSessionsPreviewParams(params)) {

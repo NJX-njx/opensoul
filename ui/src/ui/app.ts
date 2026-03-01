@@ -252,6 +252,8 @@ export class OpenSoulApp extends LitElement {
   @state() sessionsLoading = false;
   @state() sessionsResult: SessionsListResult | null = null;
   @state() sessionsError: string | null = null;
+  @state() transcriptsResult: import("./types.js").SessionsListTranscriptsResult | null = null;
+  @state() viewingSessionId: string | null = null;
   @state() sessionsFilterActive = "";
   @state() sessionsFilterLimit = "120";
   @state() sessionsIncludeGlobal = true;

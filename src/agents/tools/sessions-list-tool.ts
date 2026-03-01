@@ -21,6 +21,8 @@ const SessionsListToolSchema = Type.Object({
   limit: Type.Optional(Type.Number({ minimum: 1 })),
   activeMinutes: Type.Optional(Type.Number({ minimum: 1 })),
   messageLimit: Type.Optional(Type.Number({ minimum: 0 })),
+  /** When true, expand each sessionKey into its transcripts (one row per sessionId). */
+  expandBySessionId: Type.Optional(Type.Boolean()),
 });
 
 function resolveSandboxSessionToolsVisibility(cfg: ReturnType<typeof loadConfig>) {
@@ -76,6 +78,8 @@ export function createSessionsListTool(opts?: {
           ? Math.max(0, Math.floor(params.messageLimit))
           : 0;
       const messageLimit = Math.min(messageLimitRaw, 20);
+      const expandBySessionId =
+        typeof params.expandBySessionId === "boolean" ? params.expandBySessionId : false;
 
       const list = await callGateway<{ sessions: Array<SessionListRow>; path: string }>({
         method: "sessions.list",
@@ -159,6 +163,7 @@ export function createSessionsListTool(opts?: {
 
         const row: SessionListRow = {
           key: displayKey,
+          canonicalKey: key,
           kind,
           channel: derivedChannel,
           label: typeof entry.label === "string" ? entry.label : undefined,
@@ -204,6 +209,50 @@ export function createSessionsListTool(opts?: {
         }
 
         rows.push(row);
+      }
+
+      if (expandBySessionId && rows.length > 0) {
+        const expanded: SessionListRow[] = [];
+        for (const row of rows) {
+          const sessionKey =
+            row.canonicalKey ??
+            resolveInternalSessionKey({
+              key: row.key,
+              alias,
+              mainKey,
+            });
+          const transcriptsRes = await callGateway<{
+            transcripts?: Array<{ sessionId: string; firstQuestion: string | null; mtime: number }>;
+          }>({
+            method: "sessions.listTranscripts",
+            params: { sessionKey, limit: 50 },
+          });
+          const transcripts = Array.isArray(transcriptsRes?.transcripts)
+            ? transcriptsRes.transcripts
+            : [];
+          if (transcripts.length === 0) {
+            expanded.push(row);
+            continue;
+          }
+          for (const t of transcripts) {
+            const transcriptPath =
+              t.sessionId && storePath
+                ? path.join(path.dirname(storePath), `${t.sessionId}.jsonl`)
+                : undefined;
+            expanded.push({
+              ...row,
+              key: row.key,
+              sessionId: t.sessionId,
+              displayName: t.firstQuestion ?? row.displayName,
+              updatedAt: t.mtime,
+              transcriptPath,
+            });
+          }
+        }
+        return jsonResult({
+          count: expanded.length,
+          sessions: expanded,
+        });
       }
 
       return jsonResult({

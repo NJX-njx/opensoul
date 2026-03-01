@@ -26,6 +26,8 @@ export const LogsTailResultSchema = Type.Object(
 export const ChatHistoryParamsSchema = Type.Object(
   {
     sessionKey: NonEmptyString,
+    /** When provided, load history from this sessionId instead of store's current session. */
+    sessionId: Type.Optional(NonEmptyString),
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 1000 })),
   },
   { additionalProperties: false },

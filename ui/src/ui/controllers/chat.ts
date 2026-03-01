@@ -27,7 +27,13 @@ export type ChatEventPayload = {
   errorMessage?: string;
 };
 
-export async function loadChatHistory(state: ChatState, opts?: { clearError?: boolean }) {
+export type LoadChatHistoryOpts = {
+  clearError?: boolean;
+  /** When set, load history from this sessionId instead of store's current session. */
+  sessionId?: string | null;
+};
+
+export async function loadChatHistory(state: ChatState, opts?: LoadChatHistoryOpts) {
   if (!state.client || !state.connected || !state.sessionKey?.trim()) {
     return;
   }
@@ -36,13 +42,17 @@ export async function loadChatHistory(state: ChatState, opts?: { clearError?: bo
     state.lastError = null;
   }
   try {
-    const res = await state.client.request<{ messages?: Array<unknown>; thinkingLevel?: string }>(
-      "chat.history",
-      {
-        sessionKey: state.sessionKey,
-        limit: 200,
-      },
-    );
+    const params: { sessionKey: string; limit: number; sessionId?: string } = {
+      sessionKey: state.sessionKey,
+      limit: 200,
+    };
+    if (opts?.sessionId?.trim()) {
+      params.sessionId = opts.sessionId.trim();
+    }
+    const res = await state.client.request<{
+      messages?: Array<unknown>;
+      thinkingLevel?: string;
+    }>("chat.history", params);
     state.chatMessages = Array.isArray(res.messages) ? res.messages : [];
     state.chatThinkingLevel = res.thinkingLevel ?? null;
   } catch (err) {

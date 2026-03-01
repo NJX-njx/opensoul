@@ -18,6 +18,8 @@ export type SessionListDeliveryContext = {
 
 export type SessionListRow = {
   key: string;
+  /** Canonical sessionKey for API calls (when key is display form like "main"). */
+  canonicalKey?: string;
   kind: SessionKind;
   channel: string;
   label?: string;

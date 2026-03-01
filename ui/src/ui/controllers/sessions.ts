@@ -1,5 +1,5 @@
 import type { GatewayBrowserClient } from "../gateway.ts";
-import type { SessionsListResult } from "../types.ts";
+import type { SessionsListResult, SessionsListTranscriptsResult } from "../types.ts";
 import { toNumber } from "../format.ts";
 
 export type SessionsState = {
@@ -12,6 +12,13 @@ export type SessionsState = {
   sessionsFilterLimit: string;
   sessionsIncludeGlobal: boolean;
   sessionsIncludeUnknown: boolean;
+};
+
+export type TranscriptsState = {
+  client: GatewayBrowserClient | null;
+  connected: boolean;
+  sessionKey: string;
+  transcriptsResult: SessionsListTranscriptsResult | null;
 };
 
 export async function loadSessions(
@@ -56,6 +63,30 @@ export async function loadSessions(
     state.sessionsError = String(err);
   } finally {
     state.sessionsLoading = false;
+  }
+}
+
+export async function loadTranscripts(
+  state: TranscriptsState,
+  opts?: { limit?: number },
+): Promise<void> {
+  if (!state.client || !state.connected || !state.sessionKey?.trim()) {
+    return;
+  }
+  try {
+    const limit = opts?.limit ?? 50;
+    const res = await state.client.request<SessionsListTranscriptsResult | undefined>(
+      "sessions.listTranscripts",
+      {
+        sessionKey: state.sessionKey,
+        limit,
+      },
+    );
+    if (res) {
+      state.transcriptsResult = res;
+    }
+  } catch {
+    state.transcriptsResult = null;
   }
 }
 

@@ -54,7 +54,12 @@ import {
 import { loadLogs } from "./controllers/logs.ts";
 import { loadNodes } from "./controllers/nodes.ts";
 import { loadPresence } from "./controllers/presence.ts";
-import { deleteSession, loadSessions, patchSession } from "./controllers/sessions.ts";
+import {
+  deleteSession,
+  loadSessions,
+  loadTranscripts,
+  patchSession,
+} from "./controllers/sessions.ts";
 import {
   installSkill,
   loadSkills,
@@ -1221,6 +1226,7 @@ export function renderApp(state: AppViewState) {
                     onOpenCreateSoulmate: () => state.openCreateSoulmateModal(),
                     onSelect: (next) => {
                       state.sessionKey = next;
+                      state.viewingSessionId = null;
                       state.chatMessage = "";
                       state.chatAttachments = [];
                       state.chatStream = null;
@@ -1236,6 +1242,7 @@ export function renderApp(state: AppViewState) {
                       });
                       void state.loadAssistantIdentity();
                       void loadChatHistory(state);
+                      void loadTranscripts(state);
                       void refreshChatAvatar(state);
                       syncUrlWithSessionKey(
                         state as unknown as Parameters<typeof syncUrlWithSessionKey>[0],
@@ -1262,6 +1269,7 @@ export function renderApp(state: AppViewState) {
                             sessionKey: state.sessionKey,
                             onSessionKeyChange: (next) => {
                               state.sessionKey = next;
+                              state.viewingSessionId = null;
                               state.chatMessage = "";
                               state.chatAttachments = [];
                               state.chatStream = null;
@@ -1277,6 +1285,7 @@ export function renderApp(state: AppViewState) {
                               });
                               void state.loadAssistantIdentity();
                               void loadChatHistory(state);
+                              void loadTranscripts(state);
                               void refreshChatAvatar(state);
                               syncUrlWithSessionKey(
                                 state as unknown as Parameters<typeof syncUrlWithSessionKey>[0],
@@ -1301,6 +1310,25 @@ export function renderApp(state: AppViewState) {
                             disabledReason: chatDisabledReason,
                             error: state.lastError,
                             sessions: state.sessionsResult,
+                            transcripts: state.transcriptsResult?.transcripts ?? [],
+                            currentSessionId:
+                              state.sessionsResult?.sessions?.find(
+                                (s) => s.key === state.sessionKey,
+                              )?.sessionId ?? null,
+                            viewingSessionId: state.viewingSessionId,
+                            onSelectTranscript: (sessionId) => {
+                              const currentSessionId =
+                                state.sessionsResult?.sessions?.find(
+                                  (s) => s.key === state.sessionKey,
+                                )?.sessionId ?? null;
+                              if (sessionId === currentSessionId) {
+                                state.viewingSessionId = null;
+                                void loadChatHistory(state);
+                              } else {
+                                state.viewingSessionId = sessionId;
+                                void loadChatHistory(state, { sessionId });
+                              }
+                            },
                             focusMode: chatFocus,
                             onRefresh: () => {
                               state.resetToolStream();

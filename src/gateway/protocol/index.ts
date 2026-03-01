@@ -165,6 +165,8 @@ import {
   SessionsDeleteParamsSchema,
   type SessionsListParams,
   SessionsListParamsSchema,
+  type SessionsListTranscriptsParams,
+  SessionsListTranscriptsParamsSchema,
   type SessionsPatchParams,
   SessionsPatchParamsSchema,
   type SessionsPreviewParams,
@@ -272,6 +274,9 @@ export const validateNodeInvokeResultParams = ajv.compile<NodeInvokeResultParams
 );
 export const validateNodeEventParams = ajv.compile<NodeEventParams>(NodeEventParamsSchema);
 export const validateSessionsListParams = ajv.compile<SessionsListParams>(SessionsListParamsSchema);
+export const validateSessionsListTranscriptsParams = ajv.compile<SessionsListTranscriptsParams>(
+  SessionsListTranscriptsParamsSchema,
+);
 export const validateSessionsPreviewParams = ajv.compile<SessionsPreviewParams>(
   SessionsPreviewParamsSchema,
 );

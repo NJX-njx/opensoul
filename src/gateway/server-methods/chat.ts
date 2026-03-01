@@ -196,14 +196,26 @@ export const chatHandlers: GatewayRequestHandlers = {
       );
       return;
     }
-    const { sessionKey, limit } = params as {
+    const {
+      sessionKey,
+      sessionId: overrideSessionId,
+      limit,
+    } = params as {
       sessionKey: string;
+      sessionId?: string;
       limit?: number;
     };
     const { cfg, storePath, entry } = loadSessionEntry(sessionKey);
-    const sessionId = entry?.sessionId;
+    const sessionId = overrideSessionId ?? entry?.sessionId;
     const rawMessages =
-      sessionId && storePath ? readSessionMessages(sessionId, storePath, entry?.sessionFile) : [];
+      sessionId && storePath
+        ? readSessionMessages(
+            sessionId,
+            storePath,
+            overrideSessionId ? undefined : entry?.sessionFile,
+            overrideSessionId ? sessionKey : undefined,
+          )
+        : [];
     const hardMax = 1000;
     const defaultLimit = 200;
     const requested = typeof limit === "number" ? limit : defaultLimit;

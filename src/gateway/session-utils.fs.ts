@@ -2,16 +2,120 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { SessionPreviewItem } from "./session-utils.types.js";
-import { resolveSessionTranscriptPath } from "../config/sessions.js";
+import {
+  resolveSessionTranscriptPath,
+  resolveSessionTranscriptsDirForAgent,
+} from "../config/sessions.js";
+import { parseAgentSessionKey } from "../routing/session-key.js";
 import { extractToolCallNames, hasToolCall } from "../utils/transcript-tools.js";
 import { stripEnvelope } from "./chat-sanitize.js";
+
+/** Result item for listTranscriptsForSessionKey. */
+export type TranscriptListEntry = {
+  sessionId: string;
+  firstQuestion: string | null;
+  mtime: number;
+};
+
+/**
+ * Extract topicId from sessionKey rest (e.g. "group:tg:123:topic:456" → "456").
+ * For rest="main", returns "main" so we match both *-topic-main.jsonl and *.jsonl (no topic).
+ */
+function extractTopicIdFromRest(rest: string): string | undefined {
+  const idx = rest.lastIndexOf(":topic:");
+  if (idx >= 0) {
+    const after = rest.slice(idx + ":topic:".length).trim();
+    return after || undefined;
+  }
+  if (rest === "main" || rest.toLowerCase() === "main") {
+    return "main";
+  }
+  return undefined;
+}
+
+/**
+ * List all transcript files for a sessionKey (same agent + topic).
+ * Scans ~/.opensoul/agents/{agentId}/sessions/ for matching .jsonl files.
+ * Returns sessionId, first user message as title, and mtime, sorted by mtime desc.
+ */
+export function listTranscriptsForSessionKey(sessionKey: string): TranscriptListEntry[] {
+  const parsed = parseAgentSessionKey(sessionKey);
+  if (!parsed?.agentId) {
+    return [];
+  }
+  const agentId = parsed.agentId;
+  const rest = parsed.rest ?? "";
+  const topicId = extractTopicIdFromRest(rest);
+
+  const sessionsDir = resolveSessionTranscriptsDirForAgent(agentId);
+  const storePath = path.join(sessionsDir, "sessions.json");
+
+  const entries: Array<{ name: string; sessionId: string; mtime: number }> = [];
+
+  try {
+    const files = fs.readdirSync(sessionsDir, { withFileTypes: true });
+    for (const dirent of files) {
+      if (!dirent.isFile() || !dirent.name.endsWith(".jsonl")) {
+        continue;
+      }
+      const name = dirent.name;
+      let sessionId: string;
+      if (topicId !== undefined) {
+        const suffix = `-topic-${topicId}.jsonl`;
+        if (name.endsWith(suffix)) {
+          sessionId = name.slice(0, name.length - suffix.length);
+        } else if (topicId === "main" && !name.includes("-topic-")) {
+          sessionId = name.slice(0, -".jsonl".length);
+        } else {
+          continue;
+        }
+      } else {
+        if (name.includes("-topic-")) {
+          continue;
+        }
+        sessionId = name.slice(0, -".jsonl".length);
+      }
+      if (!sessionId) {
+        continue;
+      }
+      const stat = fs.statSync(path.join(sessionsDir, name));
+      entries.push({ name, sessionId, mtime: stat.mtimeMs });
+    }
+  } catch {
+    return [];
+  }
+
+  const sorted = entries.toSorted((a, b) => b.mtime - a.mtime);
+
+  return sorted.map((e) => {
+    const firstQuestion = readFirstUserMessageFromTranscript(
+      e.sessionId,
+      storePath,
+      path.join(sessionsDir, e.name),
+      agentId,
+    );
+    return {
+      sessionId: e.sessionId,
+      firstQuestion,
+      mtime: e.mtime,
+    };
+  });
+}
 
 export function readSessionMessages(
   sessionId: string,
   storePath: string | undefined,
   sessionFile?: string,
+  sessionKey?: string,
 ): unknown[] {
-  const candidates = resolveSessionTranscriptCandidates(sessionId, storePath, sessionFile);
+  const agentId = sessionKey ? parseAgentSessionKey(sessionKey)?.agentId : undefined;
+  const candidates = resolveSessionTranscriptCandidates(
+    sessionId,
+    storePath,
+    sessionFile,
+    agentId,
+    sessionKey,
+  );
 
   const filePath = candidates.find((p) => fs.existsSync(p));
   if (!filePath) {
@@ -58,6 +162,7 @@ export function resolveSessionTranscriptCandidates(
   storePath: string | undefined,
   sessionFile?: string,
   agentId?: string,
+  sessionKey?: string,
 ): string[] {
   const candidates: string[] = [];
   if (sessionFile) {
@@ -66,6 +171,13 @@ export function resolveSessionTranscriptCandidates(
   if (storePath) {
     const dir = path.dirname(storePath);
     candidates.push(path.join(dir, `${sessionId}.jsonl`));
+    if (sessionKey) {
+      const parsed = parseAgentSessionKey(sessionKey);
+      const topicId = parsed?.agentId ? extractTopicIdFromRest(parsed.rest ?? "") : undefined;
+      if (topicId) {
+        candidates.push(path.join(dir, `${sessionId}-topic-${topicId}.jsonl`));
+      }
+    }
   }
   if (agentId) {
     candidates.push(resolveSessionTranscriptPath(sessionId, agentId));

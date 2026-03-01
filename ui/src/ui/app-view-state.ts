@@ -153,6 +153,8 @@ export type AppViewState = {
   sessionsFilterLimit: string;
   sessionsIncludeGlobal: boolean;
   sessionsIncludeUnknown: boolean;
+  transcriptsResult: import("./types.js").SessionsListTranscriptsResult | null;
+  viewingSessionId: string | null;
   usageLoading: boolean;
   usageResult: SessionsUsageResult | null;
   usageCostSummary: CostUsageSummary | null;

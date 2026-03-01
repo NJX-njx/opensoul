@@ -1,7 +1,7 @@
 import { html, nothing } from "lit";
 import { ref } from "lit/directives/ref.js";
 import { repeat } from "lit/directives/repeat.js";
-import type { SessionsListResult } from "../types.ts";
+import type { SessionsListResult, TranscriptListEntry } from "../types.ts";
 import type { ChatItem, MessageGroup } from "../types/chat-types.ts";
 import type { ChatAttachment, ChatQueueItem } from "../ui-types.ts";
 import type { Locale } from "./onboarding/i18n.ts";
@@ -45,6 +45,14 @@ export type ChatProps = {
   disabledReason: string | null;
   error: string | null;
   sessions: SessionsListResult | null;
+  /** Transcripts for right-side navigator (sessionIds within current sessionKey). */
+  transcripts?: TranscriptListEntry[];
+  /** Current sessionId from store for this sessionKey. */
+  currentSessionId?: string | null;
+  /** SessionId being viewed (read-only history). */
+  viewingSessionId?: string | null;
+  /** Called when user selects a transcript in the right navigator. */
+  onSelectTranscript?: (sessionId: string) => void;
   // Focus mode
   focusMode: boolean;
   // Sidebar state
@@ -417,10 +425,12 @@ export function renderChat(props: ChatProps) {
 
         ${renderConversationNavigator({
           locale: props.locale,
-          sessions: props.sessions,
+          transcripts: props.transcripts ?? [],
           sessionKey: props.sessionKey,
+          currentSessionId: props.currentSessionId ?? null,
+          viewingSessionId: props.viewingSessionId ?? null,
           assistantName: props.assistantName,
-          onSelect: props.onSessionKeyChange,
+          onSelect: props.onSelectTranscript ?? (() => {}),
         })}
       </div>
 

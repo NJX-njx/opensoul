@@ -412,6 +412,18 @@ export type SessionsListResult = {
   sessions: GatewaySessionRow[];
 };
 
+export type TranscriptListEntry = {
+  sessionId: string;
+  firstQuestion: string | null;
+  mtime: number;
+};
+
+export type SessionsListTranscriptsResult = {
+  ts: number;
+  sessionKey: string;
+  transcripts: TranscriptListEntry[];
+};
+
 export type SessionsPatchResult = {
   ok: true;
   path: string;

@@ -38,6 +38,7 @@ import {
 export {
   archiveFileOnDisk,
   capArrayByJsonBytes,
+  listTranscriptsForSessionKey,
   readFirstUserMessageFromTranscript,
   readLastMessagePreviewFromTranscript,
   readSessionPreviewItemsFromTranscript,
