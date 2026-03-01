@@ -218,7 +218,7 @@ describe("directive behavior", () => {
             mode: "merge",
             providers: {
               minimax: {
-                baseUrl: "https://api.minimax.io/anthropic",
+                baseUrl: "https://api.minimaxi.com/anthropic",
                 apiKey: "sk-test",
                 api: "anthropic-messages",
                 models: [{ id: "MiniMax-M2.1", name: "MiniMax M2.1" }],
@@ -262,7 +262,7 @@ describe("directive behavior", () => {
             mode: "merge",
             providers: {
               minimax: {
-                baseUrl: "https://api.minimax.io/anthropic",
+                baseUrl: "https://api.minimaxi.com/anthropic",
                 apiKey: "sk-test",
                 api: "anthropic-messages",
                 models: [

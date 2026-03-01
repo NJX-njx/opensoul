@@ -5,6 +5,8 @@ description: Merge a GitHub PR via squash after /preparepr. Use when asked to me
 
 # Merge PR
 
+**See also:** [pr-workflow](../../workflows/pr-workflow.md) for the full PR workflow and maintainer checkpoints.
+
 ## Overview
 
 Merge a prepared PR via `gh pr merge --squash` and clean up the worktree after success.
@@ -19,7 +21,7 @@ Merge a prepared PR via `gh pr merge --squash` and clean up the worktree after s
 
 - Use `gh pr merge --squash` as the only path to `main`.
 - Do not run `git push` at all during merge.
-- Do not run gateway stop commands. Do not kill processes. Do not touch port 18792.
+- Do not run gateway stop commands. Do not kill processes. Do not touch port 18792 (browser CDP relay) or 19001 (gateway).
 
 ## Execution Rule
 
@@ -28,7 +30,7 @@ Merge a prepared PR via `gh pr merge --squash` and clean up the worktree after s
 
 ## Known Footguns
 
-- If you see "fatal: not a git repository", you are in the wrong directory. Use `~/dev/opensoul` if available; otherwise ask user.
+- If you see "fatal: not a git repository", you are in the wrong directory. Use workspace root (`git rev-parse --show-toplevel`) or ask user.
 - Read `.local/review.md` and `.local/prep.md` in the worktree. Do not skip.
 - Clean up the real worktree directory `.worktrees/pr-<PR>` only after a successful merge.
 - Expect cleanup to remove `.local/` artifacts.
@@ -49,7 +51,8 @@ Create a checklist of all merge steps, print it, then continue and execute the c
 Use an isolated worktree for all merge work.
 
 ```sh
-cd ~/dev/opensoul
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
 # Sanity: confirm you are in the repo
 git rev-parse --show-toplevel
 
@@ -167,7 +170,9 @@ gh pr view <PR> --json state --jq .state
 Run cleanup only if step 6 returned `MERGED`.
 
 ```sh
-cd ~/dev/opensoul
+# From worktree, main repo is parent of .git dir
+MAIN_REPO=$(dirname "$(git rev-parse --git-dir)")
+cd "$MAIN_REPO"
 
 git worktree remove ".worktrees/pr-<PR>" --force
 

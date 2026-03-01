@@ -5,6 +5,8 @@ description: Review-only GitHub pull request analysis with the gh CLI. Use when 
 
 # Review PR
 
+**See also:** [pr-workflow](../../workflows/pr-workflow.md) for the full PR workflow and maintainer checkpoints.
+
 ## Overview
 
 Perform a thorough review-only PR assessment and return a structured recommendation on readiness for /preparepr.
@@ -19,7 +21,7 @@ Perform a thorough review-only PR assessment and return a structured recommendat
 
 - Never push to `main` or `origin/main`, not during review, not ever.
 - Do not run `git push` at all during review. Treat review as read only.
-- Do not stop or kill the gateway. Do not run gateway stop commands. Do not kill processes on port 18792.
+- Do not stop or kill the gateway. Do not run gateway stop commands. Do not kill processes on port 18792 (browser CDP) or 19001 (gateway).
 
 ## Execution Rule
 
@@ -28,7 +30,7 @@ Perform a thorough review-only PR assessment and return a structured recommendat
 
 ## Known Failure Modes
 
-- If you see "fatal: not a git repository", you are in the wrong directory. Use `~/dev/opensoul` if available; otherwise ask user.
+- If you see "fatal: not a git repository", you are in the wrong directory. Use workspace root (`git rev-parse --show-toplevel`) or ask user.
 - Do not stop after printing the checklist. That is not completion.
 
 ## Writing Style for Output
@@ -51,7 +53,8 @@ Create a checklist of all review steps, print it, then continue and execute the 
 Use an isolated worktree for all review work.
 
 ```sh
-cd ~/dev/opensoul
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
 # Sanity: confirm you are in the repo
 git rev-parse --show-toplevel
 

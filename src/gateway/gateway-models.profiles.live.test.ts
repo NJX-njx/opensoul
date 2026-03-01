@@ -1081,7 +1081,7 @@ describeLive("gateway live (dev agent, profile keys)", () => {
       const minimaxAnthropic = buildMinimaxProviderOverride({
         cfg,
         api: "anthropic-messages",
-        baseUrl: "https://api.minimax.io/anthropic",
+        baseUrl: "https://api.minimaxi.com/anthropic",
       });
       if (minimaxAnthropic) {
         await runGatewayModelSuite({

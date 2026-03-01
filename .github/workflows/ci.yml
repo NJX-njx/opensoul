@@ -329,6 +329,8 @@ jobs:
             command: pnpm lint
           - task: format
             command: pnpm format
+          - task: github:validate
+            command: pnpm github:validate
     steps:
       - name: Checkout
         uses: actions/checkout@v4

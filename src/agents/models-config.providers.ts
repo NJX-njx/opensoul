@@ -22,7 +22,7 @@ type ModelsConfig = NonNullable<OpenSoulConfig["models"]>;
 export type ProviderConfig = NonNullable<ModelsConfig["providers"]>[string];
 
 const MINIMAX_API_BASE_URL = "https://api.minimax.chat/v1";
-const MINIMAX_PORTAL_BASE_URL = "https://api.minimax.io/anthropic";
+const MINIMAX_PORTAL_BASE_URL = "https://api.minimaxi.com/anthropic";
 const MINIMAX_DEFAULT_MODEL_ID = "MiniMax-M2.1";
 const MINIMAX_DEFAULT_VISION_MODEL_ID = "MiniMax-VL-01";
 const MINIMAX_DEFAULT_CONTEXT_WINDOW = 200000;

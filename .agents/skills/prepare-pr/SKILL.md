@@ -5,6 +5,8 @@ description: Prepare a GitHub PR for merge by rebasing onto main, fixing review 
 
 # Prepare PR
 
+**See also:** [pr-workflow](../../workflows/pr-workflow.md) for the full PR workflow and maintainer checkpoints.
+
 ## Overview
 
 Prepare a PR branch for merge with review fixes, green gates, and an updated head branch.
@@ -19,7 +21,7 @@ Prepare a PR branch for merge with review fixes, green gates, and an updated hea
 
 - Never push to `main` or `origin/main`. Push only to the PR head branch.
 - Never run `git push` without specifying remote and branch explicitly. Do not run bare `git push`.
-- Do not run gateway stop commands. Do not kill processes. Do not touch port 18792.
+- Do not run gateway stop commands. Do not kill processes. Do not touch port 18792 (browser CDP) or 19001 (gateway).
 - Do not run `git clean -fdx`.
 - Do not run `git add -A` or `git add .`. Stage only specific files changed.
 
@@ -30,7 +32,7 @@ Prepare a PR branch for merge with review fixes, green gates, and an updated hea
 
 ## Known Footguns
 
-- If you see "fatal: not a git repository", you are in the wrong directory. Use `~/dev/opensoul` if available; otherwise ask user.
+- If you see "fatal: not a git repository", you are in the wrong directory. Use workspace root (`git rev-parse --show-toplevel`) or ask user.
 - Do not run `git clean -fdx`.
 - Do not run `git add -A` or `git add .`.
 
@@ -53,7 +55,8 @@ Create a checklist of all prep steps, print it, then continue and execute the co
 Use an isolated worktree for all prep work.
 
 ```sh
-cd ~/dev/opensoul
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
 # Sanity: confirm you are in the repo
 git rev-parse --show-toplevel
 
@@ -164,6 +167,8 @@ git commit -m "fix: <summary> (#<PR>) (thanks @$contrib)"
 ```
 
 8. Run full gates before pushing
+
+See [AGENTS.md](../../../AGENTS.md) for build context. Gates:
 
 ```sh
 pnpm install

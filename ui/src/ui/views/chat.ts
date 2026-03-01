@@ -13,6 +13,7 @@ import {
 import { normalizeMessage, normalizeRoleForGrouping } from "../chat/message-normalizer.ts";
 import { uiText } from "../i18n.ts";
 import { icons } from "../icons.ts";
+import { renderConversationNavigator } from "./conversation-navigator.ts";
 import { renderMarkdownSidebar } from "./markdown-sidebar.ts";
 import "../components/resizable-divider.ts";
 
@@ -413,6 +414,14 @@ export function renderChat(props: ChatProps) {
             `
             : nothing
         }
+
+        ${renderConversationNavigator({
+          locale: props.locale,
+          sessions: props.sessions,
+          sessionKey: props.sessionKey,
+          assistantName: props.assistantName,
+          onSelect: props.onSessionKeyChange,
+        })}
       </div>
 
       ${

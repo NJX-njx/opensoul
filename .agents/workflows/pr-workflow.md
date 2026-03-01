@@ -1,3 +1,7 @@
+---
+description: PR review workflow — review-pr → prepare-pr → merge-pr. Read before using PR skills.
+---
+
 # PR Review Instructions
 
 Please read this in full and do not skip sections.

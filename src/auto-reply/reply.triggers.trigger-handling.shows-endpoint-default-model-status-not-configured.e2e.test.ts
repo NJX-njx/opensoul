@@ -123,7 +123,7 @@ describe("trigger handling", () => {
         models: {
           providers: {
             minimax: {
-              baseUrl: "https://api.minimax.io/anthropic",
+              baseUrl: "https://api.minimaxi.com/anthropic",
               api: "anthropic-messages",
             },
           },
@@ -147,7 +147,7 @@ describe("trigger handling", () => {
       const text = Array.isArray(res) ? res[0]?.text : res?.text;
       const normalized = normalizeTestText(text ?? "");
       expect(normalized).toContain(
-        "[minimax] endpoint: https://api.minimax.io/anthropic api: anthropic-messages auth:",
+        "[minimax] endpoint: https://api.minimaxi.com/anthropic api: anthropic-messages auth:",
       );
     });
   });

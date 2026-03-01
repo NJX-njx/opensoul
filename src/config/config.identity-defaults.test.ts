@@ -212,7 +212,7 @@ describe("config identity defaults", () => {
               mode: "merge",
               providers: {
                 minimax: {
-                  baseUrl: "https://api.minimax.io/anthropic",
+                  baseUrl: "https://api.minimaxi.com/anthropic",
                   apiKey: "",
                   api: "anthropic-messages",
                   models: [
@@ -245,7 +245,7 @@ describe("config identity defaults", () => {
       const { loadConfig } = await import("./config.js");
       const cfg = loadConfig();
 
-      expect(cfg.models?.providers?.minimax?.baseUrl).toBe("https://api.minimax.io/anthropic");
+      expect(cfg.models?.providers?.minimax?.baseUrl).toBe("https://api.minimaxi.com/anthropic");
     });
   });
 

@@ -749,7 +749,7 @@ describe("applyAuthChoice", () => {
                 models: {
                   providers: {
                     "minimax-portal": {
-                      baseUrl: "https://api.minimax.io/anthropic",
+                      baseUrl: "https://api.minimaxi.com/anthropic",
                       apiKey: "minimax-oauth",
                       api: "anthropic-messages",
                       models: [],
@@ -796,7 +796,7 @@ describe("applyAuthChoice", () => {
     });
     expect(result.config.agents?.defaults?.model?.primary).toBe("minimax-portal/MiniMax-M2.1");
     expect(result.config.models?.providers?.["minimax-portal"]).toMatchObject({
-      baseUrl: "https://api.minimax.io/anthropic",
+      baseUrl: "https://api.minimaxi.com/anthropic",
       apiKey: "minimax-oauth",
     });
 

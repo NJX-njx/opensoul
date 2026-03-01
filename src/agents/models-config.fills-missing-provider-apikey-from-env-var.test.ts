@@ -56,7 +56,7 @@ describe("models-config", () => {
           models: {
             providers: {
               minimax: {
-                baseUrl: "https://api.minimax.io/anthropic",
+                baseUrl: "https://api.minimaxi.com/anthropic",
                 api: "anthropic-messages",
                 models: [
                   {

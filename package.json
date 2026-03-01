@@ -78,6 +78,7 @@
     "gateway:dev": "OPENSOUL_SKIP_CHANNELS=1 OPENSOUL_SKIP_CHANNELS=1 node scripts/run-node.mjs --dev gateway",
     "gateway:dev:reset": "OPENSOUL_SKIP_CHANNELS=1 OPENSOUL_SKIP_CHANNELS=1 node scripts/run-node.mjs --dev gateway --reset",
     "gateway:watch": "node scripts/watch-node.mjs gateway --force",
+    "github:validate": "node scripts/validate-github-workflows.mjs",
     "ios:build": "bash -lc 'cd apps/ios && xcodegen generate && xcodebuild -project OpenSoul.xcodeproj -scheme OpenSoul -destination \"${IOS_DEST:-platform=iOS Simulator,name=iPhone 17}\" -configuration Debug build'",
     "ios:gen": "cd apps/ios && xcodegen generate",
     "ios:open": "cd apps/ios && xcodegen generate && open OpenSoul.xcodeproj",

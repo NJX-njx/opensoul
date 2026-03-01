@@ -300,7 +300,7 @@ export const BUILTIN_PROVIDER_MODELS: Record<string, BuiltinProviderConfig> = {
     ],
   },
   minimax: {
-    baseUrl: "https://api.minimax.io/anthropic",
+    baseUrl: "https://api.minimaxi.com/anthropic",
     api: "anthropic-messages",
     models: [
       {

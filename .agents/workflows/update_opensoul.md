@@ -4,6 +4,8 @@ description: Update OpenSoul from upstream when branch has diverged (ahead/behin
 
 # OpenSoul Upstream Sync Workflow
 
+**Note:** Commands use `rg` (ripgrep) and Git. On Windows, use Git Bash or WSL, or install ripgrep (`choco install ripgrep`).
+
 Use this workflow when your fork has diverged from upstream (e.g., "18 commits ahead, 29 commits behind").
 
 ## Quick Reference
@@ -15,8 +17,8 @@ git fetch upstream && git rev-list --left-right --count main...upstream/main
 # Full sync (rebase preferred)
 git fetch upstream && git rebase upstream/main && pnpm install && pnpm build
 
-# Check for Swift 6.2 issues after sync
-grep -r "FileManager\.default\|Thread\.isMainThread" apps/ --include="*.swift"
+# Check for Swift 6.2 issues after sync (use rg on all platforms)
+rg "FileManager\.default|Thread\.isMainThread" apps/ -g "*.swift"
 ```
 
 ---
@@ -25,7 +27,7 @@ grep -r "FileManager\.default\|Thread\.isMainThread" apps/ --include="*.swift"
 
 ```bash
 git fetch upstream
-git log --oneline --left-right main...upstream/main | head -20
+git log --oneline --left-right main...upstream/main -20
 ```
 
 This shows:
@@ -126,14 +128,14 @@ Upstream updates may introduce Swift 6.2 / macOS 26 SDK incompatibilities.
 **FileManager.default Deprecation:**
 
 ```bash
-grep -r "FileManager\.default" apps/ --include="*.swift"
+rg "FileManager\.default" apps/ -g "*.swift"
 # Replace with: FileManager()
 ```
 
 **Thread.isMainThread Deprecation:**
 
 ```bash
-grep -r "Thread\.isMainThread" apps/ --include="*.swift"
+rg "Thread\.isMainThread" apps/ -g "*.swift"
 # Replace with: MainActor.run { ... } or DispatchQueue.main.sync { ... }
 ```
 
@@ -188,6 +190,6 @@ cd apps/macos && rm -rf .build .swiftpm
 ### Patch Failures
 
 ```bash
-pnpm install 2>&1 | grep -i patch
+pnpm install 2>&1 | rg -i patch
 # If patches fail, they may need updating for new dep versions
 ```
