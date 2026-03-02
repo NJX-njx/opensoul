@@ -9,7 +9,7 @@
 - **No barrel/re-export files.** Import directly from the source module.
 - Use `.js` extension in relative imports (ESM requirement).
 - Use `import type { X }` for type-only imports.
-- File LOC hard limit: **500 lines** (enforced by `pnpm check:loc`).
+- LOC check uses repo script limits: `pnpm check:loc` runs with `--max 2000 --max-function 150`.
 
 ## CLI Framework
 
