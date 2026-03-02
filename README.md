@@ -92,15 +92,15 @@ flowchart LR
 
 ### Core Modules / 核心模块说明
 
-| Module        | Path                    | Description                                            |
-| ------------- | ----------------------- | ------------------------------------------------------ |
-| Gateway       | src/gateway             | 网关进程：连接渠道、路由会话、暴露 WebSocket/HTTP 接口 |
-| Agent Runtime | src/agents              | 智能体运行时与路由、会话与工具注入                     |
-| Channels      | src/\*_/ + extensions/_ | 各渠道集成与协议适配                                   |
-| Skills        | skills/                 | 内置技能与插件式能力                                   |
-| Memory        | src/memory              | 长期记忆与存储管理                                     |
-| Web UI        | ui/                     | Web 控制台与交互界面                                   |
-| Apps          | apps/                   | 原生跨平台应用                                         |
+| Module        | Path                   | Description                                            |
+| ------------- | ---------------------- | ------------------------------------------------------ |
+| Gateway       | src/gateway            | 网关进程：连接渠道、路由会话、暴露 WebSocket/HTTP 接口 |
+| Agent Runtime | src/agents             | 智能体运行时与路由、会话与工具注入                     |
+| Channels      | src/\* + extensions/\* | 各渠道集成与协议适配                                   |
+| Skills        | skills/                | 内置技能与插件式能力                                   |
+| Memory        | src/memory             | 长期记忆与存储管理                                     |
+| Web UI        | ui/                    | Web 控制台与交互界面                                   |
+| Apps          | apps/                  | 原生跨平台应用                                         |
 
 ## Tech Stack / 技术栈版本
 
