@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Features — OpenSoul</title>
+    <meta
+      name="description"
+      content="Explore OpenSoul features: 30+ channels, multi-model agent runtime, 50+ skills, cross-platform clients, and plugin SDK."
+    />
+    <link rel="icon" href="assets/pixel-lobster.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="site.css" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+      <div class="nav-inner">
+        <a href="./" class="nav-logo">
+          <img src="assets/pixel-lobster.svg" alt="OpenSoul" />
+          <span>OpenSoul</span>
+        </a>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="features.html" class="active">Features</a></li>
+          <li><a href="quickstart.html">Quick Start</a></li>
+          <li><a href="architecture.html">Architecture</a></li>
+          <li><a href="https://github.com/NJX-njx/opensoul/wiki" target="_blank">Wiki</a></li>
+        </ul>
+        <div class="nav-actions">
+          <a
+            href="https://github.com/NJX-njx/opensoul"
+            target="_blank"
+            class="btn btn-outline"
+            title="GitHub"
+          >
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor">
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+              />
+            </svg>
+            <span class="btn-text">GitHub</span>
+          </a>
+          <a href="quickstart.html" class="btn btn-primary">Get Started</a>
+        </div>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+      <h1>Features</h1>
+      <p>Everything you get with OpenSoul — from messaging channels to AI agent runtime.</p>
+    </header>
+
+    <!-- Channels Section -->
+    <section>
+      <div class="section-inner">
+        <div class="section-header reveal">
+          <h2>🌐 30+ Messaging Channels</h2>
+          <p>Connect all your chat apps to a single AI gateway.</p>
+        </div>
+
+        <div class="prose" style="max-width: 900px; margin: 0 auto; padding-top: 0">
+          <table>
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Channels</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Messaging</strong></td>
+                <td>WhatsApp · Telegram · Signal · iMessage · Matrix · Mattermost · Zalo</td>
+              </tr>
+              <tr>
+                <td><strong>Collaboration</strong></td>
+                <td>Slack · Discord · Microsoft Teams · Lark (Feishu) · LINE · Google Chat</td>
+              </tr>
+              <tr>
+                <td><strong>Web + API</strong></td>
+                <td>Web Control UI · WebChat · REST API · WebSocket</td>
+              </tr>
+              <tr>
+                <td><strong>Voice &amp; Media</strong></td>
+                <td>Voice Call · Audio · Images · Documents</td>
+              </tr>
+              <tr>
+                <td><strong>Other</strong></td>
+                <td>Nostr · Twitch · Nextcloud Talk · BlueBubbles · Tlon</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Each channel is a plugin — add new ones by dropping an extension into
+            <code>extensions/</code> with zero downtime.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Agent Runtime -->
+    <section>
+      <div class="section-inner">
+        <div class="section-header reveal">
+          <h2>🧠 Agent Runtime</h2>
+          <p>Powerful AI execution engine at the core of every conversation.</p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card reveal">
+            <div class="feature-icon">🔀</div>
+            <h3>Multi-Model Routing</h3>
+            <p>
+              Route to OpenAI, Anthropic, Google Gemini, AWS Bedrock, Ollama, MiniMax, OpenRouter,
+              Moonshot, GLM, and more. Switch models per agent or per workspace.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">🔒</div>
+            <h3>Session Isolation</h3>
+            <p>
+              Isolated sessions per sender, workspace, or agent. Each conversation maintains its own
+              context window, memory, and tool permissions.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">🧲</div>
+            <h3>Long-Term Memory</h3>
+            <p>
+              Vector search-based long-term memory with embedded SQLite + sqlite-vec. Conversations
+              persist and are searchable across sessions.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">⚙️</div>
+            <h3>Tool Execution</h3>
+            <p>
+              Sandboxed tool execution with fine-grained permissions. The agent can call tools, run
+              code, browse the web, and interact with external services.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">🤝</div>
+            <h3>Multi-Agent Routing</h3>
+            <p>
+              Run multiple agents in a single gateway with workspace-level isolation. Route messages
+              to the right agent based on channel, sender, or content.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">📝</div>
+            <h3>Context Compaction</h3>
+            <p>
+              Automatic context window management — compacts long conversations while preserving key
+              information for the AI model.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Skills & Tools -->
+    <section>
+      <div class="section-inner">
+        <div class="section-header reveal">
+          <h2>🛠️ 50+ Skills &amp; Tools</h2>
+          <p>Built-in integrations and a public SDK for custom extensions.</p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card reveal">
+            <div class="feature-icon">💻</div>
+            <h3>Developer Tools</h3>
+            <p>
+              GitHub integration, code execution, tmux session management, file operations, and
+              shell access. Perfect for coding companions.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">📒</div>
+            <h3>Productivity</h3>
+            <p>
+              Notion, Obsidian, Canvas integrations. Calendar, reminders, web search, and document
+              analysis.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">🌍</div>
+            <h3>Web &amp; Browser</h3>
+            <p>
+              Browser automation, web scraping, Brave Search, Perplexity integration, and image
+              generation.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">🔌</div>
+            <h3>Plugin SDK</h3>
+            <p>
+              Public <code>opensoul/plugin-sdk</code> lets you build custom channels, tools, hooks,
+              and providers. Full TypeScript types and documentation.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cross-Platform -->
+    <section>
+      <div class="section-inner">
+        <div class="section-header reveal">
+          <h2>📱 Cross-Platform Clients</h2>
+          <p>Access your AI companion from any device.</p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card reveal">
+            <div class="feature-icon">🖥️</div>
+            <h3>Web Control UI</h3>
+            <p>
+              Full-featured browser dashboard for chat, configuration, session management, node
+              pairing, and agent creation. Built with Lit + Vite.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">🍎</div>
+            <h3>macOS &amp; iOS</h3>
+            <p>
+              Native SwiftUI apps with Canvas support, push notifications, and seamless gateway
+              pairing.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">🤖</div>
+            <h3>Android</h3>
+            <p>
+              Native Android app with Canvas support. Pair with the gateway and chat from your
+              phone.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">🪟</div>
+            <h3>Windows</h3>
+            <p>
+              Native Windows desktop client with WebView2, system proxy detection, and tray
+              integration.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">⌨️</div>
+            <h3>CLI &amp; TUI</h3>
+            <p>
+              Full command-line interface with <code>opensoul chat</code>,
+              <code>opensoul message</code>, and interactive TUI for terminal workflows.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">🔗</div>
+            <h3>REST API &amp; WebSocket</h3>
+            <p>
+              Programmatic access to the gateway. Send messages, manage sessions, and stream
+              responses via the HTTP/WS API.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security & Privacy -->
+    <section>
+      <div class="section-inner">
+        <div class="section-header reveal">
+          <h2>🔐 Security &amp; Privacy</h2>
+          <p>Self-hosted by design. Your data stays on your machine.</p>
+        </div>
+        <div class="features-grid" style="max-width: 800px; margin: 0 auto">
+          <div class="feature-card reveal">
+            <div class="feature-icon">🏠</div>
+            <h3>Self-Hosted</h3>
+            <p>
+              Run on your own hardware or VPS. No data ever leaves your network unless you
+              explicitly configure external model providers.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">🔑</div>
+            <h3>Token-Based Auth</h3>
+            <p>
+              Gateway requires authentication. Support for allowlists, mention-based group controls,
+              and per-channel sender restrictions.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">📦</div>
+            <h3>Sandboxed Execution</h3>
+            <p>
+              Tool execution runs in sandboxed environments with configurable permission boundaries.
+              Docker-based sandbox options available.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">🕵️</div>
+            <h3>Secret Redaction</h3>
+            <p>
+              Built-in runtime log redaction for API keys, tokens, and sensitive data patterns.
+              Keeps secrets out of logs and error traces.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section style="background: var(--bg-alt)">
+      <div class="section-inner" style="text-align: center; padding: 60px 24px">
+        <h2 class="reveal" style="font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 16px">
+          Ready to Try It?
+        </h2>
+        <p
+          class="reveal"
+          style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 32px"
+        >
+          Get up and running in under 5 minutes.
+        </p>
+        <div class="hero-actions reveal">
+          <a href="quickstart.html" class="btn btn-primary">Quick Start Guide →</a>
+          <a href="architecture.html" class="btn btn-outline">View Architecture →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="./">Home</a>
+          <a href="features.html">Features</a>
+          <a href="quickstart.html">Quick Start</a>
+          <a href="architecture.html">Architecture</a>
+          <a href="https://github.com/NJX-njx/opensoul/wiki" target="_blank">Wiki</a>
+          <a href="https://github.com/NJX-njx/opensoul" target="_blank">GitHub</a>
+        </div>
+        <p class="footer-copy">
+          MIT License · Built by <a href="https://github.com/NJX-njx">NJX-njx</a> &amp; contributors
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      const nav = document.getElementById("nav");
+      window.addEventListener("scroll", () =>
+        nav.classList.toggle("scrolled", window.scrollY > 10),
+      );
+      const toggle = document.getElementById("nav-toggle");
+      const links = document.getElementById("nav-links");
+      toggle.addEventListener("click", () => links.classList.toggle("open"));
+      const reveals = document.querySelectorAll(".reveal");
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add("visible");
+              observer.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.15 },
+      );
+      reveals.forEach((el) => observer.observe(el));
+    </script>
+  </body>
+</html>

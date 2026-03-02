@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Architecture — OpenSoul</title>
+    <meta
+      name="description"
+      content="OpenSoul architecture: Gateway core, agent runtime, plugin system, routing, and module breakdown."
+    />
+    <link rel="icon" href="assets/pixel-lobster.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="site.css" />
+    <style>
+      /* Architecture-specific styles */
+      .module-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin-top: 40px;
+      }
+      .module-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 28px;
+        transition: all var(--transition);
+      }
+      .module-card:hover {
+        border-color: var(--accent);
+        box-shadow: var(--shadow-md);
+      }
+      .module-card h3 {
+        font-size: 1.05rem;
+        font-weight: 650;
+        margin-bottom: 4px;
+      }
+      .module-path {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.82rem;
+        color: var(--accent);
+        margin-bottom: 10px;
+        display: block;
+      }
+      .module-card p {
+        color: var(--text-secondary);
+        font-size: 0.92rem;
+        line-height: 1.6;
+      }
+
+      .flow-section {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+      .flow-diagram {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 40px 32px;
+        margin: 32px 0;
+      }
+      .flow-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 16px 0;
+      }
+      .flow-box {
+        background: var(--bg-alt);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 12px 20px;
+        font-size: 0.88rem;
+        font-weight: 500;
+        text-align: center;
+        min-width: 130px;
+      }
+      .flow-box.primary {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent);
+        font-weight: 700;
+        font-size: 1rem;
+        padding: 16px 28px;
+      }
+      .flow-box.secondary {
+        background: var(--accent-glow);
+        border-color: var(--accent);
+        color: var(--text);
+      }
+      .flow-arrow {
+        font-size: 1.4rem;
+        color: var(--text-muted);
+        flex-shrink: 0;
+      }
+      .flow-label {
+        text-align: center;
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin: 4px 0 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .startup-chain {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 24px 0;
+      }
+      .startup-chain .flow-box {
+        min-width: auto;
+        padding: 10px 16px;
+        font-size: 0.82rem;
+      }
+      .startup-chain .flow-arrow {
+        font-size: 1.1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+      <div class="nav-inner">
+        <a href="./" class="nav-logo">
+          <img src="assets/pixel-lobster.svg" alt="OpenSoul" />
+          <span>OpenSoul</span>
+        </a>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="features.html">Features</a></li>
+          <li><a href="quickstart.html">Quick Start</a></li>
+          <li><a href="architecture.html" class="active">Architecture</a></li>
+          <li><a href="https://github.com/NJX-njx/opensoul/wiki" target="_blank">Wiki</a></li>
+        </ul>
+        <div class="nav-actions">
+          <a
+            href="https://github.com/NJX-njx/opensoul"
+            target="_blank"
+            class="btn btn-outline"
+            title="GitHub"
+          >
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor">
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+              />
+            </svg>
+            <span class="btn-text">GitHub</span>
+          </a>
+          <a href="quickstart.html" class="btn btn-primary">Get Started</a>
+        </div>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+      <h1>Architecture</h1>
+      <p>How OpenSoul is structured — from startup chain to core data flow.</p>
+    </header>
+
+    <!-- Overview -->
+    <section>
+      <div class="section-inner flow-section">
+        <div class="section-header reveal">
+          <h2>High-Level Data Flow</h2>
+          <p>Messages flow from channels through the Gateway to the agent runtime and back.</p>
+        </div>
+
+        <div class="flow-diagram reveal">
+          <div class="flow-label">Inbound Channels</div>
+          <div class="flow-row">
+            <div class="flow-box">WhatsApp</div>
+            <div class="flow-box">Telegram</div>
+            <div class="flow-box">Discord</div>
+            <div class="flow-box">Slack</div>
+            <div class="flow-box">+25 more</div>
+          </div>
+
+          <div class="flow-row">
+            <div class="flow-arrow">↓</div>
+          </div>
+
+          <div class="flow-label">Core Gateway</div>
+          <div class="flow-row">
+            <div class="flow-box primary">⚡ Gateway Runtime</div>
+          </div>
+          <div class="flow-row" style="gap: 8px">
+            <div class="flow-box secondary">Route Resolution</div>
+            <div class="flow-box secondary">Session Manager</div>
+            <div class="flow-box secondary">Plugin Registry</div>
+          </div>
+
+          <div class="flow-row">
+            <div class="flow-arrow">↓</div>
+          </div>
+
+          <div class="flow-label">Agent &amp; Services</div>
+          <div class="flow-row">
+            <div class="flow-box">Agent Runtime</div>
+            <div class="flow-box">Memory &amp; Storage</div>
+            <div class="flow-box">Skills &amp; Tools</div>
+          </div>
+
+          <div class="flow-row">
+            <div class="flow-arrow">↓</div>
+          </div>
+
+          <div class="flow-label">Clients</div>
+          <div class="flow-row">
+            <div class="flow-box">Web Control UI</div>
+            <div class="flow-box">CLI / TUI</div>
+            <div class="flow-box">Native Apps</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Startup Chain -->
+    <section>
+      <div class="section-inner flow-section">
+        <div class="section-header reveal">
+          <h2>Startup Chain</h2>
+          <p>How the gateway boots from the entry point to a fully running server.</p>
+        </div>
+
+        <div class="startup-chain reveal">
+          <div class="flow-box"><code>opensoul.mjs</code></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box"><code>src/entry.ts</code></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box"><code>cli/program</code></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box primary"><code>gateway/server</code></div>
+        </div>
+
+        <div class="prose reveal" style="margin-top: 24px">
+          <p>
+            The gateway process initializes sidecars for channels, cron jobs, hooks, discovery, and
+            browser control — all orchestrated from <code>src/gateway/server.impl.ts</code>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Core Data Flow -->
+    <section>
+      <div class="section-inner flow-section">
+        <div class="section-header reveal">
+          <h2>Core Data Flow</h2>
+          <p>How a message travels through the system.</p>
+        </div>
+
+        <div class="prose reveal">
+          <ol>
+            <li>
+              <strong>Channel Inbound</strong> — A message arrives from a channel adapter (e.g.
+              WhatsApp webhook)
+            </li>
+            <li>
+              <strong>Route Resolution</strong> —
+              <code>src/routing/resolve-route.ts</code> determines the target agent, workspace, and
+              session
+            </li>
+            <li>
+              <strong>Session Run</strong> — The agent runtime executes with the resolved context,
+              calling tools and hooks as needed
+            </li>
+            <li>
+              <strong>Plugin Pipeline</strong> — Pre/post hooks, tool calls, and plugins execute in
+              the configured order
+            </li>
+            <li>
+              <strong>Outbound Adapter</strong> — The response is sent back through the originating
+              channel
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- Core Modules -->
+    <section>
+      <div class="section-inner">
+        <div class="section-header reveal">
+          <h2>Core Modules</h2>
+          <p>The building blocks of the OpenSoul monorepo.</p>
+        </div>
+
+        <div class="module-grid">
+          <div class="module-card reveal">
+            <h3>Gateway</h3>
+            <span class="module-path">src/gateway/</span>
+            <p>
+              HTTP &amp; WebSocket server, orchestration layer, sidecar management (channels, cron,
+              hooks, discovery, browser control).
+            </p>
+          </div>
+          <div class="module-card reveal">
+            <h3>Agent Runtime</h3>
+            <span class="module-path">src/agents/</span>
+            <p>
+              Session execution, tool injection, model provider integration, context window
+              management.
+            </p>
+          </div>
+          <div class="module-card reveal">
+            <h3>Routing</h3>
+            <span class="module-path">src/routing/</span>
+            <p>
+              Message-to-agent/session resolution. Supports identity links, thread parents, channel
+              overrides, and multi-agent routing.
+            </p>
+          </div>
+          <div class="module-card reveal">
+            <h3>Plugins</h3>
+            <span class="module-path">src/plugins/</span>
+            <p>
+              Plugin discovery, loading, registry, and runtime API. Powers the extension system for
+              channels, tools, hooks, and providers.
+            </p>
+          </div>
+          <div class="module-card reveal">
+            <h3>Channels</h3>
+            <span class="module-path">src/channels/ + extensions/</span>
+            <p>
+              Channel adapters implementing the <code>ChannelPlugin</code> contract. Each channel is
+              a separate extension package.
+            </p>
+          </div>
+          <div class="module-card reveal">
+            <h3>Memory</h3>
+            <span class="module-path">src/memory/</span>
+            <p>
+              Long-term memory with embedded SQLite + sqlite-vec for vector search. Stores
+              conversations, embeddings, and metadata.
+            </p>
+          </div>
+          <div class="module-card reveal">
+            <h3>Config System</h3>
+            <span class="module-path">src/config/</span>
+            <p>
+              JSON5 config with includes, <code>${ENV}</code> substitution, Zod validation, and
+              per-plugin schema merging.
+            </p>
+          </div>
+          <div class="module-card reveal">
+            <h3>Web Control UI</h3>
+            <span class="module-path">ui/</span>
+            <p>
+              Browser dashboard built with Lit 3 + Vite. Chat, configuration, session management,
+              and node pairing interface.
+            </p>
+          </div>
+          <div class="module-card reveal">
+            <h3>CLI</h3>
+            <span class="module-path">src/cli/ + src/commands/</span>
+            <p>
+              Commander-based CLI with clack/prompts for interactive flows. Manages gateway,
+              channels, onboarding, and diagnostics.
+            </p>
+          </div>
+          <div class="module-card reveal">
+            <h3>Native Apps</h3>
+            <span class="module-path">apps/</span>
+            <p>
+              macOS (SwiftUI), iOS, Android, and Windows desktop clients. Shared protocol layer in
+              <code>apps/shared/</code>.
+            </p>
+          </div>
+          <div class="module-card reveal">
+            <h3>Infrastructure</h3>
+            <span class="module-path">src/infra/</span>
+            <p>
+              Shared error types, logging (<code>createSubsystemLogger</code>), secret redaction,
+              and cross-cutting utilities.
+            </p>
+          </div>
+          <div class="module-card reveal">
+            <h3>Plugin SDK</h3>
+            <span class="module-path">src/plugin-sdk/</span>
+            <p>
+              Public API surface for external extensions. Import from
+              <code>opensoul/plugin-sdk</code> — never from internal <code>src/*</code> modules.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Repository Layout -->
+    <section>
+      <div class="section-inner flow-section">
+        <div class="section-header reveal">
+          <h2>Repository Layout</h2>
+          <p>High-level directory structure of the pnpm monorepo.</p>
+        </div>
+        <div class="reveal">
+          <pre><code>opensoul/
+├── src/           Core gateway, agent runtime, routing, config, plugins
+├── extensions/    Channel/provider/hook extension packages (30+)
+├── ui/            Web Control UI (Lit + Vite)
+├── skills/        50+ built-in skills
+├── docs/          User and reference documentation
+├── apps/          Native clients (Android, iOS, macOS, Windows)
+├── packages/      Shared packages and protocol definitions
+├── scripts/       Build, release, test, and tooling scripts
+├── test/          E2E and integration test suites
+└── tools/         Internal development tools</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section style="background: var(--bg-alt)">
+      <div class="section-inner" style="text-align: center; padding: 60px 24px">
+        <h2 class="reveal" style="font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 16px">
+          Want to Dive Deeper?
+        </h2>
+        <p
+          class="reveal"
+          style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 32px"
+        >
+          Check out the source code or start building extensions.
+        </p>
+        <div class="hero-actions reveal">
+          <a href="https://github.com/NJX-njx/opensoul" target="_blank" class="btn btn-primary"
+            >Browse Source on GitHub →</a
+          >
+          <a href="quickstart.html" class="btn btn-outline">Quick Start Guide →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="./">Home</a>
+          <a href="features.html">Features</a>
+          <a href="quickstart.html">Quick Start</a>
+          <a href="architecture.html">Architecture</a>
+          <a href="https://github.com/NJX-njx/opensoul/wiki" target="_blank">Wiki</a>
+          <a href="https://github.com/NJX-njx/opensoul" target="_blank">GitHub</a>
+        </div>
+        <p class="footer-copy">
+          MIT License · Built by <a href="https://github.com/NJX-njx">NJX-njx</a> &amp; contributors
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      const nav = document.getElementById("nav");
+      window.addEventListener("scroll", () =>
+        nav.classList.toggle("scrolled", window.scrollY > 10),
+      );
+      const toggle = document.getElementById("nav-toggle");
+      const links = document.getElementById("nav-links");
+      toggle.addEventListener("click", () => links.classList.toggle("open"));
+      const reveals = document.querySelectorAll(".reveal");
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add("visible");
+              observer.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.15 },
+      );
+      reveals.forEach((el) => observer.observe(el));
+    </script>
+  </body>
+</html>

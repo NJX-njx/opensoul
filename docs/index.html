@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenSoul — Your AI Soul Companion</title>
+    <meta
+      name="description"
+      content="Self-hosted AI agent gateway across WhatsApp, Telegram, Discord, Slack, iMessage, and 30+ channels."
+    />
+    <link rel="icon" href="assets/pixel-lobster.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="site.css" />
+  </head>
+  <body>
+    <!-- ======== Navigation ======== -->
+    <nav class="nav" id="nav">
+      <div class="nav-inner">
+        <a href="./" class="nav-logo">
+          <img src="assets/pixel-lobster.svg" alt="OpenSoul" />
+          <span>OpenSoul</span>
+        </a>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="features.html">Features</a></li>
+          <li><a href="quickstart.html">Quick Start</a></li>
+          <li><a href="architecture.html">Architecture</a></li>
+          <li><a href="https://github.com/NJX-njx/opensoul/wiki" target="_blank">Wiki</a></li>
+        </ul>
+        <div class="nav-actions">
+          <a
+            href="https://github.com/NJX-njx/opensoul"
+            target="_blank"
+            class="btn btn-outline"
+            title="GitHub"
+          >
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor">
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+              />
+            </svg>
+            <span class="btn-text">GitHub</span>
+          </a>
+          <a href="quickstart.html" class="btn btn-primary">Get Started</a>
+        </div>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- ======== Hero ======== -->
+    <header class="hero">
+      <div class="hero-content">
+        <img src="assets/pixel-lobster.svg" alt="OpenSoul" class="hero-logo" />
+        <h1>Your AI <span class="gradient">Soul Companion</span></h1>
+        <p class="hero-subtitle">
+          Self-hosted AI agent gateway. One process connects WhatsApp, Telegram, Discord, Slack,
+          iMessage &amp; 30+ channels to your AI — with full data control.
+        </p>
+        <div class="hero-actions">
+          <a href="quickstart.html" class="btn btn-primary">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+            Quick Start
+          </a>
+          <a href="https://github.com/NJX-njx/opensoul" target="_blank" class="btn btn-outline">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+              />
+            </svg>
+            View on GitHub
+          </a>
+        </div>
+
+        <div class="hero-badges">
+          <a href="https://github.com/NJX-njx/opensoul/actions/workflows/ci.yml"
+            ><img
+              src="https://github.com/NJX-njx/opensoul/actions/workflows/ci.yml/badge.svg"
+              alt="CI"
+          /></a>
+          <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" />
+          <img src="https://img.shields.io/badge/node-%3E%3D22-brightgreen.svg" alt="Node >= 22" />
+          <img src="https://img.shields.io/badge/TypeScript-ESM-blue.svg" alt="TypeScript ESM" />
+          <a href="https://github.com/NJX-njx/opensoul/stargazers"
+            ><img
+              src="https://img.shields.io/github/stars/NJX-njx/opensoul?style=social"
+              alt="Stars"
+          /></a>
+        </div>
+
+        <!-- Terminal preview -->
+        <div class="hero-terminal">
+          <div class="hero-terminal-bar">
+            <div class="hero-terminal-dot"></div>
+            <div class="hero-terminal-dot"></div>
+            <div class="hero-terminal-dot"></div>
+            <span>terminal</span>
+          </div>
+          <pre><code><span class="comment"># Install globally</span>
+<span class="prompt">$</span> npm install -g opensoul@latest
+
+<span class="comment"># Run the setup wizard</span>
+<span class="prompt">$</span> opensoul onboard --install-daemon
+
+<span class="comment"># Start the gateway</span>
+<span class="prompt">$</span> opensoul gateway --port 18789
+<span class="comment">  ✓ Gateway ready at http://127.0.0.1:18789</span></code></pre>
+        </div>
+      </div>
+    </header>
+
+    <!-- ======== Key Features ======== -->
+    <section id="features">
+      <div class="section-inner">
+        <div class="section-header reveal">
+          <h2>Everything You Need in One Gateway</h2>
+          <p>Connect all your messaging channels to a single, powerful AI agent runtime.</p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card reveal">
+            <div class="feature-icon">🌐</div>
+            <h3>30+ Channels</h3>
+            <p>
+              WhatsApp, Telegram, Discord, Slack, Signal, iMessage, Teams, Lark, LINE, Matrix,
+              Mattermost, Zalo, and more — all from one process.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">🧠</div>
+            <h3>Agent Runtime</h3>
+            <p>
+              Multi-model routing with OpenAI, Anthropic, Gemini, Bedrock, Ollama, MiniMax, and
+              OpenRouter. Session isolation, long-term memory, and vector search.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">🛠️</div>
+            <h3>50+ Skills &amp; Tools</h3>
+            <p>
+              GitHub, Notion, Obsidian, Canvas, tmux, browser automation, and a public Plugin SDK
+              for custom channels, tools, hooks, and providers.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">📱</div>
+            <h3>Cross-Platform</h3>
+            <p>
+              Native apps for macOS, iOS, Android, and Windows. Web Control UI, CLI, and TUI
+              workflows — manage everything from anywhere.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">🔒</div>
+            <h3>Self-Hosted &amp; Private</h3>
+            <p>
+              Your hardware, your rules. No data leaves your network. Full control over model
+              routing, memory, tools, and security boundaries.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <div class="feature-icon">🔌</div>
+            <h3>Extensible Plugin SDK</h3>
+            <p>
+              Build custom channel adapters, tool integrations, hooks, and providers. Drop
+              extensions into <code>extensions/</code> and go.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== Supported Channels ======== -->
+    <section id="channels">
+      <div class="section-inner">
+        <div class="section-header reveal">
+          <h2>Connect Every Channel</h2>
+          <p>One gateway to rule them all. Add new channels with zero downtime.</p>
+        </div>
+        <div class="channels-showcase reveal">
+          <span class="channel-pill">💬 WhatsApp</span>
+          <span class="channel-pill">✈️ Telegram</span>
+          <span class="channel-pill">🎮 Discord</span>
+          <span class="channel-pill">💼 Slack</span>
+          <span class="channel-pill">📱 iMessage</span>
+          <span class="channel-pill">🔒 Signal</span>
+          <span class="channel-pill">🏢 MS Teams</span>
+          <span class="channel-pill">🐦 Lark / 飞书</span>
+          <span class="channel-pill">💚 LINE</span>
+          <span class="channel-pill">🔗 Matrix</span>
+          <span class="channel-pill">💬 Mattermost</span>
+          <span class="channel-pill">🔵 Zalo</span>
+          <span class="channel-pill">📡 Nostr</span>
+          <span class="channel-pill">🎙️ Voice Call</span>
+          <span class="channel-pill">🌐 WebChat</span>
+          <span class="channel-pill">⚡ REST API</span>
+          <span class="channel-pill">🔌 WebSocket</span>
+          <span class="channel-pill">💜 Twitch</span>
+          <span class="channel-pill">🏗️ Google Chat</span>
+          <span class="channel-pill">🔧 …and more</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== How It Works ======== -->
+    <section id="architecture">
+      <div class="section-inner">
+        <div class="section-header reveal">
+          <h2>How It Works</h2>
+          <p>
+            A single Gateway process is the source of truth for sessions, routing, and connections.
+          </p>
+        </div>
+        <div class="arch-diagram reveal">
+          <div class="arch-flow">
+            <div class="arch-outputs" style="gap: 8px">
+              <div class="arch-node">WhatsApp</div>
+              <div class="arch-node">Telegram</div>
+              <div class="arch-node">Discord</div>
+              <div class="arch-node">Slack</div>
+              <div class="arch-node">30+ more…</div>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node gateway">⚡ Gateway</div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-outputs" style="gap: 8px">
+              <div class="arch-node">Agent Runtime</div>
+              <div class="arch-node">Memory &amp; Storage</div>
+              <div class="arch-node">Skills &amp; Tools</div>
+              <div class="arch-node">Web Control UI</div>
+              <div class="arch-node">Native Apps</div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align: center; margin-top: 32px">
+          <a href="architecture.html" class="btn btn-outline"
+            >Learn more about the architecture →</a
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== Quick Start Preview ======== -->
+    <section id="quickstart">
+      <div class="section-inner">
+        <div class="section-header reveal">
+          <h2>Up and Running in 3 Steps</h2>
+          <p>From zero to AI-powered messaging in under 5 minutes.</p>
+        </div>
+        <div class="steps reveal">
+          <div class="step">
+            <h3>Install OpenSoul</h3>
+            <pre><code><span class="prompt">$</span> npm install -g opensoul@latest</code></pre>
+          </div>
+          <div class="step">
+            <h3>Run the Setup Wizard</h3>
+            <pre><code><span class="prompt">$</span> opensoul onboard --install-daemon</code></pre>
+            <p style="margin-top: 8px">
+              Interactive wizard handles API key setup, channel pairing, and daemon install.
+            </p>
+          </div>
+          <div class="step">
+            <h3>Start the Gateway</h3>
+            <pre><code><span class="prompt">$</span> opensoul channels login
+<span class="prompt">$</span> opensoul gateway --port 18789</code></pre>
+            <p style="margin-top: 8px">
+              Open <code>http://127.0.0.1:18789</code> for the Web Control UI dashboard.
+            </p>
+          </div>
+        </div>
+        <div style="text-align: center; margin-top: 40px">
+          <a href="quickstart.html" class="btn btn-primary">Full Quick Start Guide →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== Tech Stack ======== -->
+    <section id="tech">
+      <div class="section-inner">
+        <div class="section-header reveal">
+          <h2>Tech Stack</h2>
+          <p>Modern, battle-tested foundations.</p>
+        </div>
+        <table class="tech-table reveal">
+          <thead>
+            <tr>
+              <th>Layer</th>
+              <th>Technology</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Runtime</td>
+              <td>Node.js ≥ 22</td>
+            </tr>
+            <tr>
+              <td>Language</td>
+              <td>TypeScript 5.9 (ESM)</td>
+            </tr>
+            <tr>
+              <td>Package Manager</td>
+              <td>pnpm 10</td>
+            </tr>
+            <tr>
+              <td>Web UI</td>
+              <td>Lit 3 + Vite</td>
+            </tr>
+            <tr>
+              <td>API Server</td>
+              <td>Hono + Express 5</td>
+            </tr>
+            <tr>
+              <td>Testing</td>
+              <td>Vitest 4</td>
+            </tr>
+            <tr>
+              <td>Linting</td>
+              <td>Oxlint + Oxfmt</td>
+            </tr>
+            <tr>
+              <td>Database</td>
+              <td>Embedded SQLite + sqlite-vec</td>
+            </tr>
+            <tr>
+              <td>License</td>
+              <td>MIT</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ======== What's New ======== -->
+    <section>
+      <div class="section-inner">
+        <div class="section-header reveal">
+          <h2>What's New in v0.2.4</h2>
+          <p>Latest highlights from the changelog.</p>
+        </div>
+        <div class="features-grid" style="max-width: 800px; margin: 0 auto">
+          <div class="feature-card reveal">
+            <h3>📜 Session Transcripts</h3>
+            <p>Load and review past conversation history directly from the Control UI.</p>
+          </div>
+          <div class="feature-card reveal">
+            <h3>🤖 Create Soulmate Modal</h3>
+            <p>Streamlined agent creation workflow — configure and deploy agents from the UI.</p>
+          </div>
+          <div class="feature-card reveal">
+            <h3>🔄 Gateway Reconnect</h3>
+            <p>
+              Automatic WebSocket reconnection after connection drops. Zero manual intervention.
+            </p>
+          </div>
+          <div class="feature-card reveal">
+            <h3>🪟 Windows Desktop Client</h3>
+            <p>Native Windows installer with system proxy detection and WebView2 runtime.</p>
+          </div>
+        </div>
+        <div style="text-align: center; margin-top: 32px">
+          <a
+            href="https://github.com/NJX-njx/opensoul/releases"
+            target="_blank"
+            class="btn btn-outline"
+            >View all releases →</a
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== CTA ======== -->
+    <section style="background: var(--bg-alt)">
+      <div class="section-inner" style="text-align: center; padding: 60px 24px">
+        <h2 class="reveal" style="font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 16px">
+          Ready to Get Started?
+        </h2>
+        <p
+          class="reveal"
+          style="
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 32px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+          "
+        >
+          Join the community and deploy your self-hosted AI companion today.
+        </p>
+        <div class="hero-actions reveal">
+          <a href="quickstart.html" class="btn btn-primary">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+            Quick Start
+          </a>
+          <a href="https://github.com/NJX-njx/opensoul" target="_blank" class="btn btn-outline">
+            ⭐ Star on GitHub
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======== Footer ======== -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="./">Home</a>
+          <a href="features.html">Features</a>
+          <a href="quickstart.html">Quick Start</a>
+          <a href="architecture.html">Architecture</a>
+          <a href="https://github.com/NJX-njx/opensoul/wiki" target="_blank">Wiki</a>
+          <a href="https://github.com/NJX-njx/opensoul" target="_blank">GitHub</a>
+          <a href="https://github.com/NJX-njx/opensoul/releases" target="_blank">Releases</a>
+        </div>
+        <p class="footer-copy">
+          MIT License · Built by <a href="https://github.com/NJX-njx">NJX-njx</a> &amp; contributors
+          · Built upon <a href="https://github.com/nicepkg/openclaw">OpenClaw</a>
+        </p>
+      </div>
+    </footer>
+
+    <!-- ======== Scripts ======== -->
+    <script>
+      // Navbar scroll effect
+      const nav = document.getElementById("nav");
+      window.addEventListener("scroll", () => {
+        nav.classList.toggle("scrolled", window.scrollY > 10);
+      });
+
+      // Mobile nav toggle
+      const toggle = document.getElementById("nav-toggle");
+      const links = document.getElementById("nav-links");
+      toggle.addEventListener("click", () => links.classList.toggle("open"));
+
+      // Scroll reveal
+      const reveals = document.querySelectorAll(".reveal");
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add("visible");
+              observer.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.15 },
+      );
+      reveals.forEach((el) => observer.observe(el));
+    </script>
+  </body>
+</html>

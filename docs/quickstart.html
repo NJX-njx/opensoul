@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quick Start — OpenSoul</title>
+    <meta
+      name="description"
+      content="Get OpenSoul running in under 5 minutes. Install, configure, and launch your AI gateway."
+    />
+    <link rel="icon" href="assets/pixel-lobster.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="site.css" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+      <div class="nav-inner">
+        <a href="./" class="nav-logo">
+          <img src="assets/pixel-lobster.svg" alt="OpenSoul" />
+          <span>OpenSoul</span>
+        </a>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="features.html">Features</a></li>
+          <li><a href="quickstart.html" class="active">Quick Start</a></li>
+          <li><a href="architecture.html">Architecture</a></li>
+          <li><a href="https://github.com/NJX-njx/opensoul/wiki" target="_blank">Wiki</a></li>
+        </ul>
+        <div class="nav-actions">
+          <a
+            href="https://github.com/NJX-njx/opensoul"
+            target="_blank"
+            class="btn btn-outline"
+            title="GitHub"
+          >
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor">
+              <path
+                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+              />
+            </svg>
+            <span class="btn-text">GitHub</span>
+          </a>
+        </div>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+      <h1>Quick Start</h1>
+      <p>From zero to AI-powered messaging in under 5 minutes.</p>
+    </header>
+
+    <!-- Content -->
+    <div class="prose">
+      <h2>Prerequisites</h2>
+      <ul>
+        <li>
+          <strong>Node.js ≥ 22</strong> — <a href="https://nodejs.org" target="_blank">Download</a>
+        </li>
+        <li><strong>pnpm</strong> (for development builds) — <code>corepack enable</code></li>
+        <li>
+          An API key from <strong>OpenAI</strong>, <strong>Anthropic</strong>,
+          <strong>Google Gemini</strong>, or any supported provider
+        </li>
+      </ul>
+
+      <h2>Option A: Install from npm (Recommended)</h2>
+
+      <h3>1. Install OpenSoul</h3>
+      <pre><code>npm install -g opensoul@latest</code></pre>
+
+      <h3>2. Run the Setup Wizard</h3>
+      <pre><code>opensoul onboard --install-daemon</code></pre>
+      <p>
+        The interactive wizard will guide you through API key configuration, channel pairing (e.g.
+        WhatsApp QR scan), and daemon installation.
+      </p>
+
+      <h3>3. Pair a Channel &amp; Start</h3>
+      <pre><code>opensoul channels login
+opensoul gateway --port 18789</code></pre>
+      <p>
+        Open <a href="http://127.0.0.1:18789" target="_blank">http://127.0.0.1:18789</a> to access
+        the Web Control UI dashboard.
+      </p>
+
+      <h2>Option B: Build from Source (Development)</h2>
+
+      <h3>1. Clone &amp; Install</h3>
+      <pre><code>git clone https://github.com/NJX-njx/opensoul.git
+cd opensoul
+pnpm install
+pnpm build</code></pre>
+
+      <h3>2. Start Gateway (Dev Mode)</h3>
+
+      <p><strong>Linux / macOS:</strong></p>
+      <pre><code>export OPENSOUL_SKIP_CHANNELS=1
+export OPENSOUL_GATEWAY_TOKEN=dev-token
+pnpm gateway:dev</code></pre>
+
+      <p><strong>Windows (PowerShell):</strong></p>
+      <pre><code>$env:OPENSOUL_SKIP_CHANNELS = "1"
+$env:OPENSOUL_GATEWAY_TOKEN = "dev-token"
+node scripts/run-node.mjs --dev gateway</code></pre>
+
+      <p>
+        <code>OPENSOUL_SKIP_CHANNELS=1</code> skips loading channel extensions that require external
+        API credentials — ideal for local development.
+      </p>
+
+      <h3>3. Open the Dashboard</h3>
+      <p>
+        Navigate to <a href="http://127.0.0.1:19001" target="_blank">http://127.0.0.1:19001</a> (dev
+        default port).
+      </p>
+
+      <h2>Production Runtime</h2>
+      <pre><code>opensoul onboard
+opensoul gateway run</code></pre>
+      <p>
+        For production, set your gateway token via <code>OPENSOUL_GATEWAY_TOKEN</code> or
+        <code>gateway.auth.token</code> in config.
+      </p>
+
+      <h2>Configuration</h2>
+      <p>
+        Config lives at <code>~/.opensoul/opensoul.json</code> (JSON5 format with
+        <code>${ENV}</code> substitution).
+      </p>
+
+      <h3>Environment Variables</h3>
+      <p>Place these in <code>.env</code> or <code>~/.opensoul/.env</code>:</p>
+      <pre><code>OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+GEMINI_API_KEY=AIza...
+OPENSOUL_GATEWAY_TOKEN=your-secret-token</code></pre>
+
+      <h3>Example Config</h3>
+      <pre><code>{
+  channels: {
+    whatsapp: {
+      allowFrom: ["+15555550123"],
+      groups: { "*": { requireMention: true } },
+    },
+  },
+  messages: {
+    groupChat: { mentionPatterns: ["@opensoul"] }
+  },
+}</code></pre>
+
+      <h2>What's Next?</h2>
+      <ul>
+        <li>
+          <a href="features.html">Explore all features</a> — channels, agent runtime, skills, and
+          more
+        </li>
+        <li>
+          <a href="architecture.html">Understand the architecture</a> — how the Gateway orchestrates
+          everything
+        </li>
+        <li>
+          <a href="https://github.com/NJX-njx/opensoul/wiki" target="_blank">Browse the Wiki</a> —
+          comprehensive project knowledge base
+        </li>
+        <li>
+          <a href="https://github.com/NJX-njx/opensoul/blob/main/CONTRIBUTING.md" target="_blank"
+            >Contribute</a
+          >
+          — help make OpenSoul better
+        </li>
+      </ul>
+
+      <h2>Troubleshooting</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Symptom</th>
+            <th>Likely Cause</th>
+            <th>Fix</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Gateway exits immediately</td>
+            <td>Missing gateway token</td>
+            <td>Set <code>OPENSOUL_GATEWAY_TOKEN</code></td>
+          </tr>
+          <tr>
+            <td>Channel startup fails</td>
+            <td>Missing external credentials</td>
+            <td>Use <code>OPENSOUL_SKIP_CHANNELS=1</code></td>
+          </tr>
+          <tr>
+            <td>Port conflict</td>
+            <td>Port already in use</td>
+            <td>Change <code>gateway.port</code> in config</td>
+          </tr>
+          <tr>
+            <td>API keys not found in service</td>
+            <td>Shell env not inherited</td>
+            <td>Put keys in <code>~/.opensoul/.env</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="./">Home</a>
+          <a href="features.html">Features</a>
+          <a href="quickstart.html">Quick Start</a>
+          <a href="architecture.html">Architecture</a>
+          <a href="https://github.com/NJX-njx/opensoul/wiki" target="_blank">Wiki</a>
+          <a href="https://github.com/NJX-njx/opensoul" target="_blank">GitHub</a>
+        </div>
+        <p class="footer-copy">
+          MIT License · Built by <a href="https://github.com/NJX-njx">NJX-njx</a> &amp; contributors
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      const nav = document.getElementById("nav");
+      window.addEventListener("scroll", () =>
+        nav.classList.toggle("scrolled", window.scrollY > 10),
+      );
+      const toggle = document.getElementById("nav-toggle");
+      const links = document.getElementById("nav-links");
+      toggle.addEventListener("click", () => links.classList.toggle("open"));
+    </script>
+  </body>
+</html>
