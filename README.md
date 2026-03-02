@@ -2,8 +2,6 @@
   <img src="opensoul.png" alt="OpenSoul" width="640">
 </p>
 
-# OpenSoul
-
 <p align="center">
   <strong>Your AI Soul Companion — Chat, Collaborate, Create</strong><br>
   Self-hosted AI agent gateway across WhatsApp, Telegram, Discord, Slack, iMessage, and 30+ channels.<br>
