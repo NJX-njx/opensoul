@@ -2,12 +2,10 @@
   <img src="opensoul.png" alt="OpenSoul" width="640">
 </p>
 
-# OpenSoul
-
 <p align="center">
   <strong>你的 AI 灵魂伴侣 — 聊天、协作、创造</strong><br>
   自托管 AI 智能体网关，支持 WhatsApp、Telegram、Discord、Slack、iMessage 等 30+ 渠道。<br>
-  运行在你自己的设备或服务器上，一个网关连接多渠道智能体，兼顾隐私与可扩展性。
+  一个网关连接多渠道，兼顾数据掌控、路由能力与可扩展性。
 </p>
 
 <p align="center">
@@ -20,33 +18,36 @@
 
 <p align="center">
   <a href="#项目简介">项目简介</a> •
-  <a href="#最近迭代亮点">最近迭代</a> •
+  <a href="#最近进展">最近进展</a> •
   <a href="#功能概览">功能概览</a> •
   <a href="#架构">架构</a> •
-  <a href="#技术栈版本">技术栈</a> •
-  <a href="#性能指标与对比">性能</a> •
+  <a href="#仓库结构">仓库结构</a> •
+  <a href="#技术栈">技术栈</a> •
   <a href="#快速开始">快速开始</a> •
-  <a href="#使用示例">使用示例</a> •
-  <a href="#文档">文档</a> •
-  <a href="#贡献">贡献</a>
+  <a href="#配置说明">配置说明</a> •
+  <a href="#开发工作流">开发工作流</a> •
+  <a href="#测试">测试</a> •
+  <a href="#扩展开发">扩展开发</a> •
+  <a href="#故障排查">故障排查</a> •
+  <a href="#文档">文档</a>
 </p>
 
 ---
 
 ## 项目简介
 
-OpenSoul 是一个 **自托管 AI 智能体网关**。你只需要运行一个 Gateway，就可以在 WhatsApp、Telegram、Discord、Slack、iMessage 等 30+ 渠道里与同一个 AI 伴侣对话，并拥有会话隔离、长期记忆、工具调用、插件扩展等完整能力。
+OpenSoul 是一个**自托管 AI 智能体网关**。你只需要运行一个网关进程，就可以在 WhatsApp、Telegram、Discord、Slack、iMessage 等多个渠道中使用同一个 AI 智能体。
 
-采用 **本地优先的控制平面**：一个网关连接你的聊天应用与 AI 智能体运行时，让你完全掌控数据、路由与工具，同时支持多种模型提供商。
+它采用**本地优先控制平面**：将渠道适配层统一接入一个运行时，由你掌控模型路由、长期记忆、工具调用与安全边界。
 
-## 最近迭代亮点
+## 最近进展
 
-基于最新变更记录（见 [CHANGELOG](CHANGELOG.md)）：
+基于 [CHANGELOG](CHANGELOG.md) 的近期更新：
 
-- Onboarding 与 Control UI 国际化覆盖更广，体验更一致。
-- Windows 桌面端交互与布局细节优化，连接稳定性提升。
-- 网关连接与健康检查逻辑加强，桌面端重连更可靠。
-- 扩展插件版本与核心版本同步，发布节奏统一。
+- Onboarding 与 Control UI 的国际化覆盖更完整。
+- Windows 桌面端交互细节与连接稳定性提升。
+- 网关连接与健康检查韧性增强。
+- 扩展插件版本节奏与核心发布保持一致。
 
 ## 功能概览
 
@@ -59,50 +60,63 @@ OpenSoul 是一个 **自托管 AI 智能体网关**。你只需要运行一个 G
 | Web + API  | Web 控制台 · WebChat · REST API · WebSocket                          |
 | 语音与媒体 | 语音通话 · 音频 · 图片 · 文档                                        |
 
-### 🧠 智能体核心
+### 🧠 智能体运行时
 
 - 多模型路由（OpenAI、Anthropic、Gemini、Bedrock、Ollama、MiniMax、OpenRouter 等）
-- 按发送者/工作区隔离的多智能体会话
-- 基于向量搜索的长期记忆
-- 工具执行、沙箱与基于插件的扩展
+- 按发送者/工作区隔离会话
+- 基于向量检索的长期记忆
+- 工具执行、沙箱与插件扩展机制
 
 ### 🛠️ 技能与工具
 
-- [skills/](skills/) 目录下 50+ 内置技能
-- GitHub、Notion、Obsidian、Canvas、tmux、浏览器自动化等
-- 可扩展插件 SDK，支持自定义技能
+- [skills/](skills/) 提供 50+ 内置技能
+- 支持 GitHub、Notion、Obsidian、Canvas、tmux、浏览器自动化等集成
+- 提供公开插件 SDK，可扩展渠道、工具、Hook、Provider
 
-### 📱 跨平台应用
+### 📱 跨平台客户端
 
 - macOS、iOS、Android、Windows 原生应用
-- Web 控制台 + CLI/TUI 供高级用户使用
+- Web Control UI + CLI/TUI 工作流
 
 ## 架构
 
 ```mermaid
 flowchart LR
-  A["渠道 / 渠道插件"] --> B["网关"]
+  A["渠道 / 渠道插件"] --> B["Gateway"]
   B --> C["智能体运行时 (pi-ai)"]
   B --> D["记忆与存储"]
   B --> E["技能与工具"]
   B --> F["Web 控制台"]
   B --> G["CLI / TUI"]
-  B --> H["原生应用 (macOS/iOS/Android/Windows)"]
+  B --> H["原生应用"]
 ```
 
-### 核心模块说明
+### 核心模块
 
-| 模块          | 路径                    | 说明                                              |
-| ------------- | ----------------------- | ------------------------------------------------- |
-| Gateway       | src/gateway             | 网关进程：连接渠道、路由会话、暴露 WebSocket/HTTP |
-| Agent Runtime | src/agents              | 智能体运行时与路由、会话与工具注入                |
-| Channels      | src/\*_/ + extensions/_ | 各渠道集成与协议适配                              |
-| Skills        | skills/                 | 内置技能与插件式能力                              |
-| Memory        | src/memory              | 长期记忆与存储管理                                |
-| Web UI        | ui/                     | Web 控制台与交互界面                              |
-| Apps          | apps/                   | 原生跨平台应用                                    |
+| 模块          | 路径                 | 职责说明                         |
+| ------------- | -------------------- | -------------------------------- |
+| Gateway       | src/gateway          | HTTP/WS 服务、编排、sidecar 管理 |
+| Agent Runtime | src/agents           | 会话执行、工具注入、运行时集成   |
+| Routing       | src/routing          | 消息到智能体/会话的路由解析      |
+| Plugins       | src/plugins          | 插件发现、加载、注册与运行时 API |
+| Channels      | src/_ + extensions/_ | 渠道适配器与协议集成             |
+| Memory        | src/memory           | 长期记忆与存储                   |
+| Web UI        | ui/                  | 控制台前端（Lit + Vite）         |
+| Apps          | apps/                | 原生移动/桌面客户端              |
 
-## 技术栈版本
+## 仓库结构
+
+```text
+src/           核心网关、运行时、路由、配置、插件
+extensions/    外部渠道/Provider/Hook 扩展
+ui/            Web 控制台资源与前端应用
+skills/        内置技能
+docs/          用户与参考文档
+apps/          原生客户端（Android/iOS/macOS/Windows）
+scripts/       构建、发布、测试与工具脚本
+```
+
+## 技术栈
 
 | 层级        | 版本                         |
 | ----------- | ---------------------------- |
@@ -114,17 +128,6 @@ flowchart LR
 | Testing     | Vitest 4.0.18                |
 | Lint/Format | Oxlint 1.43.0 + Oxfmt 0.28.0 |
 
-## 性能指标与对比
-
-模型延迟基准数据来自 [docs/reference/test.md](docs/reference/test.md)（本地密钥，2025-12-31，20 次运行）：
-
-| 模型        | 中位数  | 最小值  | 最大值  |
-| ----------- | ------- | ------- | ------- |
-| MiniMax     | 1279 ms | 1114 ms | 2431 ms |
-| Claude Opus | 2454 ms | 1224 ms | 3170 ms |
-
-说明：同一脚本、相同提示词下的端到端响应延迟对比，用于粗粒度评估模型服务可用性与稳定性。
-
 ## 快速开始
 
 ### 前置要求
@@ -132,15 +135,7 @@ flowchart LR
 - Node.js >= 22
 - pnpm
 
-### 一键安装脚本
-
-Docker 方式快速启动（含交互式引导）：
-
-```bash
-bash docker-setup.sh
-```
-
-### 本地安装
+### 安装
 
 ```bash
 git clone https://github.com/NJX-njx/opensoul.git
@@ -149,30 +144,33 @@ pnpm install
 pnpm build
 ```
 
-**启动 Gateway**（Web 控制台与渠道均依赖此服务）：
+### 启动网关（开发模式）
 
 ```bash
-# 开发模式（跳过需外部 API 凭证的渠道；端口 19001）
+# 跳过需要外部凭证的渠道
 export OPENSOUL_SKIP_CHANNELS=1
-export OPENSOUL_GATEWAY_TOKEN=dev-token   # 必填，否则 Gateway 无法启动
+export OPENSOUL_GATEWAY_TOKEN=dev-token
 pnpm gateway:dev
 ```
 
-或生产模式（需先执行 `opensoul onboard` 完成配置）：
-
-```bash
-opensoul gateway run
-```
-
-**Windows 用户**：`gateway:dev` 脚本使用 Unix 风格环境变量语法。建议使用 WSL，或在 PowerShell 中执行：
+### Windows（PowerShell）启动
 
 ```powershell
 $env:OPENSOUL_SKIP_CHANNELS = "1"; $env:OPENSOUL_GATEWAY_TOKEN = "dev-token"; node scripts/run-node.mjs --dev gateway
 ```
 
+### 生产运行
+
+```bash
+opensoul onboard
+opensoul gateway run
+```
+
+## 配置说明
+
 ### 环境变量模板
 
-以下模板适用于常见模型与网关鉴权（可放入 `.env` 或 `~/.opensoul/.env`）：
+可放在 `.env` 或 `~/.opensoul/.env`：
 
 ```bash
 OPENAI_API_KEY=
@@ -182,40 +180,63 @@ GEMINI_API_KEY=
 MINIMAX_API_KEY=
 OPENCODE_API_KEY=
 ZAI_API_KEY=
-OPENSOUL_GATEWAY_TOKEN=    # Gateway 启动必填
+OPENSOUL_GATEWAY_TOKEN=
 ```
 
-环境变量加载顺序与说明请见 [Environment](docs/help/environment.md)。
+加载顺序与优先级见 [Environment](docs/help/environment.md)。
 
-### 常见问题排查
+### 关键说明
 
-| 现象                                       | 原因                            | 解决方案                                                                                                                                                                                                                                                            |
-| ------------------------------------------ | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Gateway 启动后立即退出                     | 未设置 `OPENSOUL_GATEWAY_TOKEN` | 设置环境变量或 `gateway.auth.token`，参见上方启动说明                                                                                                                                                                                                               |
-| Gateway 启动失败且提示端口占用             | 18789 端口被占用                | 更换 `gateway.port` 或使用 `pnpm test:force` 清理残留                                                                                                                                                                                                               |
-| 服务模式下 API key 失效                    | 守护进程未继承 shell 环境       | 将密钥放入 `~/.opensoul/.env` 或启用 `env.shellEnv`                                                                                                                                                                                                                 |
-| 控制台无法访问                             | Token 未配置或未放行            | 设置 `gateway.auth.token` 并使用正确的 token                                                                                                                                                                                                                        |
-| 引导页配置 Gemini / MiniMax 后聊天一直加载 | 配置未生效或 Gateway 未重启     | 1) 确保 Gateway 在引导页完成前已启动；2) 若引导页提示「配置应用失败」，点击重试；3) 手动重启 Gateway（`Ctrl+C` 后重新运行 `gateway:dev`）；4) 检查 `~/.opensoul-dev/opensoul.json` 是否包含 `env.GEMINI_API_KEY` / `env.MINIMAX_API_KEY` 和 `agents.defaults.model` |
+- 网关启动必须有 `OPENSOUL_GATEWAY_TOKEN`（或 `gateway.auth.token`）。
+- 本地开发建议默认使用 `OPENSOUL_SKIP_CHANNELS=1`。
+- 配置支持 JSON5、include 与 `${ENV}` 变量替换。
 
-## 使用示例
+## 开发工作流
 
-### CLI 引导配置
+### 常用命令
 
 ```bash
-opensoul onboard
+pnpm install
+pnpm build
+pnpm dev
+pnpm gateway:dev
+pnpm check
+pnpm test
 ```
 
-### 启动 Web 控制台
+### UI 改动流程
 
-```bash
-opensoul dashboard
-```
+修改 `ui/` 后：
 
-### 添加渠道（Telegram）
+1. 执行 `pnpm ui:build`
+2. 重启网关，刷新 Control UI 静态资源
 
-```bash
-opensoul channels add --channel telegram --token <bot_token>
-```
+### 质量门禁
+
+- `pnpm check` = 类型检查 + lint + 格式检查
+- `pnpm check:loc` 使用仓库阈值：`--max 2000 --max-function 150`
+
+## 测试
+
+- 主入口：`pnpm test`
+- 关键配置：`vitest.config.ts`、`vitest.e2e.config.ts`、`vitest.gateway.config.ts`、`vitest.extensions.config.ts`、`vitest.live.config.ts`
+- Docker / e2e 套件位于 `scripts/e2e/` 与 `test:docker:*` 脚本
+
+## 扩展开发
+
+- 扩展目录：`extensions/<name>/`
+- 外部扩展请使用 `opensoul/plugin-sdk` 作为公开 API
+- 不要从外部扩展直接导入内部 `src/*` 模块
+- 通常包含 `opensoul.plugin.json` 与 `index.ts`
+
+## 故障排查
+
+| 现象                   | 常见原因                  | 处理方式                                              |
+| ---------------------- | ------------------------- | ----------------------------------------------------- |
+| 网关启动后立即退出     | 缺少 gateway token        | 设置 `OPENSOUL_GATEWAY_TOKEN` 或 `gateway.auth.token` |
+| 开发模式启动渠道失败   | 缺少外部渠道凭证          | 本地开发使用 `OPENSOUL_SKIP_CHANNELS=1`               |
+| 端口占用               | 端口已被其他进程占用      | 修改 `gateway.port` 或运行 `pnpm test:force` 清理     |
+| 服务模式读不到 API Key | 守护进程未继承 shell 环境 | 将密钥写入 `~/.opensoul/.env` 或开启 `env.shellEnv`   |
 
 ## 文档
 
@@ -226,7 +247,7 @@ opensoul channels add --channel telegram --token <bot_token>
 - [模型提供商](docs/concepts/model-providers.md)
 - [Web 控制台](docs/web/control-ui.md)
 
-## API 接口
+## API 参考
 
 - [Gateway RPC](docs/reference/rpc.md)
 - [参考索引](docs/reference/)
@@ -245,5 +266,5 @@ opensoul channels add --channel telegram --token <bot_token>
 ---
 
 <p align="center">
-  如果你觉得 OpenSoul 对你有帮助，请在 GitHub 上给我们点亮 ⭐！
+  如果 OpenSoul 对你有帮助，欢迎在 GitHub 点亮 ⭐。
 </p>
