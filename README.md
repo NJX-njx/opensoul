@@ -40,14 +40,16 @@ OpenSoul is a **self-hosted AI agent gateway**. Run one gateway process and talk
 
 It is a **local-first control plane**: channel adapters connect into one runtime where you control model routing, memory, tools, and security boundaries.
 
-## What's New
+## What's New (v0.2.4)
 
 Based on recent updates in [CHANGELOG](CHANGELOG.md):
 
-- Broader onboarding and Control UI localization coverage.
-- Better Windows desktop interaction and connection stability.
-- Improved gateway connection and health-check resilience.
-- Extension versioning cadence aligned with core releases.
+- **Session transcripts**: load and review past conversation history directly from the Control UI.
+- **Create Soulmate modal**: streamlined agent creation workflow in the Control UI.
+- **Gateway reconnect**: automatic WebSocket reconnection after connection drops.
+- **Onboarding improvements**: better MiniMax support, empty-response error visibility, and localized config forms.
+- **Developer experience**: enhanced CLI dev defaults, GitHub workflow validation, and repo cleanup.
+- **Windows desktop client**: native installer with system proxy detection (v0.2.3).
 
 ## Features
 
@@ -240,6 +242,7 @@ After changing `ui/`:
 
 ## Documentation
 
+- [**Wiki**](https://github.com/NJX-njx/opensoul/wiki) — Comprehensive project knowledge base
 - [Getting Started](docs/start/)
 - [Gateway Configuration](docs/gateway/configuration.md)
 - [Channels](docs/channels/)

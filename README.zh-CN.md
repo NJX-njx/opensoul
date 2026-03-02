@@ -40,14 +40,16 @@ OpenSoul 是一个**自托管 AI 智能体网关**。你只需要运行一个网
 
 它采用**本地优先控制平面**：将渠道适配层统一接入一个运行时，由你掌控模型路由、长期记忆、工具调用与安全边界。
 
-## 最近进展
+## 最近进展 (v0.2.4)
 
 基于 [CHANGELOG](CHANGELOG.md) 的近期更新：
 
-- Onboarding 与 Control UI 的国际化覆盖更完整。
-- Windows 桌面端交互细节与连接稳定性提升。
-- 网关连接与健康检查韧性增强。
-- 扩展插件版本节奏与核心发布保持一致。
+- **会话记录加载**：可在 Control UI 中查看和管理过往对话历史。
+- **创建 Soulmate 弹窗**：Control UI 新增智能体创建流程，操作更流畅。
+- **网关自动重连**：WebSocket 连接断开后自动恢复连接。
+- **引导流程优化**：改进 MiniMax 支持、空回复错误提示、配置表单本地化。
+- **开发体验提升**：CLI 默认配置增强、GitHub 工作流验证脚本、仓库清理。
+- **Windows 桌面客户端**：原生安装包，支持系统代理检测（v0.2.3）。
 
 ## 功能概览
 
@@ -240,6 +242,7 @@ pnpm test
 
 ## 文档
 
+- [**Wiki**](https://github.com/NJX-njx/opensoul/wiki) — 项目知识库（英文）
 - [入门指南](docs/start/)
 - [网关配置](docs/gateway/configuration.md)
 - [渠道](docs/channels/)

@@ -5,7 +5,7 @@ read_when:
 title: "OpenSoul"
 ---
 
-# OpenSoul 
+# OpenSoul
 
 <p align="center">
     <img
@@ -22,12 +22,10 @@ title: "OpenSoul"
     />
 </p>
 
-> _"EXFOLIATE! EXFOLIATE!"_ — A space lobster, probably
-
 <p align="center">
   <strong>Your AI Soul Companion — Chat, Collaborate, Create.</strong><br />
-  Self-hosted AI agent across WhatsApp, Telegram, Discord, Slack, and 30+ more channels.
-  Your personal AI companion for life and work.
+  Self-hosted AI agent gateway across WhatsApp, Telegram, Discord, Slack, iMessage, and 30+ more channels.<br />
+  One gateway, multiple channels, full control over data, routing, and extensibility.
 </p>
 
 <Columns>
@@ -44,32 +42,35 @@ title: "OpenSoul"
 
 ## What is OpenSoul?
 
-OpenSoul is a **self-hosted AI agent gateway** that connects your favorite chat apps — WhatsApp, Telegram, Discord, Slack, iMessage, and 30+ more — to AI agents like Pi. You run a single Gateway process on your own machine (or a server), and it becomes the bridge between your messaging apps and an always-available AI companion.
+OpenSoul is a **self-hosted AI agent gateway** that connects your favorite chat apps — WhatsApp, Telegram, Discord, Slack, iMessage, and 30+ more — to AI agents. You run a single Gateway process on your own machine (or a server), and it becomes the bridge between your messaging apps and an always-available AI companion.
 
 **Who is it for?** Anyone who wants a personal AI companion they can message from anywhere — for emotional support, productivity, or coding — without giving up control of their data or relying on a hosted service.
 
 **What makes it different?**
 
-- **Self-hosted**: runs on your hardware, your rules
-- **Multi-channel**: one Gateway serves WhatsApp, Telegram, Discord, and more simultaneously
-- **Agent-native**: built for coding agents with tool use, sessions, memory, and multi-agent routing
+- **Self-hosted**: runs on your hardware, your rules — no data leaves your network
+- **Multi-channel**: one Gateway serves WhatsApp, Telegram, Discord, Slack, and 30+ channels simultaneously
+- **Agent-native**: built for AI agents with tool use, sessions, long-term memory, and multi-agent routing
+- **Extensible**: plugin SDK for custom channels, tools, hooks, and providers
+- **Cross-platform**: native apps for macOS, iOS, Android, Windows plus Web Control UI
 - **Open source**: MIT licensed, community-driven
 
-**What do you need?** Node 22+, an API key (Anthropic recommended), and 5 minutes.
+**What do you need?** Node 22+, an API key (OpenAI, Anthropic, Gemini, etc.), and 5 minutes.
 
 ## How it works
 
 ```mermaid
 flowchart LR
-  A["Chat apps + plugins"] --> B["Gateway"]
-  B --> C["Pi agent"]
-  B --> D["CLI"]
-  B --> E["Web Control UI"]
-  B --> F["macOS app"]
-  B --> G["iOS and Android nodes"]
+  A["Chat apps + Channel plugins"] --> B["Gateway"]
+  B --> C["Agent Runtime"]
+  B --> D["Memory & Storage"]
+  B --> E["Skills & Tools"]
+  B --> F["Web Control UI"]
+  B --> G["CLI / TUI"]
+  B --> H["Native Apps (macOS/iOS/Android/Windows)"]
 ```
 
-The Gateway is the single source of truth for sessions, routing, and channel connections.
+The Gateway is the single source of truth for sessions, routing, and channel connections. It orchestrates agent execution, memory, tools, and all client interactions.
 
 ## Key capabilities
 
