@@ -68,6 +68,7 @@ apps/ios/*.mobileprovision
 /USER.md
 .tgz
 /OpenSoul-Windows-x64-v0.2.3.tar
+/OpenSoul-Windows-x64-v0.2.4.zip
 
 # local tooling
 .serena/
