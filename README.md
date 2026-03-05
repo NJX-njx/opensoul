@@ -168,6 +168,10 @@ opensoul onboard
 opensoul gateway run
 ```
 
+> **Model setup:** see the [Model Setup Guide](docs/guides/model-setup.md) for API key, OAuth,
+> and local Ollama paths — including minimal config snippets, verification commands, and
+> common failure fixes.
+
 ## Configuration
 
 ### Environment Template
@@ -244,6 +248,7 @@ After changing `ui/`:
 
 - [**Wiki**](https://github.com/NJX-njx/opensoul/wiki) — Comprehensive project knowledge base
 - [Getting Started](docs/start/)
+- [**Model Setup Guide**](docs/guides/model-setup.md) — API key / OAuth / local Ollama setup with verification commands
 - [Gateway Configuration](docs/gateway/configuration.md)
 - [Channels](docs/channels/)
 - [Skills & Tools](docs/tools/)

@@ -30,45 +30,60 @@ export function buildOnboardingConfigPatch(
   const { selectedProvider, providerApiKey, selectedChannel, channelToken } = selections;
 
   // Provider config
-  if (selectedProvider && providerApiKey.trim()) {
+  if (selectedProvider) {
     const meta = PROVIDER_CONFIG_MAP[selectedProvider];
     if (meta) {
-      const apiKey = providerApiKey.trim();
-      // Set API key via env section for all providers
-      patch.env = { [meta.envVar]: apiKey };
+      if (meta.kind === "local") {
+        // Local providers (e.g. Ollama) — no API key, just set the models.providers entry
+        patch.models = {
+          mode: "merge",
+          providers: {
+            [selectedProvider]: {
+              baseUrl: meta.baseUrl,
+              api: meta.api,
+              models: [],
+            },
+          },
+        };
+      } else if (providerApiKey.trim()) {
+        // API key providers (builtin or custom) — set the key and models entry
+        const apiKey = providerApiKey.trim();
+        patch.env = { [meta.envVar]: apiKey };
 
-      if (meta.kind === "builtin") {
-        // Built-in providers: also add models.providers entry so models.json can be generated
-        const builtinConfig = BUILTIN_PROVIDER_MODELS[selectedProvider];
-        if (builtinConfig) {
-          patch.models = {
-            mode: "merge",
-            providers: {
-              [selectedProvider]: {
-                baseUrl: builtinConfig.baseUrl,
-                apiKey: `\${${meta.envVar}}`,
-                api: builtinConfig.api,
-                models: builtinConfig.models,
+        if (meta.kind === "builtin") {
+          // Built-in providers: also add models.providers entry so models.json can be generated
+          const builtinConfig = BUILTIN_PROVIDER_MODELS[selectedProvider];
+          if (builtinConfig) {
+            patch.models = {
+              mode: "merge",
+              providers: {
+                [selectedProvider]: {
+                  baseUrl: builtinConfig.baseUrl,
+                  apiKey: `\${${meta.envVar}}`,
+                  api: builtinConfig.api,
+                  models: builtinConfig.models,
+                },
               },
-            },
-          };
-        }
-      } else {
-        // Custom providers: create models.providers entry
-        if (meta.baseUrl) {
-          patch.models = {
-            mode: "merge",
-            providers: {
-              [selectedProvider]: {
-                baseUrl: meta.baseUrl,
-                apiKey: `\${${meta.envVar}}`,
-                api: meta.api,
-                models: [],
+            };
+          }
+        } else {
+          // Custom providers: create models.providers entry
+          if (meta.baseUrl) {
+            patch.models = {
+              mode: "merge",
+              providers: {
+                [selectedProvider]: {
+                  baseUrl: meta.baseUrl,
+                  apiKey: `\${${meta.envVar}}`,
+                  api: meta.api,
+                  models: [],
+                },
               },
-            },
-          };
+            };
+          }
         }
       }
+      // OAuth providers: no env var or models entry needed here — auth is done via CLI
 
       // Set the default model for the agent so it can start working immediately
       const defaultModel = PROVIDER_DEFAULT_MODEL[selectedProvider];

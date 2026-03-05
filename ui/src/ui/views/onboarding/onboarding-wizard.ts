@@ -16,6 +16,7 @@ import { renderStepConfirm } from "./step-confirm.ts";
 import { renderStepLanguage } from "./step-language.ts";
 import { renderStepLogin } from "./step-login.ts";
 import { renderStepProvider } from "./step-provider.ts";
+import { ONBOARDING_PROVIDERS } from "./types.ts";
 
 const TOTAL_STEPS = 5;
 
@@ -151,19 +152,32 @@ function stepSubtitle(state: OnboardingWizardState): string {
 /**
  * Whether "Next" is allowed on the current step.
  * - Step 2 (Login): requires successful login
- * - Step 3/4 (Provider/Channel): for new accounts, must have a selection OR use "Skip"
+ * - Step 3 (Provider): for new accounts, must have a selection OR use "Skip"
+ *   - local providers (Ollama) don't require an API key
+ *   - oauth providers don't require an API key in this step
+ * - Step 4 (Channel): for new accounts, must have a selection OR use "Skip"
  */
 function canProceed(state: OnboardingWizardState): boolean {
   switch (state.step) {
     case 2:
       // Login step: must be logged in to proceed
       return state.loginStatus === "success";
-    case 3:
+    case 3: {
       // Provider: new accounts need a selection; existing can always proceed
       if (state.isExistingAccount) {
         return true;
       }
-      return state.selectedProvider !== null && state.providerApiKey.trim().length > 0;
+      if (state.selectedProvider === null) {
+        return false;
+      }
+      // Local providers (Ollama) and OAuth providers don't need an API key here
+      const providerDef = ONBOARDING_PROVIDERS.find((p) => p.id === state.selectedProvider);
+      const authType = providerDef?.authType ?? "api-key";
+      if (authType === "local" || authType === "oauth") {
+        return true;
+      }
+      return state.providerApiKey.trim().length > 0;
+    }
     case 4:
       // Channel: new accounts need a selection; existing can always proceed
       if (state.isExistingAccount) {
