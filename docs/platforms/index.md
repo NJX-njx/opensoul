@@ -14,6 +14,10 @@ Bun is not recommended for the Gateway (WhatsApp/Telegram bugs).
 Companion apps exist for macOS (menu bar app), Windows (native WPF app), and mobile nodes
 (iOS/Android). Linux companion app is planned; the Gateway is fully supported on all platforms.
 
+## Client release readiness
+
+For a single-page overview of availability, install routes, support levels, and known blockers per platform, see the [Client Release-Readiness Matrix](/platforms/client-release-readiness).
+
 ## Choose your OS
 
 - macOS: [macOS](/platforms/macos)

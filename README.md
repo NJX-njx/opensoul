@@ -79,6 +79,7 @@ Based on recent updates in [CHANGELOG](CHANGELOG.md):
 
 - Native apps for macOS, iOS, Android, and Windows
 - Web Control UI plus CLI/TUI workflows
+- See the [Client Release-Readiness Matrix](docs/platforms/client-release-readiness.md) for per-platform availability, install routes, and known blockers
 
 ## Architecture
 
@@ -249,6 +250,8 @@ After changing `ui/`:
 - [Skills & Tools](docs/tools/)
 - [Model Providers](docs/concepts/model-providers.md)
 - [Web Control UI](docs/web/control-ui.md)
+- [Client Release-Readiness Matrix](docs/platforms/client-release-readiness.md) — per-platform availability, install routes, and known blockers
+- [Platforms](docs/platforms/index.md)
 
 ## API Reference
 
