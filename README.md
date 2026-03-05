@@ -29,7 +29,8 @@
   <a href="#testing">Testing</a> •
   <a href="#extension-development">Extensions</a> •
   <a href="#troubleshooting">Troubleshooting</a> •
-  <a href="#documentation">Docs</a>
+  <a href="#documentation">Docs</a> •
+  <a href="ROADMAP.md">Roadmap</a>
 </p>
 
 ---
@@ -254,6 +255,10 @@ After changing `ui/`:
 
 - [Gateway RPC](docs/reference/rpc.md)
 - [Reference Index](docs/reference/)
+
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for planned features, current priorities, and shipped milestones.
 
 ## Contributing
 

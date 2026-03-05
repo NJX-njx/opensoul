@@ -31,6 +31,7 @@ For a complete map of the docs, see [Docs hubs](/start/hubs).
 - [Web surfaces (Control UI)](/web)
 - [Discovery and transports](/gateway/discovery)
 - [Remote access](/gateway/remote)
+- [Roadmap](https://github.com/NJX-njx/opensoul/blob/main/ROADMAP.md)
 
 ## Providers and UX
 

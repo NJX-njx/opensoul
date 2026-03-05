@@ -124,6 +124,14 @@ Extensions live in `extensions/<name>/`. Each extension is a self-contained modu
 
 Skills live in `skills/<name>/`. Follow the structure of existing skills to create your own.
 
+## Releasing
+
+After each tagged release, please update [ROADMAP.md](ROADMAP.md):
+
+1. Move shipped items from "Current Focus" to the appropriate "Shipped in vX.Y.Z" section.
+2. Update "Current Focus" with priorities for the next release.
+3. Remove or archive stale bullets that are no longer planned.
+
 ## Reporting Bugs
 
 Use the [Bug Report template](https://github.com/NJX-njx/opensoul/issues/new?template=bug_report.md) and include:
