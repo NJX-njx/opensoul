@@ -415,7 +415,7 @@ export class GatewayClient {
   async request<T = Record<string, unknown>>(
     method: string,
     params?: unknown,
-    opts?: { expectFinal?: boolean },
+    opts?: { expectFinal?: boolean; timeoutMs?: number },
   ): Promise<T> {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       throw new Error("gateway not connected");
@@ -429,9 +429,22 @@ export class GatewayClient {
     }
     const expectFinal = opts?.expectFinal === true;
     const p = new Promise<T>((resolve, reject) => {
+      let timeoutTimer: NodeJS.Timeout | null = null;
+      if (typeof opts?.timeoutMs === "number" && opts.timeoutMs > 0) {
+        timeoutTimer = setTimeout(() => {
+          this.pending.delete(id);
+          reject(new Error(`request timeout: no response after ${opts.timeoutMs}ms`));
+        }, opts.timeoutMs);
+      }
       this.pending.set(id, {
-        resolve: (value) => resolve(value as T),
-        reject,
+        resolve: (value) => {
+          if (timeoutTimer) clearTimeout(timeoutTimer);
+          resolve(value as T);
+        },
+        reject: (err) => {
+          if (timeoutTimer) clearTimeout(timeoutTimer);
+          reject(err);
+        },
         expectFinal,
       });
     });

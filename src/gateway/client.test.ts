@@ -175,4 +175,53 @@ r1USnb+wUdA7Zoj/mQ==
 
     expect(String(error)).toContain("tls fingerprint mismatch");
   });
+
+  test("request times out when timeoutMs is provided", async () => {
+    const port = await getFreePort();
+    wss = new WebSocketServer({ port, host: "127.0.0.1" });
+
+    wss.on("connection", (socket) => {
+      socket.on("message", (data) => {
+        const req = JSON.parse(rawDataToString(data)) as { id?: string; method?: string };
+        if (req.method === "connect") {
+          const helloOk = {
+            type: "hello-ok",
+            protocol: 2,
+            server: { version: "dev", connId: "c1" },
+            features: { methods: [], events: [] },
+            snapshot: {
+              presence: [],
+              health: {},
+              stateVersion: { presence: 1, health: 1 },
+              uptimeMs: 1,
+            },
+            policy: {
+              maxPayload: 512 * 1024,
+              maxBufferedBytes: 1024 * 1024,
+              tickIntervalMs: 5000,
+            },
+          };
+          socket.send(JSON.stringify({ type: "res", id: req.id, ok: true, payload: helloOk }));
+        }
+        // Do not respond to other methods to trigger timeout
+      });
+    });
+
+    const client = new GatewayClient({ url: `ws://127.0.0.1:${port}` });
+    
+    await new Promise<void>((resolve) => {
+      const originalOnHelloOk = client["opts"].onHelloOk;
+      client["opts"].onHelloOk = (hello) => {
+        originalOnHelloOk?.(hello);
+        resolve();
+      };
+      client.start();
+    });
+
+    await expect(
+      client.request("test.method", {}, { timeoutMs: 10 }),
+    ).rejects.toThrow("request timeout: no response after 10ms");
+
+    client.stop();
+  });
 });
