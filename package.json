@@ -211,6 +211,14 @@
     "@napi-rs/canvas": "^0.1.89",
     "node-llama-cpp": "3.15.1"
   },
+  "peerDependenciesMeta": {
+    "@napi-rs/canvas": {
+      "optional": true
+    },
+    "node-llama-cpp": {
+      "optional": true
+    }
+  },
   "engines": {
     "node": ">=22.12.0"
   },

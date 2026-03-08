@@ -3,6 +3,8 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { resolveStateDir } from "../config/paths.js";
+import { formatDocsLink } from "../terminal/links.js";
+import { theme } from "../terminal/theme.js";
 import { getSubCliEntries, registerSubCliByName } from "./program/register.subclis.js";
 
 const COMPLETION_SHELLS = ["zsh", "bash", "powershell", "fish"] as const;
@@ -231,6 +233,10 @@ export function registerCompletionCli(program: Command) {
   program
     .command("completion")
     .description("Generate shell completion script")
+    .addHelpText(
+      "after",
+      () => `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/completion", "docs.opensoul.ai/cli/completion")}\n`,
+    )
     .addOption(
       new Option("-s, --shell <shell>", "Shell to generate completion for (default: zsh)").choices(
         COMPLETION_SHELLS,

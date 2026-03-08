@@ -1,6 +1,8 @@
 import type { Command } from "commander";
 import { callGateway } from "../gateway/call.js";
 import { formatTimeAgo } from "../infra/format-time/format-relative.ts";
+import { formatDocsLink } from "../terminal/links.js";
+import { theme } from "../terminal/theme.js";
 import { defaultRuntime } from "../runtime.js";
 import { renderTable } from "../terminal/table.js";
 import { theme } from "../terminal/theme.js";
@@ -97,7 +99,13 @@ function formatTokenSummary(tokens: DeviceTokenSummary[] | undefined) {
 }
 
 export function registerDevicesCli(program: Command) {
-  const devices = program.command("devices").description("Device pairing and auth tokens");
+  const devices = program
+    .command("devices")
+    .description("Device pairing and auth tokens")
+    .addHelpText(
+      "after",
+      () => `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/devices", "docs.opensoul.ai/cli/devices")}\n`,
+    );
 
   devicesCallOpts(
     devices

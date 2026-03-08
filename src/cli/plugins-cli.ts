@@ -428,8 +428,11 @@ export function registerPluginsCli(program: Command) {
         return;
       }
 
+      // Resolve bare names (e.g. "telegram") to @opensoul/<name> scoped package
+      const spec = !raw.includes("/") && !raw.startsWith("@") ? `@opensoul/${raw}` : raw;
+
       const result = await installPluginFromNpmSpec({
-        spec: raw,
+        spec,
         logger: {
           info: (msg) => defaultRuntime.log(msg),
           warn: (msg) => defaultRuntime.log(theme.warn(msg)),
@@ -457,7 +460,7 @@ export function registerPluginsCli(program: Command) {
       next = recordPluginInstall(next, {
         pluginId: result.pluginId,
         source: "npm",
-        spec: raw,
+        spec,
         installPath: result.targetDir,
         version: result.version,
       });

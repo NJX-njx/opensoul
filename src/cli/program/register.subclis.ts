@@ -245,6 +245,9 @@ export function getSubCliEntries(): SubCliEntry[] {
   return entries;
 }
 
+/** Tracks which subcommands have been registered (true) or failed (string = error). */
+const registrationCache = new Map<string, true | string>();
+
 function removeCommand(program: Command, command: Command) {
   const commands = program.commands as Command[];
   const index = commands.indexOf(command);
@@ -258,14 +261,25 @@ export async function registerSubCliByName(program: Command, name: string): Prom
   if (!entry) {
     return false;
   }
+  const cached = registrationCache.get(name);
+  if (cached === true) {
+    return true;
+  }
+  if (typeof cached === "string") {
+    console.error(`Failed to load "${name}" command: ${cached}`);
+    console.error(`Run \`opensoul doctor\` to diagnose the problem.`);
+    return false;
+  }
   const existing = program.commands.find((cmd) => cmd.name() === entry.name);
   if (existing) {
     removeCommand(program, existing);
   }
   try {
     await entry.register(program);
+    registrationCache.set(name, true);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
+    registrationCache.set(name, message);
     console.error(`Failed to load "${name}" command: ${message}`);
     console.error(`Run \`opensoul doctor\` to diagnose the problem.`);
     return false;

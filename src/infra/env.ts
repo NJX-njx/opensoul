@@ -47,6 +47,24 @@ export function isTruthyEnvValue(value?: string): boolean {
   return parseBooleanValue(value) === true;
 }
 
+/**
+ * Returns `true` when the process is running in a non-interactive / CI context.
+ *
+ * Checked in order:
+ *  1. `OPENSOUL_NON_INTERACTIVE=1`
+ *  2. `CI=true` / `CI=1`
+ *  3. stdin is not a TTY
+ */
+export function isNonInteractiveEnv(): boolean {
+  if (isTruthyEnvValue(process.env.OPENSOUL_NON_INTERACTIVE)) {
+    return true;
+  }
+  if (isTruthyEnvValue(process.env.CI)) {
+    return true;
+  }
+  return !process.stdin.isTTY;
+}
+
 export function normalizeEnv(): void {
   normalizeZaiEnv();
 }
