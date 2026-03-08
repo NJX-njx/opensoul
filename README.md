@@ -29,7 +29,8 @@
   <a href="#testing">Testing</a> •
   <a href="#extension-development">Extensions</a> •
   <a href="#troubleshooting">Troubleshooting</a> •
-  <a href="#documentation">Docs</a>
+  <a href="#documentation">Docs</a> •
+  <a href="ROADMAP.md">Roadmap</a>
 </p>
 
 ---
@@ -79,6 +80,7 @@ Based on recent updates in [CHANGELOG](CHANGELOG.md):
 
 - Native apps for macOS, iOS, Android, and Windows
 - Web Control UI plus CLI/TUI workflows
+- See the [Client Release-Readiness Matrix](docs/platforms/client-release-readiness.md) for per-platform availability, install routes, and known blockers
 
 ## Architecture
 
@@ -168,6 +170,10 @@ opensoul onboard
 opensoul gateway run
 ```
 
+> **Model setup:** see the [Model Setup Guide](docs/guides/model-setup.md) for API key, OAuth,
+> and local Ollama paths — including minimal config snippets, verification commands, and
+> common failure fixes.
+
 ## Configuration
 
 ### Environment Template
@@ -244,16 +250,23 @@ After changing `ui/`:
 
 - [**Wiki**](https://github.com/NJX-njx/opensoul/wiki) — Comprehensive project knowledge base
 - [Getting Started](docs/start/)
+- [**Model Setup Guide**](docs/guides/model-setup.md) — API key / OAuth / local Ollama setup with verification commands
 - [Gateway Configuration](docs/gateway/configuration.md)
 - [Channels](docs/channels/)
 - [Skills & Tools](docs/tools/)
 - [Model Providers](docs/concepts/model-providers.md)
 - [Web Control UI](docs/web/control-ui.md)
+- [Client Release-Readiness Matrix](docs/platforms/client-release-readiness.md) — per-platform availability, install routes, and known blockers
+- [Platforms](docs/platforms/index.md)
 
 ## API Reference
 
 - [Gateway RPC](docs/reference/rpc.md)
 - [Reference Index](docs/reference/)
+
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md) for planned features, current priorities, and shipped milestones.
 
 ## Contributing
 

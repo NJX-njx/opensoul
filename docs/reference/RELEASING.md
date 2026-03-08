@@ -38,6 +38,7 @@ When the operator says “release”, immediately do this preflight (no extra qu
 
 - [ ] Update `CHANGELOG.md` with user-facing highlights (create the file if missing); keep entries strictly descending by version.
 - [ ] Ensure README examples/flags match current CLI behavior (notably new commands or options).
+- [ ] **Client matrix refresh**: update `docs/platforms/client-release-readiness.md` — review and correct the App status, install route, support level, and known blockers for every platform (Windows/macOS/iOS/Android). This is a required gate before tagging.
 
 4. **Validation**
 

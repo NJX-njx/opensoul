@@ -410,7 +410,91 @@
   color: var(--muted);
 }
 
-/* Search input */
+/* Auth-type badge shown next to provider name */
+.onboarding-provider-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.onboarding-provider-badge--apikey {
+  background: rgba(99, 102, 241, 0.12);
+  color: #818cf8;
+}
+
+.onboarding-provider-badge--oauth {
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+}
+
+.onboarding-provider-badge--local {
+  background: rgba(251, 191, 36, 0.12);
+  color: #fbbf24;
+}
+
+/* Auth hint shown below provider name when selected (OAuth/local paths) */
+.onboarding-provider-item__auth-hint {
+  font-size: 12px;
+  color: var(--text);
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  border-left: 3px solid var(--accent);
+  line-height: 1.5;
+}
+
+/* Verification commands block */
+.onboarding-verify-block {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+
+.onboarding-verify-block__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-strong);
+  margin-bottom: 4px;
+}
+
+.onboarding-verify-block__hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.onboarding-verify-block__cmd {
+  margin-top: 4px;
+}
+
+.onboarding-verify-block__cmd code {
+  display: block;
+  padding: 5px 10px;
+  border-radius: 5px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--accent);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+
 .onboarding-search {
   display: flex;
   align-items: center;

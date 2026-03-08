@@ -4,11 +4,18 @@
 
 import type { Locale } from "./i18n.ts";
 
+/** Auth type classification for providers. */
+export type ProviderAuthType = "api-key" | "oauth" | "local";
+
 /** AI provider group as displayed in the wizard. */
 export type OnboardingProviderGroup = {
   id: string;
   label: string;
   hint?: string;
+  /** How authentication works for this provider. Defaults to "api-key". */
+  authType?: ProviderAuthType;
+  /** Short description of what the user needs to do for this auth type. */
+  authHint?: string;
 };
 
 /** A channel option in the wizard. */
@@ -88,33 +95,146 @@ export type OnboardingWizardState = {
 
 /** List of AI providers available in the onboarding wizard. */
 export const ONBOARDING_PROVIDERS: OnboardingProviderGroup[] = [
-  { id: "anthropic", label: "Anthropic", hint: "Claude Opus / Sonnet" },
-  { id: "openai", label: "OpenAI", hint: "GPT-5 / GPT-5 Mini" },
-  { id: "google", label: "Google", hint: "Gemini 3 Pro / Flash" },
-  { id: "openrouter", label: "OpenRouter", hint: "Multi-model gateway" },
-  { id: "xai", label: "xAI", hint: "Grok" },
-  { id: "minimax", label: "MiniMax", hint: "M2.1" },
-  { id: "moonshot", label: "Moonshot AI", hint: "Kimi K2.5" },
-  { id: "qwen", label: "Qwen", hint: "Alibaba Cloud" },
-  { id: "zai", label: "Z.AI", hint: "GLM 4.7" },
-  { id: "copilot", label: "GitHub Copilot", hint: "GitHub device login" },
-  { id: "ai-gateway", label: "Vercel AI Gateway", hint: "API key" },
-  { id: "opencode-zen", label: "OpenCode Zen", hint: "Multi-model proxy" },
-  { id: "xiaomi", label: "Xiaomi", hint: "API key" },
-  { id: "qianfan", label: "Qianfan", hint: "API key" },
-  { id: "synthetic", label: "Synthetic", hint: "Anthropic-compatible" },
-  { id: "venice", label: "Venice AI", hint: "Privacy-focused" },
-  { id: "cloudflare-ai-gateway", label: "Cloudflare AI Gateway", hint: "Cloudflare" },
+  {
+    id: "anthropic",
+    label: "Anthropic",
+    hint: "Claude Opus / Sonnet",
+    authType: "api-key",
+    authHint: "Paste your Anthropic API key from console.anthropic.com",
+  },
+  {
+    id: "openai",
+    label: "OpenAI",
+    hint: "GPT-5 / GPT-5 Mini",
+    authType: "api-key",
+    authHint: "Paste your OpenAI API key from platform.openai.com",
+  },
+  {
+    id: "google",
+    label: "Google",
+    hint: "Gemini 3 Pro / Flash",
+    authType: "api-key",
+    authHint: "Paste your Gemini API key from aistudio.google.com",
+  },
+  {
+    id: "openrouter",
+    label: "OpenRouter",
+    hint: "Multi-model gateway",
+    authType: "api-key",
+    authHint: "Paste your OpenRouter API key from openrouter.ai/keys",
+  },
+  {
+    id: "xai",
+    label: "xAI",
+    hint: "Grok",
+    authType: "api-key",
+    authHint: "Paste your xAI API key from console.x.ai",
+  },
+  {
+    id: "minimax",
+    label: "MiniMax",
+    hint: "M2.1",
+    authType: "api-key",
+    authHint: "Paste your MiniMax API key from platform.minimaxi.com",
+  },
+  {
+    id: "moonshot",
+    label: "Moonshot AI",
+    hint: "Kimi K2.5",
+    authType: "api-key",
+    authHint: "Paste your Moonshot API key from platform.moonshot.ai",
+  },
+  {
+    id: "qwen",
+    label: "Qwen",
+    hint: "Alibaba Cloud",
+    authType: "api-key",
+    authHint: "Paste your Qwen API key from bailian.aliyun.com",
+  },
+  {
+    id: "zai",
+    label: "Z.AI",
+    hint: "GLM 4.7",
+    authType: "api-key",
+    authHint: "Paste your Z.AI API key from open.bigmodel.cn",
+  },
+  {
+    id: "copilot",
+    label: "GitHub Copilot",
+    hint: "GitHub device login",
+    authType: "oauth",
+    authHint:
+      "Authenticate via GitHub device-code flow. After setup, run: opensoul models auth login --provider github-copilot",
+  },
+  {
+    id: "ai-gateway",
+    label: "Vercel AI Gateway",
+    hint: "API key",
+    authType: "api-key",
+    authHint: "Paste your Vercel AI Gateway API key",
+  },
+  {
+    id: "opencode-zen",
+    label: "OpenCode Zen",
+    hint: "Multi-model proxy",
+    authType: "api-key",
+    authHint: "Paste your OpenCode Zen API key from opencode.ai",
+  },
+  {
+    id: "xiaomi",
+    label: "Xiaomi",
+    hint: "API key",
+    authType: "api-key",
+    authHint: "Paste your Xiaomi API key",
+  },
+  {
+    id: "qianfan",
+    label: "Qianfan",
+    hint: "API key",
+    authType: "api-key",
+    authHint: "Paste your Qianfan API key from qianfan.baidubce.com",
+  },
+  {
+    id: "synthetic",
+    label: "Synthetic",
+    hint: "Anthropic-compatible",
+    authType: "api-key",
+    authHint: "Paste your Synthetic API key",
+  },
+  {
+    id: "venice",
+    label: "Venice AI",
+    hint: "Privacy-focused",
+    authType: "api-key",
+    authHint: "Paste your Venice AI API key from venice.ai",
+  },
+  {
+    id: "cloudflare-ai-gateway",
+    label: "Cloudflare AI Gateway",
+    hint: "Cloudflare",
+    authType: "api-key",
+    authHint: "Paste your Cloudflare AI Gateway API key",
+  },
+  {
+    id: "ollama",
+    label: "Ollama",
+    hint: "Local models (no API key)",
+    authType: "local",
+    authHint:
+      "Install Ollama at ollama.ai, pull a model with: ollama pull llama3.3, then start: ollama serve",
+  },
 ];
 
 /**
  * Maps provider IDs to the env var name for built-in providers,
  * or to a `{ baseUrl, envVar, api }` object for custom providers
  * that require a `models.providers` entry.
+ * Local providers (e.g. Ollama) use `kind: "local"` and require no API key.
  */
 export type ProviderConfigMeta =
   | { kind: "builtin"; envVar: string }
-  | { kind: "custom"; envVar: string; baseUrl: string; api: string };
+  | { kind: "custom"; envVar: string; baseUrl: string; api: string }
+  | { kind: "local"; baseUrl: string; api: string };
 
 export const PROVIDER_CONFIG_MAP: Record<string, ProviderConfigMeta> = {
   anthropic: { kind: "builtin", envVar: "ANTHROPIC_API_KEY" },
@@ -168,6 +288,11 @@ export const PROVIDER_CONFIG_MAP: Record<string, ProviderConfigMeta> = {
     envVar: "CLOUDFLARE_AI_GATEWAY_API_KEY",
     baseUrl: "",
     api: "anthropic-messages",
+  },
+  ollama: {
+    kind: "local",
+    baseUrl: "http://127.0.0.1:11434/v1",
+    api: "openai-completions",
   },
 };
 
@@ -349,6 +474,7 @@ export const PROVIDER_DEFAULT_MODEL: Record<string, string> = {
   synthetic: "synthetic/hf:MiniMaxAI/MiniMax-M2.1",
   venice: "venice/deepseek-r1-671b",
   "cloudflare-ai-gateway": "cloudflare-ai-gateway/claude-opus-4-6",
+  ollama: "ollama/llama3.3",
 };
 
 /**
@@ -436,5 +562,109 @@ export const ONBOARDING_CHANNELS: OnboardingChannel[] = [
     difficulty: "medium",
     tokenLabel: "Access Token",
     tokenHint: "Provide your Matrix homeserver URL and access token.",
+  },
+];
+
+/**
+ * CLI verification commands per provider.
+ * Shown to users after selecting a provider so they can confirm setup works.
+ */
+export const PROVIDER_VERIFY_CMDS: Record<string, string[]> = {
+  anthropic: [
+    "opensoul models status --probe-provider anthropic",
+    "opensoul models list --provider anthropic",
+  ],
+  openai: [
+    "opensoul models status --probe-provider openai",
+    "opensoul models list --provider openai",
+  ],
+  google: [
+    "opensoul models status --probe-provider google",
+    "opensoul models list --provider google",
+  ],
+  openrouter: [
+    "opensoul models status --probe-provider openrouter",
+    "opensoul models list --provider openrouter",
+  ],
+  xai: ["opensoul models status --probe-provider xai", "opensoul models list --provider xai"],
+  minimax: [
+    "opensoul models status --probe-provider minimax",
+    "opensoul models list --provider minimax",
+  ],
+  moonshot: [
+    "opensoul models status --probe-provider moonshot",
+    "opensoul models list --provider moonshot",
+  ],
+  qwen: ["opensoul models status --probe-provider qwen", "opensoul models list --provider qwen"],
+  zai: ["opensoul models status --probe-provider zai", "opensoul models list --provider zai"],
+  copilot: [
+    "opensoul models auth login --provider github-copilot",
+    "opensoul models status --probe-provider github-copilot",
+  ],
+  "ai-gateway": ["opensoul models status --probe-provider vercel-ai-gateway"],
+  "opencode-zen": ["opensoul models status --probe-provider opencode"],
+  ollama: [
+    "ollama list",
+    "opensoul models list --provider ollama",
+    "opensoul models status --probe-provider ollama",
+  ],
+  synthetic: ["opensoul models status --probe-provider synthetic"],
+  venice: ["opensoul models status --probe-provider venice"],
+  "cloudflare-ai-gateway": ["opensoul models status --probe-provider cloudflare-ai-gateway"],
+};
+
+/** A mapped failure entry: error pattern → actionable fix message. */
+export type FailureFix = {
+  /** Short description of the error condition. */
+  label: string;
+  /** Concrete steps the user should take. */
+  fix: string;
+  /** Optional CLI command to run to fix. */
+  cmd?: string;
+};
+
+/**
+ * Common model setup failure patterns mapped to actionable fixes.
+ * Keys are substrings that may appear in error messages.
+ */
+export const COMMON_MODEL_FAILURES: FailureFix[] = [
+  {
+    label: "Invalid or expired API key",
+    fix: "Re-generate a new API key from the provider's developer console and re-enter it.",
+    cmd: "opensoul models auth paste-token --provider <name>",
+  },
+  {
+    label: "API key not found / missing env var",
+    fix: "Set the env var in ~/.opensoul/.env or opensoul.json → env section, then restart the gateway.",
+    cmd: "opensoul models status --check",
+  },
+  {
+    label: "Ollama not reachable (connection refused)",
+    fix: "Start Ollama with `ollama serve`. Make sure port 11434 is open.",
+    cmd: "ollama serve",
+  },
+  {
+    label: "Model not found for provider",
+    fix: "Run `opensoul models list --provider <name>` to see available models, then update your config.",
+    cmd: "opensoul models list",
+  },
+  {
+    label: "Rate limit / quota exceeded",
+    fix: "Check your provider dashboard for usage limits. Consider switching to a lower-cost model or adding credits.",
+  },
+  {
+    label: "OAuth token expired",
+    fix: "Re-authenticate with `opensoul models auth login --provider <name>`.",
+    cmd: "opensoul models auth login --provider <name>",
+  },
+  {
+    label: "Config hash mismatch / conflict",
+    fix: "Reload the config page and re-apply your changes. The config may have been updated from another session.",
+    cmd: "opensoul models status",
+  },
+  {
+    label: "Gateway not connected",
+    fix: "Start the gateway first: `opensoul gateway run` or set OPENSOUL_GATEWAY_TOKEN and run `pnpm gateway:dev`.",
+    cmd: "opensoul gateway run",
   },
 ];
