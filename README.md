@@ -180,6 +180,9 @@ opensoul gateway run
 > and local Ollama paths — including minimal config snippets, verification commands, and
 > common failure fixes.
 
+> **Beginner deployment path:** see the [Beginner Deployment Guide](docs/start/deployment-beginner.md)
+> for Windows/macOS/Linux commands, post-deploy checks, and rollback/uninstall paths.
+
 ## Configuration
 
 ### Environment Template
