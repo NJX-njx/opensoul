@@ -44,7 +44,9 @@ const routeHealth: RouteSpec = {
     const verbose = getVerboseFlag(argv, { includeDebug: true });
     const timeoutMs = getPositiveIntFlagValue(argv, "--timeout");
     if (timeoutMs === null) {
-      return false;
+      console.error("Invalid value for --timeout: expected a positive integer.");
+      process.exitCode = 1;
+      return true;
     }
     await healthCommand({ json, timeoutMs, verbose }, defaultRuntime);
     return true;
@@ -62,7 +64,9 @@ const routeStatus: RouteSpec = {
     const verbose = getVerboseFlag(argv, { includeDebug: true });
     const timeoutMs = getPositiveIntFlagValue(argv, "--timeout");
     if (timeoutMs === null) {
-      return false;
+      console.error("Invalid value for --timeout: expected a positive integer.");
+      process.exitCode = 1;
+      return true;
     }
     await statusCommand({ json, deep, all, usage, timeoutMs, verbose }, defaultRuntime);
     return true;
@@ -75,11 +79,15 @@ const routeSessions: RouteSpec = {
     const json = hasFlag(argv, "--json");
     const store = getFlagValue(argv, "--store");
     if (store === null) {
-      return false;
+      console.error("--store requires a value.");
+      process.exitCode = 1;
+      return true;
     }
     const active = getFlagValue(argv, "--active");
     if (active === null) {
-      return false;
+      console.error("--active requires a value.");
+      process.exitCode = 1;
+      return true;
     }
     await sessionsCommand({ json, store, active }, defaultRuntime);
     return true;
@@ -101,7 +109,9 @@ const routeMemoryStatus: RouteSpec = {
   run: async (argv) => {
     const agent = getFlagValue(argv, "--agent");
     if (agent === null) {
-      return false;
+      console.error("--agent requires a value.");
+      process.exitCode = 1;
+      return true;
     }
     const json = hasFlag(argv, "--json");
     const deep = hasFlag(argv, "--deep");

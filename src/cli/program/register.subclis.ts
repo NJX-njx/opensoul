@@ -262,7 +262,14 @@ export async function registerSubCliByName(program: Command, name: string): Prom
   if (existing) {
     removeCommand(program, existing);
   }
-  await entry.register(program);
+  try {
+    await entry.register(program);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`Failed to load "${name}" command: ${message}`);
+    console.error(`Run \`opensoul doctor\` to diagnose the problem.`);
+    return false;
+  }
   return true;
 }
 
@@ -272,7 +279,15 @@ function registerLazyCommand(program: Command, entry: SubCliEntry) {
   placeholder.allowExcessArguments(true);
   placeholder.action(async (...actionArgs) => {
     removeCommand(program, placeholder);
-    await entry.register(program);
+    try {
+      await entry.register(program);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`Failed to load "${entry.name}" command: ${message}`);
+      console.error(`Run \`opensoul doctor\` to diagnose the problem.`);
+      process.exitCode = 1;
+      return;
+    }
     const actionCommand = actionArgs.at(-1) as Command | undefined;
     const root = actionCommand?.parent ?? program;
     const rawArgs = (root as Command & { rawArgs?: string[] }).rawArgs;

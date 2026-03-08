@@ -190,7 +190,8 @@ export function registerPluginsCli(program: Command) {
       const plugin = report.plugins.find((p) => p.id === id || p.name === id);
       if (!plugin) {
         defaultRuntime.error(`Plugin not found: ${id}`);
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
       const cfg = loadConfig();
       const install = cfg.plugins?.installs?.[plugin.id];
@@ -323,7 +324,8 @@ export function registerPluginsCli(program: Command) {
           const probe = await installPluginFromPath({ path: resolved, dryRun: true });
           if (!probe.ok) {
             defaultRuntime.error(probe.error);
-            process.exit(1);
+            process.exitCode = 1;
+            return;
           }
 
           let next: OpenSoulConfig = {
@@ -368,7 +370,8 @@ export function registerPluginsCli(program: Command) {
         });
         if (!result.ok) {
           defaultRuntime.error(result.error);
-          process.exit(1);
+          process.exitCode = 1;
+          return;
         }
 
         let next: OpenSoulConfig = {
@@ -403,7 +406,8 @@ export function registerPluginsCli(program: Command) {
 
       if (opts.link) {
         defaultRuntime.error("`--link` requires a local path.");
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
 
       const looksLikePath =
@@ -420,7 +424,8 @@ export function registerPluginsCli(program: Command) {
         raw.endsWith(".zip");
       if (looksLikePath) {
         defaultRuntime.error(`Path not found: ${resolved}`);
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
 
       const result = await installPluginFromNpmSpec({
@@ -432,7 +437,8 @@ export function registerPluginsCli(program: Command) {
       });
       if (!result.ok) {
         defaultRuntime.error(result.error);
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
 
       let next: OpenSoulConfig = {
@@ -480,7 +486,8 @@ export function registerPluginsCli(program: Command) {
           return;
         }
         defaultRuntime.error("Provide a plugin id or use --all.");
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
 
       const result = await updateNpmInstalledPlugins({

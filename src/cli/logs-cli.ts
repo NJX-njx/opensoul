@@ -217,7 +217,7 @@ export function registerLogsCli(program: Command) {
         payload = await fetchLogs(opts, cursor, showProgress);
       } catch (err) {
         emitGatewayError(err, opts, jsonMode ? "json" : "text", rich, emitJsonLine, errorLine);
-        process.exit(1);
+        process.exitCode = 1;
         return;
       }
       const lines = Array.isArray(payload.lines) ? payload.lines : [];

@@ -459,7 +459,8 @@ export function registerHooksCli(program: Command): void {
         defaultRuntime.error(
           `${theme.error("Error:")} ${err instanceof Error ? err.message : String(err)}`,
         );
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
     });
 
@@ -476,7 +477,8 @@ export function registerHooksCli(program: Command): void {
         defaultRuntime.error(
           `${theme.error("Error:")} ${err instanceof Error ? err.message : String(err)}`,
         );
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
     });
 
@@ -493,7 +495,8 @@ export function registerHooksCli(program: Command): void {
         defaultRuntime.error(
           `${theme.error("Error:")} ${err instanceof Error ? err.message : String(err)}`,
         );
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
     });
 
@@ -507,7 +510,8 @@ export function registerHooksCli(program: Command): void {
         defaultRuntime.error(
           `${theme.error("Error:")} ${err instanceof Error ? err.message : String(err)}`,
         );
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
     });
 
@@ -521,7 +525,8 @@ export function registerHooksCli(program: Command): void {
         defaultRuntime.error(
           `${theme.error("Error:")} ${err instanceof Error ? err.message : String(err)}`,
         );
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
     });
 
@@ -539,7 +544,8 @@ export function registerHooksCli(program: Command): void {
           const stat = fs.statSync(resolved);
           if (!stat.isDirectory()) {
             defaultRuntime.error("Linked hook paths must be directories.");
-            process.exit(1);
+            process.exitCode = 1;
+            return;
           }
 
           const existing = cfg.hooks?.internal?.load?.extraDirs ?? [];
@@ -547,7 +553,8 @@ export function registerHooksCli(program: Command): void {
           const probe = await installHooksFromPath({ path: resolved, dryRun: true });
           if (!probe.ok) {
             defaultRuntime.error(probe.error);
-            process.exit(1);
+            process.exitCode = 1;
+            return;
           }
 
           let next: OpenSoulConfig = {
@@ -608,7 +615,8 @@ export function registerHooksCli(program: Command): void {
         });
         if (!result.ok) {
           defaultRuntime.error(result.error);
-          process.exit(1);
+          process.exitCode = 1;
+          return;
         }
 
         let next: OpenSoulConfig = {
@@ -663,7 +671,8 @@ export function registerHooksCli(program: Command): void {
 
       if (opts.link) {
         defaultRuntime.error("`--link` requires a local path.");
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
 
       const looksLikePath =
@@ -676,7 +685,8 @@ export function registerHooksCli(program: Command): void {
         raw.endsWith(".tar");
       if (looksLikePath) {
         defaultRuntime.error(`Path not found: ${resolved}`);
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
 
       const result = await installHooksFromNpmSpec({
@@ -688,7 +698,8 @@ export function registerHooksCli(program: Command): void {
       });
       if (!result.ok) {
         defaultRuntime.error(result.error);
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
 
       let next: OpenSoulConfig = {
@@ -750,7 +761,8 @@ export function registerHooksCli(program: Command): void {
 
       if (targets.length === 0) {
         defaultRuntime.error("Provide a hook id or use --all.");
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
 
       let nextCfg = cfg;
@@ -855,7 +867,8 @@ export function registerHooksCli(program: Command): void {
       defaultRuntime.error(
         `${theme.error("Error:")} ${err instanceof Error ? err.message : String(err)}`,
       );
-      process.exit(1);
+      process.exitCode = 1;
+      return;
     }
   });
 }

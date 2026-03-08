@@ -66,6 +66,23 @@ The **installer script** is the recommended way to install OpenSoul. It handles 
   </Accordion>
 
   <Accordion title="npm / pnpm" icon="package">
+    <Warning>
+    OpenSoul is currently published to [GitHub Packages](https://github.com/NJX-njx/opensoul/pkgs/npm/opensoul), **not** the public npmjs.com registry.
+    To install via npm/pnpm you must configure your `.npmrc` first — see the note below.
+    For most users, the **installer script** above is the recommended method.
+    </Warning>
+
+    <Accordion title="Configure .npmrc for GitHub Packages">
+      Add these lines to your `~/.npmrc`:
+
+      ```ini
+      @njx-njx:registry=https://npm.pkg.github.com
+      //npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
+      ```
+
+      Replace `YOUR_GITHUB_TOKEN` with a [personal access token](https://github.com/settings/tokens) that has `read:packages` scope.
+    </Accordion>
+
     If you already have Node 22+ and prefer to manage the install yourself:
 
     <Tabs>

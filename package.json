@@ -34,7 +34,6 @@
     "assets/",
     "CHANGELOG.md",
     "dist/",
-    "docs/",
     "extensions/",
     "LICENSE",
     "opensoul.mjs",
