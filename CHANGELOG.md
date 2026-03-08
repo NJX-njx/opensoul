@@ -1,6 +1,30 @@
 # Changelog
 
-## Unreleased (2026-03-08)
+## Unreleased (2026-03-09)
+
+### CLI & Packaging
+
+- Switched npm publish target from GitHub Packages to public npmjs.com registry (`publishConfig`).
+- Added friendly Node version preinstall check (`scripts/check-node-version.mjs`) — gives a clear upgrade message when Node < 22.12.0.
+- Added `OPENSOUL_*` environment variables reference to `opensoul --help` output (12 vars with descriptions).
+- Added `--deliver` deprecation warnings in `cron add` and `cron edit` — use `--announce` instead.
+- Added lazy-loaded subcommand registration cache to avoid redundant dynamic imports.
+- Added `isNonInteractiveEnv()` helper for consistent CI/automation environment detection.
+- Replaced hard-coded gateway timeout values with `DEFAULT_GATEWAY_TIMEOUT_MS` constant.
+- Unified gateway connection error formatting via shared `emitGatewayConnectionError()` helper.
+- Replaced raw `process.exit()` calls with typed error throws for cleaner CLI shutdown.
+- Added plugin shortname resolution (e.g. `telegram` → `@opensoul/telegram`).
+- Added global `--flag-validation` guard for unknown flags in non-interactive environments.
+- Repositioned global error handler to catch async command failures.
+
+### Install & Distribution
+
+- Re-enabled `install-smoke` CI workflow (push/PR triggers) now that the package targets public npm.
+- Added platform-specific native dependency build prerequisites to install docs (macOS / Ubuntu / Fedora / Alpine / Windows).
+- Updated install docs: removed GitHub Packages warning and `.npmrc` configuration steps.
+- Trimmed `files` field in `package.json` to exclude `docs/` from the published tarball.
+- Added `scripts/check-node-version.mjs` to the published `files` list.
+- Added documentation links for device management and shell completion commands.
 
 ### Security & Reliability
 

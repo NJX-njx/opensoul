@@ -209,10 +209,10 @@ OpenSoul bundles native modules (`sharp`, `better-sqlite3` via `sqlite-vec`). Mo
 
 **Optional native dependencies** — these are not required for core functionality:
 
-| Package | Purpose | Install |
-|---------|---------|---------|
+| Package           | Purpose                              | Install                       |
+| ----------------- | ------------------------------------ | ----------------------------- |
 | `@napi-rs/canvas` | Image generation for certain plugins | `npm install @napi-rs/canvas` |
-| `node-llama-cpp` | Local LLM inference (llama.cpp) | `npm install node-llama-cpp` |
+| `node-llama-cpp`  | Local LLM inference (llama.cpp)      | `npm install node-llama-cpp`  |
 
 ## Troubleshooting: `opensoul` not found
 

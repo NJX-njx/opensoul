@@ -74,6 +74,27 @@ You can reference env vars directly in config string values using `${VAR_NAME}` 
 
 See [Configuration: Env var substitution](/gateway/configuration#env-var-substitution-in-config) for full details.
 
+## `OPENSOUL_*` reference
+
+These are the recognised `OPENSOUL_*` environment variables (also shown by `opensoul --help`):
+
+| Variable | Purpose |
+|----------|--------|
+| `OPENSOUL_GATEWAY_TOKEN` | Gateway authentication token |
+| `OPENSOUL_GATEWAY_PASSWORD` | Gateway password (alternative to token) |
+| `OPENSOUL_GATEWAY_PORT` | Gateway port (default: 18789) |
+| `OPENSOUL_PROFILE` | Named profile (isolates state/config) |
+| `OPENSOUL_STATE_DIR` | Override state directory path |
+| `OPENSOUL_CONFIG_PATH` | Override config file path |
+| `OPENSOUL_GIT_DIR` | Override git checkout directory for dev channel |
+| `OPENSOUL_SKIP_CHANNELS` | Skip loading channel extensions |
+| `OPENSOUL_HIDE_BANNER` | Suppress CLI banner output |
+| `OPENSOUL_NON_INTERACTIVE` | Disable interactive prompts (CI/automation) |
+| `OPENSOUL_DISABLE_LAZY_SUBCOMMANDS` | Force eager command registration |
+| `OPENSOUL_DISABLE_ROUTE_FIRST` | Disable optimised route-first logic |
+| `OPENSOUL_LOAD_SHELL_ENV` | Import missing keys from login shell (see above) |
+| `OPENSOUL_SHELL_ENV_TIMEOUT_MS` | Timeout for shell env import (default: 15000) |
+
 ## Related
 
 - [Gateway configuration](/gateway/configuration)

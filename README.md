@@ -65,6 +65,8 @@ Based on recent updates in [CHANGELOG](CHANGELOG.md):
 - **Runtime stability**: concurrency-safe embedded runner CWD handling and plugin runtime auto-disable after repeated failures.
 - **Repository hygiene**: removed committed secret test files and tracked release bundles; added pre-commit secret/bundle guards.
 - **Docs & onboarding**: beginner deployment guide, Create Soulmate guide, and improved actionable error messaging.
+- **CLI & packaging audit**: published to public npm, Node version preinstall check, env var help docs, `--deliver` deprecation, lazy subcommand caching, gateway error unification, plugin shortname resolution.
+- **Install improvements**: platform-specific native dependency docs, re-enabled install-smoke CI, simplified npm/pnpm install instructions.
 
 ## Features
 
@@ -154,6 +156,15 @@ scripts/       Build, release, test, and tooling scripts
 - pnpm
 
 ### Install
+
+**Via npm (recommended):**
+
+```bash
+npm install -g opensoul@latest
+opensoul onboard --install-daemon
+```
+
+**From source:**
 
 ```bash
 git clone https://github.com/NJX-njx/opensoul.git
