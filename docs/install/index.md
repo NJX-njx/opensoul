@@ -66,23 +66,6 @@ The **installer script** is the recommended way to install OpenSoul. It handles 
   </Accordion>
 
   <Accordion title="npm / pnpm" icon="package">
-    <Warning>
-    OpenSoul is currently published to [GitHub Packages](https://github.com/NJX-njx/opensoul/pkgs/npm/opensoul), **not** the public npmjs.com registry.
-    To install via npm/pnpm you must configure your `.npmrc` first — see the note below.
-    For most users, the **installer script** above is the recommended method.
-    </Warning>
-
-    <Accordion title="Configure .npmrc for GitHub Packages">
-      Add these lines to your `~/.npmrc`:
-
-      ```ini
-      @njx-njx:registry=https://npm.pkg.github.com
-      //npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
-      ```
-
-      Replace `YOUR_GITHUB_TOKEN` with a [personal access token](https://github.com/settings/tokens) that has `read:packages` scope.
-    </Accordion>
-
     If you already have Node 22+ and prefer to manage the install yourself:
 
     <Tabs>
@@ -179,6 +162,57 @@ opensoul doctor         # check for config issues
 opensoul status         # gateway status
 opensoul dashboard      # open the browser UI
 ```
+
+## Native dependencies & platform prerequisites
+
+OpenSoul bundles native modules (`sharp`, `better-sqlite3` via `sqlite-vec`). Most platforms ship prebuilt binaries, but if you see `node-gyp` errors during install you need a C/C++ toolchain:
+
+<Tabs>
+  <Tab title="macOS">
+    ```bash
+    xcode-select --install          # installs Apple CLT (includes clang, make, python3)
+    ```
+
+    If `sharp` fails with a libvips error (common when Homebrew libvips is present):
+
+    ```bash
+    SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g opensoul@latest
+    ```
+  </Tab>
+  <Tab title="Ubuntu / Debian">
+    ```bash
+    sudo apt-get update
+    sudo apt-get install -y build-essential python3
+    ```
+  </Tab>
+  <Tab title="Fedora / RHEL">
+    ```bash
+    sudo dnf groupinstall "Development Tools"
+    sudo dnf install python3
+    ```
+  </Tab>
+  <Tab title="Alpine (Docker)">
+    ```bash
+    apk add --no-cache build-base python3
+    ```
+  </Tab>
+  <Tab title="Windows">
+    Install the Visual Studio C++ build tools (or the full Visual Studio with "Desktop development with C++" workload):
+
+    ```powershell
+    npm install -g windows-build-tools   # or install Visual Studio Build Tools manually
+    ```
+
+    We strongly recommend running OpenSoul under [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) instead.
+  </Tab>
+</Tabs>
+
+**Optional native dependencies** — these are not required for core functionality:
+
+| Package | Purpose | Install |
+|---------|---------|---------|
+| `@napi-rs/canvas` | Image generation for certain plugins | `npm install @napi-rs/canvas` |
+| `node-llama-cpp` | Local LLM inference (llama.cpp) | `npm install node-llama-cpp` |
 
 ## Troubleshooting: `opensoul` not found
 

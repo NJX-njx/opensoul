@@ -39,6 +39,7 @@
     "opensoul.mjs",
     "README-header.png",
     "README.md",
+    "scripts/check-node-version.mjs",
     "skills/"
   ],
   "type": "module",
@@ -49,9 +50,11 @@
     "./cli-entry": "./opensoul.mjs"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
   },
   "scripts": {
+    "preinstall": "node scripts/check-node-version.mjs",
     "android:assemble": "cd apps/android && ./gradlew :app:assembleDebug",
     "android:install": "cd apps/android && ./gradlew :app:installDebug",
     "android:run": "cd apps/android && ./gradlew :app:installDebug && adb shell am start -n ai.opensoul.android/.MainActivity",

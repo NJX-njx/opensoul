@@ -1,8 +1,11 @@
 name: Install Smoke
 
-# Disabled: opensoul is not yet published to npm, so install smoke tests will fail.
-# Re-enable when the package is published to the npm registry.
 on:
+  push:
+    branches: [main]
+    paths-ignore: ["docs/**", "*.md"]
+  pull_request:
+    paths-ignore: ["docs/**", "*.md"]
   workflow_dispatch:
 
 concurrency:
