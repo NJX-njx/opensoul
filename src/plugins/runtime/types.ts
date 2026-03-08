@@ -175,6 +175,23 @@ export type RuntimeLogger = {
   error: (message: string) => void;
 };
 
+/**
+ * Runtime utilities injected into every plugin via `api.runtime`.
+ *
+ * Provides namespaced access to core OpenSoul internals so that channel
+ * extensions and other plugins can reuse built-in functionality without
+ * importing internal modules directly.
+ *
+ * @example
+ * ```ts
+ * export default {
+ *   register(api) {
+ *     const { chunkMarkdownText } = api.runtime.channel.text;
+ *     // use helpers...
+ *   },
+ * };
+ * ```
+ */
 export type PluginRuntime = {
   version: string;
   config: {

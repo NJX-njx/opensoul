@@ -50,6 +50,20 @@ export function createReplyPrefixContext(params: {
   };
 }
 
+/**
+ * Build the reply-prefix options required by the outbound reply dispatcher.
+ *
+ * Reads the effective messages config for the given agent/channel/account and
+ * returns a lightweight options bundle that channels pass to
+ * `createReplyDispatcherWithTyping` (or equivalent).
+ *
+ * @param params.cfg       - Current OpenSoul configuration.
+ * @param params.agentId   - ID of the agent that will send the reply.
+ * @param params.channel   - Optional channel identifier (e.g. `"telegram"`).
+ * @param params.accountId - Optional account ID within the channel.
+ * @returns Options object containing `responsePrefix`, `responsePrefixContextProvider`, and
+ *          `onModelSelected` callback.
+ */
 export function createReplyPrefixOptions(params: {
   cfg: OpenSoulConfig;
   agentId: string;

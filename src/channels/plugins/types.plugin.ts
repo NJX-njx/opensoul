@@ -39,11 +39,39 @@ export type ChannelConfigUiHint = {
   itemTemplate?: unknown;
 };
 
+/**
+ * JSON-schema descriptor and optional UI hints for a channel's configuration section.
+ * Returned by `buildChannelConfigSchema` and used by the control UI to render config forms.
+ */
 export type ChannelConfigSchema = {
   schema: Record<string, unknown>;
   uiHints?: Record<string, ChannelConfigUiHint>;
 };
 
+/**
+ * The complete plugin contract that a channel adapter must implement.
+ *
+ * Every channel extension (Slack, Discord, Telegram, WhatsApp, etc.) exports a value of
+ * this type and passes it to `api.registerChannel({ plugin })`.  The gateway uses
+ * `id`, `meta`, and `capabilities` at startup, then delegates inbound/outbound
+ * operations to the various optional adapter namespaces.
+ *
+ * @typeParam ResolvedAccount - Shape of the resolved account object for this channel.
+ * @typeParam Probe           - Shape returned by the channel's connectivity probe.
+ * @typeParam Audit           - Shape returned by the channel's audit adapter.
+ *
+ * @example
+ * ```ts
+ * import type { ChannelPlugin } from "opensoul/plugin-sdk";
+ *
+ * export const myPlugin: ChannelPlugin<ResolvedMyAccount> = {
+ *   id: "my-channel",
+ *   meta: { id: "my-channel", label: "My Channel", ... },
+ *   capabilities: { inbound: true, outbound: true },
+ *   config: { resolveAccount, ... },
+ * };
+ * ```
+ */
 // oxlint-disable-next-line typescript/no-explicit-any
 export type ChannelPlugin<ResolvedAccount = any, Probe = unknown, Audit = unknown> = {
   id: ChannelId;

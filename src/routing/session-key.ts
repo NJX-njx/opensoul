@@ -9,6 +9,7 @@ export {
 
 export const DEFAULT_AGENT_ID = "main";
 export const DEFAULT_MAIN_KEY = "main";
+/** The sentinel account ID used when no explicit account has been configured (value: `"default"`). */
 export const DEFAULT_ACCOUNT_ID = "default";
 export type SessionKeyShape = "missing" | "agent" | "legacy_or_alias" | "malformed_agent";
 
@@ -108,6 +109,17 @@ export function sanitizeAgentId(value: string | undefined | null): string {
   );
 }
 
+/**
+ * Normalize a raw account ID string to a lowercase, URL/path-safe slug.
+ *
+ * - Trims whitespace.
+ * - Returns {@link DEFAULT_ACCOUNT_ID} (`"default"`) when the input is empty.
+ * - Keeps values that already match `[a-z0-9][a-z0-9_-]{0,63}` as-is (lowercased).
+ * - Otherwise collapses invalid characters to `"-"` and strips leading/trailing dashes.
+ *
+ * @param value - Raw account ID (may be `null` or `undefined`).
+ * @returns A normalized, non-empty account ID string.
+ */
 export function normalizeAccountId(value: string | undefined | null): string {
   const trimmed = (value ?? "").trim();
   if (!trimmed) {

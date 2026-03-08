@@ -25,6 +25,16 @@ import type { PluginsConfig } from "./types.plugins.js";
 import type { SkillsConfig } from "./types.skills.js";
 import type { ToolsConfig } from "./types.tools.js";
 
+/**
+ * Root configuration object for an OpenSoul workspace.
+ *
+ * This type represents the fully-parsed, in-memory configuration loaded from
+ * `opensoul.config.json5` (plus any included fragments and environment-variable
+ * substitutions).  All fields are optional so that configs can be sparse.
+ *
+ * Extension developers receive the current config through `api.config` and can
+ * read channel-specific settings via the `channels` sub-tree.
+ */
 export type OpenSoulConfig = {
   meta?: {
     /** Last OpenSoul version that wrote this config. */

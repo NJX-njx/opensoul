@@ -10,6 +10,15 @@ function error(message: string): SafeParseResult {
   return { success: false, error: { issues: [{ path: [], message }] } };
 }
 
+/**
+ * Create an {@link OpenSoulPluginConfigSchema} that accepts only an empty
+ * config object (or `undefined`).
+ *
+ * Use this as the `configSchema` for plugins that have no user-configurable
+ * settings, so the control UI and config validator know not to expect any keys.
+ *
+ * @returns A schema that accepts `{}` or `undefined` and rejects any non-empty object.
+ */
 export function emptyPluginConfigSchema(): OpenSoulPluginConfigSchema {
   return {
     safeParse(value: unknown): SafeParseResult {

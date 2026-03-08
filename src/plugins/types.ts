@@ -197,6 +197,9 @@ export type OpenSoulPluginCliContext = {
 
 export type OpenSoulPluginCliRegistrar = (ctx: OpenSoulPluginCliContext) => void | Promise<void>;
 
+/**
+ * Context provided to plugin service lifecycle callbacks (`start` / `stop`).
+ */
 export type OpenSoulPluginServiceContext = {
   config: OpenSoulConfig;
   workspaceDir?: string;
@@ -204,9 +207,16 @@ export type OpenSoulPluginServiceContext = {
   logger: PluginLogger;
 };
 
+/**
+ * A long-running background service registered by a plugin.
+ * The gateway calls `start` on gateway startup and `stop` on graceful shutdown.
+ */
 export type OpenSoulPluginService = {
+  /** Unique identifier for this service within the plugin. */
   id: string;
+  /** Called once when the gateway starts up. */
   start: (ctx: OpenSoulPluginServiceContext) => void | Promise<void>;
+  /** Called once when the gateway shuts down gracefully. */
   stop?: (ctx: OpenSoulPluginServiceContext) => void | Promise<void>;
 };
 
@@ -230,6 +240,27 @@ export type OpenSoulPluginModule =
   | OpenSoulPluginDefinition
   | ((api: OpenSoulPluginApi) => void | Promise<void>);
 
+/**
+ * Primary API surface passed to a plugin's `register` / `activate` callback.
+ *
+ * Plugins use this object to integrate with OpenSoul:
+ * - Register channel adapters via {@link registerChannel}.
+ * - Add custom CLI commands via {@link registerCli}.
+ * - Subscribe to lifecycle events via {@link on}.
+ * - Expose HTTP routes or custom gateway methods.
+ *
+ * @example
+ * ```ts
+ * import type { OpenSoulPluginApi } from "opensoul/plugin-sdk";
+ *
+ * export default {
+ *   id: "my-plugin",
+ *   register(api: OpenSoulPluginApi) {
+ *     api.registerChannel({ plugin: myChannelPlugin });
+ *   },
+ * };
+ * ```
+ */
 export type OpenSoulPluginApi = {
   id: string;
   name: string;
@@ -240,21 +271,30 @@ export type OpenSoulPluginApi = {
   pluginConfig?: Record<string, unknown>;
   runtime: PluginRuntime;
   logger: PluginLogger;
+  /** Register an agent tool or a factory function that produces tools per-session. */
   registerTool: (
     tool: AnyAgentTool | OpenSoulPluginToolFactory,
     opts?: OpenSoulPluginToolOptions,
   ) => void;
+  /** Subscribe to an internal event hook by name. */
   registerHook: (
     events: string | string[],
     handler: InternalHookHandler,
     opts?: OpenSoulPluginHookOptions,
   ) => void;
+  /** Register a raw HTTP handler (receives every inbound request; return `true` to consume it). */
   registerHttpHandler: (handler: OpenSoulPluginHttpHandler) => void;
+  /** Register a scoped HTTP route under a plugin-owned path prefix. */
   registerHttpRoute: (params: { path: string; handler: OpenSoulPluginHttpRouteHandler }) => void;
+  /** Register a channel plugin, optionally with a custom dock configuration. */
   registerChannel: (registration: OpenSoulPluginChannelRegistration | ChannelPlugin) => void;
+  /** Expose a named method on the gateway's JSON-RPC / WebSocket interface. */
   registerGatewayMethod: (method: string, handler: GatewayRequestHandler) => void;
+  /** Register CLI sub-commands to be added to the `opensoul` CLI. */
   registerCli: (registrar: OpenSoulPluginCliRegistrar, opts?: { commands?: string[] }) => void;
+  /** Register a long-running background service (started/stopped with the gateway). */
   registerService: (service: OpenSoulPluginService) => void;
+  /** Register an LLM provider (auth flows, model config). */
   registerProvider: (provider: ProviderPlugin) => void;
   /**
    * Register a custom command that bypasses the LLM agent.
@@ -262,6 +302,7 @@ export type OpenSoulPluginApi = {
    * Use this for simple state-toggling or status commands that don't need AI reasoning.
    */
   registerCommand: (command: OpenSoulPluginCommandDefinition) => void;
+  /** Resolve a path relative to the plugin's workspace or state directory. */
   resolvePath: (input: string) => string;
   /** Register a lifecycle hook handler */
   on: <K extends PluginHookName>(

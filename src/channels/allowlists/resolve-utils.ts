@@ -1,5 +1,13 @@
 import type { RuntimeEnv } from "../../runtime.js";
 
+/**
+ * Merge an existing allowlist with a set of new additions, deduplicating
+ * entries in a case-insensitive manner while preserving original casing.
+ *
+ * @param params.existing  - Current allowlist (strings or numbers); may be `undefined`.
+ * @param params.additions - New entries to append (already-present entries are skipped).
+ * @returns A new array containing all unique entries from both lists.
+ */
 export function mergeAllowlist(params: {
   existing?: Array<string | number>;
   additions: string[];
