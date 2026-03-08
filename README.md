@@ -41,6 +41,12 @@ OpenSoul is a **self-hosted AI agent gateway**. Run one gateway process and talk
 
 It is a **local-first control plane**: channel adapters connect into one runtime where you control model routing, memory, tools, and security boundaries.
 
+## Product Preview
+
+<p align="center">
+  <img src="docs/images/mobile-ui-screenshot.png" alt="OpenSoul mobile UI screenshot" width="360">
+</p>
+
 ## What's New (v0.2.4)
 
 Based on recent updates in [CHANGELOG](CHANGELOG.md):
