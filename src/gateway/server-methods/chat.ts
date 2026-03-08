@@ -2,6 +2,7 @@ import { CURRENT_SESSION_VERSION } from "@mariozechner/pi-coding-agent";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { acquireSessionWriteLock } from "../../agents/session-write-lock.js";
 import type { MsgContext } from "../../auto-reply/templating.js";
 import type { GatewayRequestContext, GatewayRequestHandlers } from "./types.js";
 import { resolveSessionAgentId } from "../../agents/agent-scope.js";
@@ -47,6 +48,16 @@ type TranscriptAppendResult = {
   error?: string;
 };
 
+function appendUtf8LineDurable(filePath: string, line: string): void {
+  const fd = fs.openSync(filePath, "a");
+  try {
+    fs.writeSync(fd, line, undefined, "utf-8");
+    fs.fsyncSync(fd);
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
 function resolveTranscriptPath(params: {
   sessionId: string;
   storePath: string | undefined;
@@ -78,21 +89,30 @@ function ensureTranscriptFile(params: { transcriptPath: string; sessionId: strin
       timestamp: new Date().toISOString(),
       cwd: process.cwd(),
     };
-    fs.writeFileSync(params.transcriptPath, `${JSON.stringify(header)}\n`, "utf-8");
+    const fd = fs.openSync(params.transcriptPath, "ax");
+    try {
+      fs.writeSync(fd, `${JSON.stringify(header)}\n`, undefined, "utf-8");
+      fs.fsyncSync(fd);
+    } finally {
+      fs.closeSync(fd);
+    }
     return { ok: true };
   } catch (err) {
+    if ((err as NodeJS.ErrnoException)?.code === "EEXIST") {
+      return { ok: true };
+    }
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
 }
 
-function appendAssistantTranscriptMessage(params: {
+async function appendAssistantTranscriptMessage(params: {
   message: string;
   label?: string;
   sessionId: string;
   storePath: string | undefined;
   sessionFile?: string;
   createIfMissing?: boolean;
-}): TranscriptAppendResult {
+}): Promise<TranscriptAppendResult> {
   const transcriptPath = resolveTranscriptPath({
     sessionId: params.sessionId,
     storePath: params.storePath,
@@ -132,10 +152,18 @@ function appendAssistantTranscriptMessage(params: {
     message: messageBody,
   };
 
+  let lock:
+    | {
+        release: () => Promise<void>;
+      }
+    | undefined;
   try {
-    fs.appendFileSync(transcriptPath, `${JSON.stringify(transcriptEntry)}\n`, "utf-8");
+    lock = await acquireSessionWriteLock({ sessionFile: transcriptPath });
+    appendUtf8LineDurable(transcriptPath, `${JSON.stringify(transcriptEntry)}\n`);
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  } finally {
+    await lock?.release();
   }
 
   return { ok: true, messageId, message: transcriptEntry.message };
@@ -541,7 +569,7 @@ export const chatHandlers: GatewayRequestHandlers = {
           onModelSelected,
         },
       })
-        .then(() => {
+        .then(async () => {
           if (!agentRunStarted) {
             const combinedReply = finalReplyParts
               .map((part) => part.trim())
@@ -554,7 +582,7 @@ export const chatHandlers: GatewayRequestHandlers = {
                 p.sessionKey,
               );
               const sessionId = latestEntry?.sessionId ?? entry?.sessionId ?? clientRunId;
-              const appended = appendAssistantTranscriptMessage({
+              const appended = await appendAssistantTranscriptMessage({
                 message: combinedReply,
                 sessionId,
                 storePath: latestStorePath,
@@ -689,9 +717,15 @@ export const chatHandlers: GatewayRequestHandlers = {
       message: messageBody,
     };
 
-    // Append to transcript file
+    // Append to transcript file using durable write semantics.
+    let lock:
+      | {
+          release: () => Promise<void>;
+        }
+      | undefined;
     try {
-      fs.appendFileSync(transcriptPath, `${JSON.stringify(transcriptEntry)}\n`, "utf-8");
+      lock = await acquireSessionWriteLock({ sessionFile: transcriptPath });
+      appendUtf8LineDurable(transcriptPath, `${JSON.stringify(transcriptEntry)}\n`);
     } catch (err) {
       const errMessage = err instanceof Error ? err.message : String(err);
       respond(
@@ -700,6 +734,8 @@ export const chatHandlers: GatewayRequestHandlers = {
         errorShape(ErrorCodes.UNAVAILABLE, `failed to write transcript: ${errMessage}`),
       );
       return;
+    } finally {
+      await lock?.release();
     }
 
     // Broadcast to webchat for immediate UI update
