@@ -133,6 +133,11 @@ export function registerCronAddCommand(cron: Command) {
               ? sanitizeAgentId(opts.agent.trim())
               : undefined;
 
+          if (typeof opts.deliver === "boolean") {
+            console.error(
+              "Warning: --deliver/--no-deliver is deprecated. Use --announce instead.",
+            );
+          }
           const hasAnnounce = Boolean(opts.announce) || opts.deliver === true;
           const hasNoDeliver = opts.deliver === false;
           const deliveryFlagCount = [hasAnnounce, hasNoDeliver].filter(Boolean).length;
