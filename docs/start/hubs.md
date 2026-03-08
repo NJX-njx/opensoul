@@ -189,6 +189,7 @@ Use these hubs to discover every page, including deep dives and reference docs t
 ## Project
 
 - [Credits](/reference/credits)
+- [Roadmap](https://github.com/NJX-njx/opensoul/blob/main/ROADMAP.md)
 
 ## Testing + release
 

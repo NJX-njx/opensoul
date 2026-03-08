@@ -29,7 +29,8 @@
   <a href="#测试">测试</a> •
   <a href="#扩展开发">扩展开发</a> •
   <a href="#故障排查">故障排查</a> •
-  <a href="#文档">文档</a>
+  <a href="#文档">文档</a> •
+  <a href="ROADMAP.md">路线图</a>
 </p>
 
 ---
@@ -254,6 +255,10 @@ pnpm test
 
 - [Gateway RPC](docs/reference/rpc.md)
 - [参考索引](docs/reference/)
+
+## 路线图
+
+查看 [ROADMAP.md](ROADMAP.md) 了解计划功能、当前优先级和已发布的里程碑。
 
 ## 贡献
 
