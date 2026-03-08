@@ -10,14 +10,14 @@ OpenSoul currently uses a small set of pre-release dependency versions intention
 
 ## Current tracked packages
 
-| Package | Current version channel | Rationale |
-| --- | --- | --- |
-| `@buape/carbon` | beta | Upstream currently ships required fixes/features in beta channel. |
-| `@lydell/node-pty` | beta | Current Windows PTY behavior depends on beta line in this codebase. |
-| `@whiskeysockets/baileys` | rc | WhatsApp ecosystem package is currently consumed on RC line. |
-| `sqlite-vec` | alpha | Existing vector features in use are provided in alpha release. |
-| `@typescript/native-preview` | dev | Used by tsgo workflow in current toolchain. |
-| `rolldown` | rc | Bundler in current build pipeline is still on RC channel. |
+| Package                      | Current version channel | Rationale                                                           |
+| ---------------------------- | ----------------------- | ------------------------------------------------------------------- |
+| `@buape/carbon`              | beta                    | Upstream currently ships required fixes/features in beta channel.   |
+| `@lydell/node-pty`           | beta                    | Current Windows PTY behavior depends on beta line in this codebase. |
+| `@whiskeysockets/baileys`    | rc                      | WhatsApp ecosystem package is currently consumed on RC line.        |
+| `sqlite-vec`                 | alpha                   | Existing vector features in use are provided in alpha release.      |
+| `@typescript/native-preview` | dev                     | Used by tsgo workflow in current toolchain.                         |
+| `rolldown`                   | rc                      | Bundler in current build pipeline is still on RC channel.           |
 
 ## Review cadence
 

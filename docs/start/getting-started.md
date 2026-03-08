@@ -27,6 +27,7 @@ Recommended path: use the **CLI onboarding wizard** (`opensoul onboard`). It con
 - Optional background services
 
 For deeper reference, see: [Wizard](/start/wizard), [Setup](/start/setup), [Pairing](/channels/pairing), [Security](/gateway/security).
+For Soulmate flow and recovery actions, see [Create Soulmate](/guides/create-soulmate).
 
 ### Sandbox Note
 `agents.defaults.sandbox.mode: "non-main"` uses `session.mainKey` (default `"main"`), so group/channel sessions are sandboxed. If you want a main agent to always run on the host, set an explicit per-agent override:

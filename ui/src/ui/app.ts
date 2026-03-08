@@ -100,6 +100,7 @@ import {
   INITIAL_CREATE_SOULMATE_STATE,
   type CreateSoulmateModalState,
 } from "./views/create-soulmate-modal.ts";
+import { formatCreateSoulmateError } from "./views/create-soulmate-errors.ts";
 import { getMessages } from "./views/onboarding/i18n.ts";
 
 declare global {
@@ -668,11 +669,17 @@ export class OpenSoulApp extends LitElement {
       } else {
         this.createSoulmateModalFieldChange(
           "error",
-          "Failed to create agent. Check gateway connection.",
+          formatCreateSoulmateError({ connected: this.connected }),
         );
       }
     } catch (err) {
-      this.createSoulmateModalFieldChange("error", String(err));
+      this.createSoulmateModalFieldChange(
+        "error",
+        formatCreateSoulmateError({
+          connected: this.connected,
+          rawError: err instanceof Error ? err.message : String(err),
+        }),
+      );
     } finally {
       this.createSoulmateModalFieldChange("submitting", false);
     }

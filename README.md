@@ -260,6 +260,7 @@ After changing `ui/`:
 - [**Wiki**](https://github.com/NJX-njx/opensoul/wiki) — Comprehensive project knowledge base
 - [Getting Started](docs/start/)
 - [**Model Setup Guide**](docs/guides/model-setup.md) — API key / OAuth / local Ollama setup with verification commands
+- [Create Soulmate Guide](docs/guides/create-soulmate.md) — creation flow, constraints, failure recovery, and post-create checks
 - [Gateway Configuration](docs/gateway/configuration.md)
 - [Channels](docs/channels/)
 - [Skills & Tools](docs/tools/)
