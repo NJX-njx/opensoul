@@ -1,5 +1,35 @@
 # Changelog
 
+## Unreleased (2026-03-08)
+
+### Security & Reliability
+
+- Hardened WebSocket runtime safety with connection caps, ping/pong keepalive, and unicast backpressure handling.
+- Hardened transcript persistence with fsync-backed durable appends, race-safe header creation, and session write locks.
+- Mitigated embedded runner CWD race conditions with process-level locking for `process.chdir()` critical sections.
+- Added plugin runtime fault isolation and automatic disable after repeated plugin runtime failures.
+
+### Repository Hygiene & Guardrails
+
+- Removed committed secret-bearing Gemini test scripts.
+- Stopped tracking committed Windows release bundle artifacts.
+- Added pre-commit guards for obvious secret patterns and release bundle directories.
+- Added pre-release dependency tracking policy doc and automated checker.
+
+### UX & Docs
+
+- Added README product screenshot preview.
+- Added beginner deployment guide with OS-specific commands, verification checklist, and rollback path.
+- Added Create Soulmate guide with create flow, constraints, post-create checklist, and failure recovery guidance.
+- Improved Create Soulmate error messaging in Control UI with concrete remediation hints.
+- Added English translation counterpart for docs translation workspace guidance (`docs/AGENTS.md`).
+
+### Tests
+
+- Added `src/gateway/sessions-resolve.test.ts` for gateway session-key resolution paths.
+- Added Create Soulmate UI test coverage in `ui/src/ui/views/create-soulmate-modal.test.ts` and `ui/src/ui/views/create-soulmate-errors.test.ts`.
+- Added plugin loader regression coverage for auto-disable-on-runtime-failure behavior.
+
 ## 0.2.4
 
 ### Highlights

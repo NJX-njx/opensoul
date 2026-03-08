@@ -58,6 +58,14 @@ Based on recent updates in [CHANGELOG](CHANGELOG.md):
 - **Developer experience**: enhanced CLI dev defaults, GitHub workflow validation, and repo cleanup.
 - **Windows desktop client**: native installer with system proxy detection (v0.2.3).
 
+### Latest Maintenance Updates (post-v0.2.4)
+
+- **Security hardening**: WebSocket connection limits, ping/pong keepalive, and slow-consumer handling.
+- **Data safety**: durable transcript writes with fsync and write-lock protection.
+- **Runtime stability**: concurrency-safe embedded runner CWD handling and plugin runtime auto-disable after repeated failures.
+- **Repository hygiene**: removed committed secret test files and tracked release bundles; added pre-commit secret/bundle guards.
+- **Docs & onboarding**: beginner deployment guide, Create Soulmate guide, and improved actionable error messaging.
+
 ## Features
 
 ### 🌐 30+ Channels
