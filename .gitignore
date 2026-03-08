@@ -80,3 +80,4 @@ apps/ios/*.mobileprovision
 /local/
 # Allow source code local/ directories
 !src/**/local/
+airi.code-workspace
