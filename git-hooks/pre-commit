@@ -2,6 +2,26 @@
 FILES=$(git diff --cached --name-only --diff-filter=ACMR | sed 's| |\\ |g')
 [ -z "$FILES" ] && exit 0
 
+# Block committed Windows release bundles and other packaged artifacts.
+if git diff --cached --name-only --diff-filter=ACMR | grep -Eq '^OpenSoul-Windows-x64-v.*/'; then
+	echo "pre-commit: refusing to commit OpenSoul-Windows release bundle directories"
+	echo "pre-commit: package these as release artifacts instead"
+	exit 1
+fi
+
+# Scan staged content for obvious secret patterns before commit.
+if ! git diff --cached --name-only --diff-filter=ACMR | while IFS= read -r f; do
+	[ -f "$f" ] || continue
+	if git show ":$f" | grep -Eq 'AIza[0-9A-Za-z_-]{20,}|gh[pousr]_[0-9A-Za-z]{20,}|sk-[0-9A-Za-z]{20,}'; then
+		echo "pre-commit: potential secret detected in $f"
+		echo "pre-commit: remove or externalize credentials before committing"
+		exit 1
+	fi
+done
+then
+	exit 1
+fi
+
 # Lint and format staged files
 echo "$FILES" | xargs pnpm exec oxlint --fix 2>/dev/null || true
 echo "$FILES" | xargs pnpm exec oxfmt --write 2>/dev/null || true
