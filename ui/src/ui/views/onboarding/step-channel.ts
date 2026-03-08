@@ -45,8 +45,9 @@ export function renderStepChannel(state: OnboardingWizardState) {
       })}
     </div>
 
-    ${selectedChannel && selectedChannel.tokenLabel
-      ? html`
+    ${
+      selectedChannel && selectedChannel.tokenLabel
+        ? html`
           <div class="onboarding-channel-token">
             <div class="onboarding-channel-token__label">${selectedChannel.tokenLabel}</div>
             <div class="onboarding-channel-token__hint">${selectedChannel.tokenHint}</div>
@@ -60,12 +61,13 @@ export function renderStepChannel(state: OnboardingWizardState) {
             />
           </div>
         `
-      : selectedChannel
-        ? html`
+        : selectedChannel
+          ? html`
             <div class="onboarding-channel-token">
               <div class="onboarding-channel-token__hint">${selectedChannel.tokenHint}</div>
             </div>
           `
-        : nothing}
+          : nothing
+    }
   `;
 }
