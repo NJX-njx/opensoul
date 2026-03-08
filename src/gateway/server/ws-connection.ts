@@ -8,7 +8,12 @@ import { resolveCanvasHostUrl } from "../../infra/canvas-host-url.js";
 import { listSystemPresence, upsertPresence } from "../../infra/system-presence.js";
 import { isWebchatClient } from "../../utils/message-channel.js";
 import { isLoopbackAddress } from "../net.js";
-import { getHandshakeTimeoutMs } from "../server-constants.js";
+import {
+  getHandshakeTimeoutMs,
+  MAX_BUFFERED_BYTES,
+  MAX_WS_CONNECTIONS,
+  WS_PING_INTERVAL_MS,
+} from "../server-constants.js";
 import { formatError } from "../server-utils.js";
 import { logWs } from "../ws-log.js";
 import { getHealthVersion, getPresenceVersion, incrementPresenceVersion } from "./health-state.js";
@@ -59,6 +64,15 @@ export function attachGatewayWsConnectionHandler(params: {
   } = params;
 
   wss.on("connection", (socket, upgradeReq) => {
+    if (wss.clients.size > MAX_WS_CONNECTIONS) {
+      try {
+        socket.close(1013, "maximum connections reached");
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
+
     let client: GatewayWsClient | null = null;
     let closed = false;
     const openedAt = Date.now();
@@ -110,6 +124,14 @@ export function attachGatewayWsConnectionHandler(params: {
     };
 
     const send = (obj: unknown) => {
+      if (socket.bufferedAmount > MAX_BUFFERED_BYTES) {
+        setCloseCause("slow-unicast-consumer", {
+          bufferedAmount: socket.bufferedAmount,
+          maxBufferedBytes: MAX_BUFFERED_BYTES,
+        });
+        close(1008, "slow consumer");
+        return;
+      }
       try {
         socket.send(JSON.stringify(obj));
       } catch {
@@ -124,12 +146,16 @@ export function attachGatewayWsConnectionHandler(params: {
       payload: { nonce: connectNonce, ts: Date.now() },
     });
 
+    let pingInterval: ReturnType<typeof setInterval> | undefined;
     const close = (code = 1000, reason?: string) => {
       if (closed) {
         return;
       }
       closed = true;
       clearTimeout(handshakeTimer);
+      if (pingInterval) {
+        clearInterval(pingInterval);
+      }
       if (client) {
         clients.delete(client);
       }
@@ -227,6 +253,33 @@ export function attachGatewayWsConnectionHandler(params: {
       }
     }, handshakeTimeoutMs);
 
+    socket.on("pong", () => {
+      if (client) {
+        client.isAlive = true;
+        client.lastPongAtMs = Date.now();
+      }
+    });
+
+    pingInterval = setInterval(() => {
+      if (closed || !client) {
+        return;
+      }
+      if (client.isAlive === false) {
+        setCloseCause("ping-timeout", {
+          lastPongAtMs: client.lastPongAtMs,
+          pingIntervalMs: WS_PING_INTERVAL_MS,
+        });
+        close(1001, "ping timeout");
+        return;
+      }
+      client.isAlive = false;
+      try {
+        socket.ping();
+      } catch {
+        close(1011, "ping failed");
+      }
+    }, WS_PING_INTERVAL_MS);
+
     attachGatewayWsMessageHandler({
       socket,
       upgradeReq,
@@ -250,6 +303,8 @@ export function attachGatewayWsConnectionHandler(params: {
       clearHandshakeTimer: () => clearTimeout(handshakeTimer),
       getClient: () => client,
       setClient: (next) => {
+        next.isAlive = true;
+        next.lastPongAtMs = Date.now();
         client = next;
         clients.add(next);
       },
