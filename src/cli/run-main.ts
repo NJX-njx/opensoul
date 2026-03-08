@@ -33,6 +33,15 @@ export async function runCli(argv: string[] = process.argv) {
   // Enforce the minimum supported runtime before doing any work.
   assertSupportedRuntime();
 
+  // Global error handlers to prevent silent crashes from unhandled rejections/exceptions.
+  // These must be installed early so that routed commands also benefit from them.
+  installUnhandledRejectionHandler();
+
+  process.on("uncaughtException", (error) => {
+    console.error("[opensoul] Uncaught exception:", formatUncaughtError(error));
+    process.exitCode = 1;
+  });
+
   if (await tryRouteCli(normalizedArgv)) {
     return;
   }
@@ -42,15 +51,6 @@ export async function runCli(argv: string[] = process.argv) {
 
   const { buildProgram } = await import("./program.js");
   const program = buildProgram();
-
-  // Global error handlers to prevent silent crashes from unhandled rejections/exceptions.
-  // These log the error and exit gracefully instead of crashing without trace.
-  installUnhandledRejectionHandler();
-
-  process.on("uncaughtException", (error) => {
-    console.error("[opensoul] Uncaught exception:", formatUncaughtError(error));
-    process.exit(1);
-  });
 
   const parseArgv = rewriteUpdateFlagArgv(normalizedArgv);
   // Register the primary subcommand if one exists (for lazy-loading)
