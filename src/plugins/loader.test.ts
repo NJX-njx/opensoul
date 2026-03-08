@@ -480,4 +480,48 @@ describe("loadOpenSoulPlugins", () => {
     expect(loaded?.origin).toBe("config");
     expect(overridden?.origin).toBe("bundled");
   });
+
+  it("auto-disables plugins after repeated gateway runtime failures", async () => {
+    process.env.OPENSOUL_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
+    const plugin = writePlugin({
+      id: "runtime-fail",
+      body: `export default { id: "runtime-fail", register(api) { api.registerGatewayMethod("runtime.fail", async () => { throw new Error("boom"); }); } };`,
+    });
+
+    const registry = loadOpenSoulPlugins({
+      cache: false,
+      workspaceDir: plugin.dir,
+      config: {
+        plugins: {
+          load: { paths: [plugin.file] },
+          allow: ["runtime-fail"],
+        },
+      },
+    });
+
+    const handler = registry.gatewayHandlers["runtime.fail"];
+    expect(handler).toBeDefined();
+
+    const invoke = () =>
+      Promise.resolve(
+        handler?.({
+          req: { type: "req", id: "1", method: "runtime.fail", params: {} },
+          params: {},
+          client: null,
+          isWebchatConnect: () => false,
+          respond: () => undefined,
+          context: {} as never,
+        }),
+      );
+
+    await expect(invoke()).rejects.toThrow("boom");
+    await expect(invoke()).rejects.toThrow("boom");
+    await expect(invoke()).rejects.toThrow("boom");
+    await expect(invoke()).rejects.toThrow("plugin disabled");
+
+    const record = registry.plugins.find((entry) => entry.id === "runtime-fail");
+    expect(record?.enabled).toBe(false);
+    expect(record?.status).toBe("error");
+    expect(record?.error).toContain("auto-disabled");
+  });
 });

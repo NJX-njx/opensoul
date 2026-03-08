@@ -144,6 +144,7 @@ export type PluginRegistryParams = {
 };
 
 export function createPluginRegistry(registryParams: PluginRegistryParams) {
+  const MAX_RUNTIME_FAILURES = 3;
   const registry: PluginRegistry = {
     plugins: [],
     tools: [],
@@ -165,6 +166,37 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     registry.diagnostics.push(diag);
   };
 
+  const runtimeFailureCounts = new Map<string, number>();
+
+  const markRuntimeFailure = (record: PluginRecord, scope: string, err: unknown) => {
+    const nextCount = (runtimeFailureCounts.get(record.id) ?? 0) + 1;
+    runtimeFailureCounts.set(record.id, nextCount);
+    const message = err instanceof Error ? err.message : String(err);
+    registryParams.logger.warn(
+      `[plugins] ${record.id} runtime ${scope} failure (${nextCount}/${MAX_RUNTIME_FAILURES}): ${message}`,
+    );
+    pushDiagnostic({
+      level: "warn",
+      pluginId: record.id,
+      source: record.source,
+      message: `runtime ${scope} failure (${nextCount}/${MAX_RUNTIME_FAILURES}): ${message}`,
+    });
+    if (nextCount >= MAX_RUNTIME_FAILURES) {
+      record.enabled = false;
+      record.status = "error";
+      record.error = `plugin auto-disabled after ${nextCount} runtime failures`;
+      registryParams.logger.error(
+        `[plugins] ${record.id} auto-disabled after repeated runtime failures`,
+      );
+      pushDiagnostic({
+        level: "error",
+        pluginId: record.id,
+        source: record.source,
+        message: record.error,
+      });
+    }
+  };
+
   const registerTool = (
     record: PluginRecord,
     tool: AnyAgentTool | OpenSoulPluginToolFactory,
@@ -172,8 +204,19 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
   ) => {
     const names = opts?.names ?? (opts?.name ? [opts.name] : []);
     const optional = opts?.optional === true;
-    const factory: OpenSoulPluginToolFactory =
+    const factoryRaw: OpenSoulPluginToolFactory =
       typeof tool === "function" ? tool : (_ctx: OpenSoulPluginToolContext) => tool;
+    const factory: OpenSoulPluginToolFactory = (ctx) => {
+      if (!record.enabled) {
+        return null;
+      }
+      try {
+        return factoryRaw(ctx);
+      } catch (err) {
+        markRuntimeFailure(record, "tool", err);
+        return null;
+      }
+    };
 
     if (typeof tool !== "function") {
       names.push(tool.name);
@@ -214,6 +257,17 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     }
 
     const description = entry?.hook.description ?? opts?.description ?? "";
+    const safeHandler: typeof handler = async (event) => {
+      if (!record.enabled) {
+        return;
+      }
+      try {
+        await handler(event);
+      } catch (err) {
+        markRuntimeFailure(record, "hook", err);
+      }
+    };
+
     const hookEntry: HookEntry = entry
       ? {
           ...entry,
@@ -258,7 +312,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     }
 
     for (const event of normalizedEvents) {
-      registerInternalHook(event, handler);
+      registerInternalHook(event, safeHandler);
     }
   };
 
@@ -280,7 +334,17 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       });
       return;
     }
-    registry.gatewayHandlers[trimmed] = handler;
+    registry.gatewayHandlers[trimmed] = async (opts) => {
+      if (!record.enabled) {
+        throw new Error(`plugin disabled: ${record.id}`);
+      }
+      try {
+        await handler(opts);
+      } catch (err) {
+        markRuntimeFailure(record, `gateway:${trimmed}`, err);
+        throw err;
+      }
+    };
     record.gatewayMethods.push(trimmed);
   };
 
@@ -288,7 +352,17 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     record.httpHandlers += 1;
     registry.httpHandlers.push({
       pluginId: record.id,
-      handler,
+      handler: async (req, res) => {
+        if (!record.enabled) {
+          return false;
+        }
+        try {
+          return await handler(req, res);
+        } catch (err) {
+          markRuntimeFailure(record, "http-handler", err);
+          return false;
+        }
+      },
       source: record.source,
     });
   };
@@ -320,7 +394,24 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     registry.httpRoutes.push({
       pluginId: record.id,
       path: normalizedPath,
-      handler: params.handler,
+      handler: async (req, res) => {
+        if (!record.enabled) {
+          if (!res.headersSent) {
+            res.statusCode = 503;
+            res.end("plugin disabled");
+          }
+          return;
+        }
+        try {
+          await params.handler(req, res);
+        } catch (err) {
+          markRuntimeFailure(record, "http-route", err);
+          if (!res.headersSent) {
+            res.statusCode = 500;
+            res.end("plugin route error");
+          }
+        }
+      },
       source: record.source,
     });
   };
@@ -452,7 +543,16 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     registry.typedHooks.push({
       pluginId: record.id,
       hookName,
-      handler,
+      handler: (async (...args: Parameters<PluginHookHandlerMap[K]>) => {
+        if (!record.enabled) {
+          return;
+        }
+        try {
+          await handler(...args);
+        } catch (err) {
+          markRuntimeFailure(record, `typed-hook:${String(hookName)}`, err);
+        }
+      }) as PluginHookHandlerMap[K],
       priority: opts?.priority,
       source: record.source,
     } as TypedPluginHookRegistration);
