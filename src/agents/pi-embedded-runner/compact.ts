@@ -65,6 +65,7 @@ import { resolveGlobalLane, resolveSessionLane } from "./lanes.js";
 import { log } from "./logger.js";
 import { buildModelAliasLines, resolveModel } from "./model.js";
 import { buildEmbeddedSandboxInfo } from "./sandbox-info.js";
+import { acquireProcessCwdLock } from "./cwd-lock.js";
 import { prewarmSessionFile, trackSessionManagerAccess } from "./session-manager-cache.js";
 import {
   applySystemPromptOverrideToSession,
@@ -185,6 +186,7 @@ export async function compactEmbeddedPiSessionDirect(
     cwd: effectiveWorkspace,
   });
 
+  const releaseCwdLock = await acquireProcessCwdLock();
   let restoreSkillEnv: (() => void) | undefined;
   process.chdir(effectiveWorkspace);
   try {
@@ -479,6 +481,7 @@ export async function compactEmbeddedPiSessionDirect(
   } finally {
     restoreSkillEnv?.();
     process.chdir(prevCwd);
+    releaseCwdLock();
   }
 }
 

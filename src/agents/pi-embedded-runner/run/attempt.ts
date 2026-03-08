@@ -77,6 +77,7 @@ import {
   type EmbeddedPiQueueHandle,
   setActiveEmbeddedRun,
 } from "../runs.js";
+import { acquireProcessCwdLock } from "../cwd-lock.js";
 import { buildEmbeddedSandboxInfo } from "../sandbox-info.js";
 import { prewarmSessionFile, trackSessionManagerAccess } from "../session-manager-cache.js";
 import { prepareSessionManagerForRun } from "../session-manager-init.js";
@@ -141,7 +142,6 @@ export async function runEmbeddedAttempt(
   params: EmbeddedRunAttemptParams,
 ): Promise<EmbeddedRunAttemptResult> {
   const resolvedWorkspace = resolveUserPath(params.workspaceDir);
-  const prevCwd = process.cwd();
   const runAbortController = new AbortController();
 
   log.debug(
@@ -163,6 +163,8 @@ export async function runEmbeddedAttempt(
     : resolvedWorkspace;
   await fs.mkdir(effectiveWorkspace, { recursive: true });
 
+  const releaseCwdLock = await acquireProcessCwdLock();
+  const prevCwd = process.cwd();
   let restoreSkillEnv: (() => void) | undefined;
   process.chdir(effectiveWorkspace);
   try {
@@ -924,5 +926,6 @@ export async function runEmbeddedAttempt(
   } finally {
     restoreSkillEnv?.();
     process.chdir(prevCwd);
+    releaseCwdLock();
   }
 }

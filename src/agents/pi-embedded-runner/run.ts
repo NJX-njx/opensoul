@@ -171,8 +171,6 @@ export async function runEmbeddedPiAgent(
           `[workspace-fallback] caller=runEmbeddedPiAgent reason=${workspaceResolution.fallbackReason} run=${params.runId} session=${redactedSessionId} sessionKey=${redactedSessionKey} agent=${workspaceResolution.agentId} workspace=${redactedWorkspace}`,
         );
       }
-      const prevCwd = process.cwd();
-
       const provider = (params.provider ?? DEFAULT_PROVIDER).trim() || DEFAULT_PROVIDER;
       const modelId = (params.model ?? DEFAULT_MODEL).trim() || DEFAULT_MODEL;
       const agentDir = params.agentDir ?? resolveOpenSoulAgentDir();
@@ -858,8 +856,6 @@ export async function runEmbeddedPiAgent(
             messagingToolSentTargets: attempt.messagingToolSentTargets,
           };
         }
-      } finally {
-        process.chdir(prevCwd);
       }
     }),
   );
