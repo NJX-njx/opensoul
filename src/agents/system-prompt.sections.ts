@@ -20,7 +20,7 @@ export function buildSkillsSection(params: {
   if (params.isMinimal || !params.skillsPrompt?.trim()) {
     return [];
   }
-  const readToolName = params.readToolName.trim().toLowerCase() || "read";
+  const readToolName = params.readToolName.trim() || "read";
   return [
     "## Skills",
     `- If exactly one skill clearly applies: read its SKILL.md at <location> with \`${readToolName}\`, then follow it.`,

@@ -1,34 +1,11 @@
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 import { SessionManager } from "@mariozechner/pi-coding-agent";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
 import { describe, expect, it, afterEach } from "vitest";
-import { resetGlobalHookRunner } from "../plugins/hook-runner-global.js";
-import { loadOpenSoulPlugins } from "../plugins/loader.js";
+import {
+  initializeGlobalHookRunner,
+  resetGlobalHookRunner,
+} from "../plugins/hook-runner-global.js";
 import { guardSessionManager } from "./session-tool-result-guard-wrapper.js";
-
-const EMPTY_PLUGIN_SCHEMA = { type: "object", additionalProperties: false, properties: {} };
-
-function writeTempPlugin(params: { dir: string; id: string; body: string }): string {
-  const pluginDir = path.join(params.dir, params.id);
-  fs.mkdirSync(pluginDir, { recursive: true });
-  const file = path.join(pluginDir, `${params.id}.mjs`);
-  fs.writeFileSync(file, params.body, "utf-8");
-  fs.writeFileSync(
-    path.join(pluginDir, "opensoul.plugin.json"),
-    JSON.stringify(
-      {
-        id: params.id,
-        configSchema: EMPTY_PLUGIN_SCHEMA,
-      },
-      null,
-      2,
-    ),
-    "utf-8",
-  );
-  return file;
-}
 
 afterEach(() => {
   resetGlobalHookRunner();
@@ -67,43 +44,44 @@ describe("tool_result_persist hook", () => {
   });
 
   it("composes transforms in priority order and allows stripping toolResult.details", () => {
-    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "opensoul-toolpersist-"));
-    process.env.OPENSOUL_BUNDLED_PLUGINS_DIR = "/nonexistent/bundled/plugins";
-
-    const pluginA = writeTempPlugin({
-      dir: tmp,
-      id: "persist-a",
-      body: `export default { id: "persist-a", register(api) {
-  api.on("tool_result_persist", (event, ctx) => {
-    const msg = event.message;
-    // Example: remove large diagnostic payloads before persistence.
-    const { details: _details, ...rest } = msg;
-    return { message: { ...rest, persistOrder: ["a"], agentSeen: ctx.agentId ?? null } };
-  }, { priority: 10 });
-} };`,
-    });
-
-    const pluginB = writeTempPlugin({
-      dir: tmp,
-      id: "persist-b",
-      body: `export default { id: "persist-b", register(api) {
-  api.on("tool_result_persist", (event) => {
-    const prior = (event.message && event.message.persistOrder) ? event.message.persistOrder : [];
-    return { message: { ...event.message, persistOrder: [...prior, "b"] } };
-  }, { priority: 5 });
-} };`,
-    });
-
-    loadOpenSoulPlugins({
-      cache: false,
-      workspaceDir: tmp,
-      config: {
-        plugins: {
-          load: { paths: [pluginA, pluginB] },
-          allow: ["persist-a", "persist-b"],
+    initializeGlobalHookRunner({
+      plugins: [],
+      tools: [],
+      hooks: [],
+      typedHooks: [
+        {
+          pluginId: "persist-a",
+          hookName: "tool_result_persist",
+          source: "test://persist-a",
+          priority: 10,
+          handler: (event, ctx) => {
+            const msg = event.message;
+            const { details: _details, ...rest } = msg;
+            return { message: { ...rest, persistOrder: ["a"], agentSeen: ctx.agentId ?? null } };
+          },
         },
-      },
-    });
+        {
+          pluginId: "persist-b",
+          hookName: "tool_result_persist",
+          source: "test://persist-b",
+          priority: 5,
+          handler: (event) => {
+            const prior =
+              event.message && "persistOrder" in event.message ? event.message.persistOrder : [];
+            return { message: { ...event.message, persistOrder: [...prior, "b"] } };
+          },
+        },
+      ],
+      channels: [],
+      providers: [],
+      gatewayHandlers: {},
+      httpHandlers: [],
+      httpRoutes: [],
+      cliRegistrars: [],
+      services: [],
+      commands: [],
+      diagnostics: [],
+    } as never);
 
     const sm = guardSessionManager(SessionManager.inMemory(), {
       agentId: "main",

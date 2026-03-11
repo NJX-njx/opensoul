@@ -543,14 +543,13 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     registry.typedHooks.push({
       pluginId: record.id,
       hookName,
-      handler: (async (...args: Parameters<PluginHookHandlerMap[K]>) => {
+      handler: ((...args: Parameters<PluginHookHandlerMap[K]>) => {
         if (!record.enabled) {
           return;
         }
         try {
-          await (handler as (...hookArgs: Parameters<PluginHookHandlerMap[K]>) => unknown).apply(
-            undefined,
-            args,
+          return (handler as (...hookArgs: Array<unknown>) => unknown)(
+            ...(args as unknown as Array<unknown>),
           );
         } catch (err) {
           markRuntimeFailure(record, `typed-hook:${String(hookName)}`, err);

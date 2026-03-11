@@ -1,3 +1,4 @@
+import { request as httpRequest, type ClientRequest, type IncomingMessage } from "node:http";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { HISTORY_CONTEXT_MARKER } from "../auto-reply/reply/history.js";
 import { CURRENT_MESSAGE_MARKER } from "../auto-reply/reply/mentions.js";
@@ -48,6 +49,32 @@ async function postResponses(port: number, body: unknown, headers?: Record<strin
     body: JSON.stringify(body),
   });
   return res;
+}
+
+async function openResponsesStream(
+  port: number,
+  body: unknown,
+): Promise<{ req: ClientRequest; res: IncomingMessage }> {
+  const payload = JSON.stringify(body);
+  return await new Promise((resolve, reject) => {
+    const req = httpRequest(
+      {
+        hostname: "127.0.0.1",
+        port,
+        path: "/v1/responses",
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: "Bearer secret",
+          "content-length": Buffer.byteLength(payload),
+        },
+      },
+      (res) => resolve({ req, res }),
+    );
+    req.once("error", reject);
+    req.write(payload);
+    req.end();
+  });
 }
 
 function parseSseEvents(text: string): Array<{ event?: string; data: string }> {
@@ -543,16 +570,16 @@ describe("OpenResponses HTTP API (e2e)", () => {
         return { payloads: [{ text: "hello" }], meta: { aborted: true } } as never;
       });
 
-      const res = await postResponses(port, {
+      const { req, res } = await openResponsesStream(port, {
         stream: true,
         model: "opensoul",
         input: "hi",
       });
-      expect(res.status).toBe(200);
-      expect(res.body).toBeTruthy();
+      expect(res.statusCode).toBe(200);
 
       await started;
-      await res.body?.cancel();
+      res.destroy();
+      req.destroy();
       await aborted;
     } finally {
       // shared server

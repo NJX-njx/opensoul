@@ -604,10 +604,19 @@ export async function handleOpenResponsesHttpRequest(
   let accumulatedText = "";
   let sawAssistantDelta = false;
   let closed = false;
+  let responseCompleted = false;
   let unsubscribe = () => {};
   let finalUsage: Usage | undefined;
   let finalizeRequested: { status: ResponseResource["status"]; text: string } | null = null;
   const abortController = new AbortController();
+  const handleClientDisconnect = () => {
+    if (responseCompleted) {
+      return;
+    }
+    closed = true;
+    unsubscribe();
+    abortController.abort();
+  };
 
   const maybeFinalize = () => {
     if (closed) {
@@ -662,6 +671,7 @@ export async function handleOpenResponsesHttpRequest(
 
     writeSseEvent(res, { type: "response.completed", response: finalResponse });
     writeDone(res);
+    responseCompleted = true;
     res.end();
   };
 
@@ -745,11 +755,8 @@ export async function handleOpenResponsesHttpRequest(
     }
   });
 
-  req.once("close", () => {
-    closed = true;
-    unsubscribe();
-    abortController.abort();
-  });
+  req.once("aborted", handleClientDisconnect);
+  res.once("close", handleClientDisconnect);
 
   void (async () => {
     try {

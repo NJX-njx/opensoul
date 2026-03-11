@@ -1,3 +1,4 @@
+import { request as httpRequest, type ClientRequest, type IncomingMessage } from "node:http";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { HISTORY_CONTEXT_MARKER } from "../auto-reply/reply/history.js";
 import { CURRENT_MESSAGE_MARKER } from "../auto-reply/reply/mentions.js";
@@ -49,6 +50,32 @@ async function postChatCompletions(port: number, body: unknown, headers?: Record
     body: JSON.stringify(body),
   });
   return res;
+}
+
+async function openChatCompletionsStream(
+  port: number,
+  body: unknown,
+): Promise<{ req: ClientRequest; res: IncomingMessage }> {
+  const payload = JSON.stringify(body);
+  return await new Promise((resolve, reject) => {
+    const req = httpRequest(
+      {
+        hostname: "127.0.0.1",
+        port,
+        path: "/v1/chat/completions",
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: "Bearer secret",
+          "content-length": Buffer.byteLength(payload),
+        },
+      },
+      (res) => resolve({ req, res }),
+    );
+    req.once("error", reject);
+    req.write(payload);
+    req.end();
+  });
 }
 
 function parseSseDataLines(text: string): string[] {
@@ -467,16 +494,16 @@ describe("OpenAI-compatible HTTP API (e2e)", () => {
         return { payloads: [{ text: "hello" }], meta: { aborted: true } } as never;
       });
 
-      const res = await postChatCompletions(port, {
+      const { req, res } = await openChatCompletionsStream(port, {
         stream: true,
         model: "opensoul",
         messages: [{ role: "user", content: "hi" }],
       });
-      expect(res.status).toBe(200);
-      expect(res.body).toBeTruthy();
+      expect(res.statusCode).toBe(200);
 
       await started;
-      await res.body?.cancel();
+      res.destroy();
+      req.destroy();
       await aborted;
     } finally {
       // shared server

@@ -273,7 +273,16 @@ export async function handleOpenAiHttpRequest(
   let wroteRole = false;
   let sawAssistantDelta = false;
   let closed = false;
+  let responseCompleted = false;
   const abortController = new AbortController();
+  const handleClientDisconnect = () => {
+    if (responseCompleted) {
+      return;
+    }
+    closed = true;
+    unsubscribe();
+    abortController.abort();
+  };
 
   const unsubscribe = onAgentEvent((evt) => {
     if (evt.runId !== runId) {
@@ -325,16 +334,14 @@ export async function handleOpenAiHttpRequest(
         closed = true;
         unsubscribe();
         writeDone(res);
+        responseCompleted = true;
         res.end();
       }
     }
   });
 
-  req.once("close", () => {
-    closed = true;
-    unsubscribe();
-    abortController.abort();
-  });
+  req.once("aborted", handleClientDisconnect);
+  res.once("close", handleClientDisconnect);
 
   void (async () => {
     try {
@@ -420,6 +427,7 @@ export async function handleOpenAiHttpRequest(
         closed = true;
         unsubscribe();
         writeDone(res);
+        responseCompleted = true;
         res.end();
       }
     }

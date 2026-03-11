@@ -78,7 +78,7 @@ afterEach(() => {
 });
 
 async function loadLogging() {
-  const logging = await import("../logging.js");
+  const logging = await import("./console.js");
   const state = await import("./state.js");
   state.loggingState.cachedConsoleSettings = null;
   return { logging, state };
