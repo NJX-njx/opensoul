@@ -24,8 +24,7 @@
   <a href="#开发工作流">开发工作流</a> •
   <a href="#架构">架构</a> •
   <a href="#故障排查">故障排查</a> •
-  <a href="#文档">文档</a> •
-  <a href="ROADMAP.md">路线图</a>
+  <a href="#文档">文档</a>
 </p>
 
 ---
@@ -212,10 +211,6 @@ scripts/       构建、发布、测试与工具脚本
 - [技能与工具](docs/tools/)
 - [参考索引](docs/reference/)
 - [**Wiki**](https://github.com/NJX-njx/opensoul/wiki) — 项目知识库（英文）
-
-## 路线图
-
-查看 [ROADMAP.md](ROADMAP.md) 了解计划功能、当前优先级和已发布的里程碑。
 
 ## 贡献
 

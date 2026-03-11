@@ -24,8 +24,7 @@
   <a href="#developer-workflow">Developer Workflow</a> •
   <a href="#architecture">Architecture</a> •
   <a href="#troubleshooting">Troubleshooting</a> •
-  <a href="#docs">Docs</a> •
-  <a href="ROADMAP.md">Roadmap</a>
+  <a href="#docs">Docs</a>
 </p>
 
 ---
@@ -212,10 +211,6 @@ scripts/       Build, release, test, and tooling scripts
 - [Skills & Tools](docs/tools/)
 - [Reference Index](docs/reference/)
 - [Project Wiki](https://github.com/NJX-njx/opensoul/wiki)
-
-## Roadmap
-
-See [ROADMAP.md](ROADMAP.md) for planned features, current priorities, and shipped milestones.
 
 ## Contributing
 
