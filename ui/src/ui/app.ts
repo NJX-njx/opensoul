@@ -96,11 +96,11 @@ import { loadSessions } from "./controllers/sessions.ts";
 import { loadUiLocale, resolveUiLocale, saveUiLocale } from "./i18n.ts";
 import { loadSettings, type UiSettings } from "./storage.ts";
 import { type ChatAttachment, type ChatQueueItem, type CronFormState } from "./ui-types.ts";
+import { formatCreateSoulmateError } from "./views/create-soulmate-errors.ts";
 import {
   INITIAL_CREATE_SOULMATE_STATE,
   type CreateSoulmateModalState,
 } from "./views/create-soulmate-modal.ts";
-import { formatCreateSoulmateError } from "./views/create-soulmate-errors.ts";
 import { getMessages } from "./views/onboarding/i18n.ts";
 
 declare global {
@@ -655,7 +655,7 @@ export class OpenSoulApp extends LitElement {
           lastActiveSessionKey: sessionKey,
         });
         void this.loadAssistantIdentity();
-        void loadSessions(this as unknown as Parameters<typeof loadSessions>[0], { reset: true });
+        void loadSessions(this as unknown as Parameters<typeof loadSessions>[0]);
         void loadAgents(this as unknown as Parameters<typeof loadAgents>[0]);
         const { loadChatHistory } = await import("./controllers/chat.ts");
         const { refreshChatAvatar } = await import("./app-chat.ts");
@@ -1032,7 +1032,7 @@ export class OpenSoulApp extends LitElement {
         selectedProvider: selections.selectedProvider,
         hasApiKey: !!selections.providerApiKey,
       });
-      const result = await applyOnboardingConfig(this.client!, selections);
+      const result = await applyOnboardingConfig(this.client, selections);
       console.log("[finishOnboarding] applyOnboardingConfig result:", result);
       if (!result.ok) {
         this.onboardingConfigError = result.error ?? "Config apply failed";

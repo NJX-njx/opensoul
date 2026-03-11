@@ -79,6 +79,7 @@ public struct HelloOk: Codable, Sendable {
     public let features: [String: AnyCodable]
     public let snapshot: Snapshot
     public let canvashosturl: String?
+    public let canvasauthtoken: String?
     public let auth: [String: AnyCodable]?
     public let policy: [String: AnyCodable]
 
@@ -89,6 +90,7 @@ public struct HelloOk: Codable, Sendable {
         features: [String: AnyCodable],
         snapshot: Snapshot,
         canvashosturl: String?,
+        canvasauthtoken: String?,
         auth: [String: AnyCodable]?,
         policy: [String: AnyCodable]
     ) {
@@ -98,6 +100,7 @@ public struct HelloOk: Codable, Sendable {
         self.features = features
         self.snapshot = snapshot
         self.canvashosturl = canvashosturl
+        self.canvasauthtoken = canvasauthtoken
         self.auth = auth
         self.policy = policy
     }
@@ -108,6 +111,7 @@ public struct HelloOk: Codable, Sendable {
         case features
         case snapshot
         case canvashosturl = "canvasHostUrl"
+        case canvasauthtoken = "canvasAuthToken"
         case auth
         case policy
     }
@@ -942,6 +946,44 @@ public struct SessionsListParams: Codable, Sendable {
         case spawnedby = "spawnedBy"
         case agentid = "agentId"
         case search
+    }
+}
+
+public struct SessionsListTranscriptsParams: Codable, Sendable {
+    public let sessionkey: String
+    public let limit: Int?
+
+    public init(
+        sessionkey: String,
+        limit: Int?
+    ) {
+        self.sessionkey = sessionkey
+        self.limit = limit
+    }
+    private enum CodingKeys: String, CodingKey {
+        case sessionkey = "sessionKey"
+        case limit
+    }
+}
+
+public struct SessionsListTranscriptsResult: Codable, Sendable {
+    public let ts: Double
+    public let sessionkey: String
+    public let transcripts: [[String: AnyCodable]]
+
+    public init(
+        ts: Double,
+        sessionkey: String,
+        transcripts: [[String: AnyCodable]]
+    ) {
+        self.ts = ts
+        self.sessionkey = sessionkey
+        self.transcripts = transcripts
+    }
+    private enum CodingKeys: String, CodingKey {
+        case ts
+        case sessionkey = "sessionKey"
+        case transcripts
     }
 }
 
@@ -2563,17 +2605,21 @@ public struct DevicePairResolvedEvent: Codable, Sendable {
 
 public struct ChatHistoryParams: Codable, Sendable {
     public let sessionkey: String
+    public let sessionid: String?
     public let limit: Int?
 
     public init(
         sessionkey: String,
+        sessionid: String?,
         limit: Int?
     ) {
         self.sessionkey = sessionkey
+        self.sessionid = sessionid
         self.limit = limit
     }
     private enum CodingKeys: String, CodingKey {
         case sessionkey = "sessionKey"
+        case sessionid = "sessionId"
         case limit
     }
 }

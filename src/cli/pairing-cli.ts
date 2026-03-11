@@ -6,13 +6,20 @@ import { resolvePairingIdLabel } from "../pairing/pairing-labels.js";
 import {
   approveChannelPairingCode,
   listChannelPairingRequests,
+  type PairingRequest,
   type PairingChannel,
 } from "../pairing/pairing-store.js";
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "../routing/session-key.js";
 import { defaultRuntime } from "../runtime.js";
 import { formatDocsLink } from "../terminal/links.js";
 import { renderTable } from "../terminal/table.js";
 import { theme } from "../terminal/theme.js";
+import { listWhatsAppAccountIds } from "../web/accounts.js";
 import { formatCliCommand } from "./command-format.js";
+
+type ListedPairingRequest = PairingRequest & {
+  accountId?: string;
+};
 
 /** Parse channel, allowing extension channels not in core registry. */
 function parseChannel(raw: unknown, channels: PairingChannel[]): PairingChannel {
@@ -44,9 +51,80 @@ function parseChannel(raw: unknown, channels: PairingChannel[]): PairingChannel 
   throw new Error(`Invalid channel: ${value}`);
 }
 
-async function notifyApproved(channel: PairingChannel, id: string) {
+async function notifyApproved(channel: PairingChannel, id: string, accountId?: string) {
   const cfg = loadConfig();
-  await notifyPairingApproved({ channelId: channel, id, cfg });
+  await notifyPairingApproved({ channelId: channel, id, accountId, cfg });
+}
+
+function resolveRequestedAccountId(value: unknown): string | undefined {
+  if (typeof value !== "string" || !value.trim()) {
+    return undefined;
+  }
+  return normalizeAccountId(value);
+}
+
+function resolvePairingAccountIds(
+  channel: PairingChannel,
+  accountId: string | undefined,
+): string[] {
+  if (channel !== "whatsapp") {
+    return accountId ? [accountId] : [];
+  }
+  if (accountId) {
+    return [accountId];
+  }
+  return Array.from(new Set([DEFAULT_ACCOUNT_ID, ...listWhatsAppAccountIds(loadConfig())]));
+}
+
+async function listRequestsWithAccounts(params: {
+  channel: PairingChannel;
+  accountId?: string;
+}): Promise<Array<ListedPairingRequest>> {
+  const accountIds = resolvePairingAccountIds(params.channel, params.accountId);
+  if (params.channel !== "whatsapp") {
+    return await listChannelPairingRequests(params.channel);
+  }
+  const lists = await Promise.all(
+    accountIds.map(async (accountId) =>
+      (await listChannelPairingRequests(params.channel, process.env, accountId)).map((request) => ({
+        ...request,
+        accountId,
+      })),
+    ),
+  );
+  return lists.flat().toSorted((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
+async function resolveApprovalAccountId(params: {
+  channel: PairingChannel;
+  accountId?: string;
+  code: string;
+}): Promise<string | undefined> {
+  if (params.channel !== "whatsapp") {
+    return params.accountId;
+  }
+  if (params.accountId) {
+    return params.accountId;
+  }
+  const code = params.code.trim().toUpperCase();
+  const requests = await listRequestsWithAccounts({ channel: params.channel });
+  const matches = requests.filter((request) => request.code.trim().toUpperCase() === code);
+  if (matches.length === 0) {
+    return undefined;
+  }
+  const accountIds = Array.from(
+    new Set(
+      matches
+        .map((request) => request.accountId)
+        .filter((value): value is string => Boolean(value)),
+    ),
+  );
+  if (accountIds.length > 1) {
+    throw new Error(
+      `Pairing code ${code} exists in multiple WhatsApp accounts (${accountIds.join(", ")}). Re-run with --account <id>.`,
+    );
+  }
+  return accountIds[0];
 }
 
 export function registerPairingCli(program: Command) {
@@ -64,6 +142,7 @@ export function registerPairingCli(program: Command) {
     .command("list")
     .description("List pending pairing requests")
     .option("--channel <channel>", `Channel (${channels.join(", ")})`)
+    .option("--account <id>", "Account id (accountId)")
     .argument("[channel]", `Channel (${channels.join(", ")})`)
     .option("--json", "Print JSON", false)
     .action(async (channelArg, opts) => {
@@ -74,17 +153,30 @@ export function registerPairingCli(program: Command) {
         );
       }
       const channel = parseChannel(channelRaw, channels);
-      const requests = await listChannelPairingRequests(channel);
+      const accountId = resolveRequestedAccountId(opts.account);
+      const requests = await listRequestsWithAccounts({ channel, accountId });
       if (opts.json) {
-        defaultRuntime.log(JSON.stringify({ channel, requests }, null, 2));
+        defaultRuntime.log(JSON.stringify({ channel, accountId, requests }, null, 2));
         return;
       }
       if (requests.length === 0) {
-        defaultRuntime.log(theme.muted(`No pending ${channel} pairing requests.`));
+        defaultRuntime.log(
+          theme.muted(
+            `No pending ${channel}${accountId ? ` (${accountId})` : ""} pairing requests.`,
+          ),
+        );
         return;
       }
       const idLabel = resolvePairingIdLabel(channel);
       const tableWidth = Math.max(60, (process.stdout.columns ?? 120) - 1);
+      const distinctAccountIds = Array.from(
+        new Set(
+          requests
+            .map((request) => request.accountId)
+            .filter((value): value is string => Boolean(value)),
+        ),
+      );
+      const showAccountColumn = distinctAccountIds.length > 1 || Boolean(accountId);
       defaultRuntime.log(
         `${theme.heading("Pairing requests")} ${theme.muted(`(${requests.length})`)}`,
       );
@@ -92,12 +184,16 @@ export function registerPairingCli(program: Command) {
         renderTable({
           width: tableWidth,
           columns: [
+            ...(showAccountColumn
+              ? [{ key: "Account", header: "Account", minWidth: 12 } as const]
+              : []),
             { key: "Code", header: "Code", minWidth: 10 },
             { key: "ID", header: idLabel, minWidth: 12, flex: true },
             { key: "Meta", header: "Meta", minWidth: 8, flex: true },
             { key: "Requested", header: "Requested", minWidth: 12 },
           ],
           rows: requests.map((r) => ({
+            ...(showAccountColumn ? { Account: r.accountId ?? "" } : {}),
             Code: r.code,
             ID: r.id,
             Meta: r.meta ? JSON.stringify(r.meta) : "",
@@ -111,6 +207,7 @@ export function registerPairingCli(program: Command) {
     .command("approve")
     .description("Approve a pairing code and allow that sender")
     .option("--channel <channel>", `Channel (${channels.join(", ")})`)
+    .option("--account <id>", "Account id (accountId)")
     .argument("<codeOrChannel>", "Pairing code (or channel when using 2 args)")
     .argument("[code]", "Pairing code (when channel is passed as the 1st arg)")
     .option("--notify", "Notify the requester on the same channel", false)
@@ -128,22 +225,29 @@ export function registerPairingCli(program: Command) {
         );
       }
       const channel = parseChannel(channelRaw, channels);
+      const requestedAccountId = resolveRequestedAccountId(opts.account);
+      const approvalAccountId = await resolveApprovalAccountId({
+        channel,
+        accountId: requestedAccountId,
+        code: String(resolvedCode),
+      });
       const approved = await approveChannelPairingCode({
         channel,
         code: String(resolvedCode),
+        accountId: approvalAccountId,
       });
       if (!approved) {
         throw new Error(`No pending pairing request found for code: ${String(resolvedCode)}`);
       }
 
       defaultRuntime.log(
-        `${theme.success("Approved")} ${theme.muted(channel)} sender ${theme.command(approved.id)}.`,
+        `${theme.success("Approved")} ${theme.muted(channel)} sender ${theme.command(approved.id)}${approvalAccountId ? theme.muted(` (account ${approvalAccountId})`) : ""}.`,
       );
 
       if (!opts.notify) {
         return;
       }
-      await notifyApproved(channel, approved.id).catch((err) => {
+      await notifyApproved(channel, approved.id, approvalAccountId).catch((err) => {
         defaultRuntime.log(theme.warn(`Failed to notify requester: ${String(err)}`));
       });
     });

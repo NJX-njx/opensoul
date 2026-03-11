@@ -6,6 +6,7 @@ import lockfile from "proper-lockfile";
 import type { ChannelId, ChannelPairingAdapter } from "../channels/plugins/types.js";
 import { getPairingAdapter } from "../channels/plugins/pairing.js";
 import { resolveOAuthDir, resolveStateDir } from "../config/paths.js";
+import { DEFAULT_ACCOUNT_ID, normalizeAccountId } from "../routing/session-key.js";
 
 const PAIRING_CODE_LENGTH = 8;
 const PAIRING_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -48,27 +49,54 @@ function resolveCredentialsDir(env: NodeJS.ProcessEnv = process.env): string {
 }
 
 /** Sanitize channel ID for use in filenames (prevent path traversal). */
-function safeChannelKey(channel: PairingChannel): string {
-  const raw = String(channel).trim().toLowerCase();
+function safeStoreKey(value: string): string {
+  const raw = String(value).trim().toLowerCase();
   if (!raw) {
-    throw new Error("invalid pairing channel");
+    throw new Error("invalid pairing store key");
   }
   const safe = raw.replace(/[\\/:*?"<>|]/g, "_").replace(/\.\./g, "_");
   if (!safe || safe === "_") {
-    throw new Error("invalid pairing channel");
+    throw new Error("invalid pairing store key");
   }
   return safe;
 }
 
-function resolvePairingPath(channel: PairingChannel, env: NodeJS.ProcessEnv = process.env): string {
-  return path.join(resolveCredentialsDir(env), `${safeChannelKey(channel)}-pairing.json`);
+function safeChannelKey(channel: PairingChannel): string {
+  return safeStoreKey(String(channel));
+}
+
+function resolveScopedStoreStem(channel: PairingChannel, accountId?: string | null): string {
+  const channelKey = safeChannelKey(channel);
+  if (channel !== "whatsapp") {
+    return channelKey;
+  }
+  const normalizedAccountId = normalizeAccountId(accountId);
+  if (normalizedAccountId === DEFAULT_ACCOUNT_ID) {
+    return channelKey;
+  }
+  return `${channelKey}--acct-${safeStoreKey(normalizedAccountId)}`;
+}
+
+function resolvePairingPath(
+  channel: PairingChannel,
+  env: NodeJS.ProcessEnv = process.env,
+  accountId?: string | null,
+): string {
+  return path.join(
+    resolveCredentialsDir(env),
+    `${resolveScopedStoreStem(channel, accountId)}-pairing.json`,
+  );
 }
 
 function resolveAllowFromPath(
   channel: PairingChannel,
   env: NodeJS.ProcessEnv = process.env,
+  accountId?: string | null,
 ): string {
-  return path.join(resolveCredentialsDir(env), `${safeChannelKey(channel)}-allowFrom.json`);
+  return path.join(
+    resolveCredentialsDir(env),
+    `${resolveScopedStoreStem(channel, accountId)}-allowFrom.json`,
+  );
 }
 
 function safeParseJson<T>(raw: string): T | null {
@@ -223,8 +251,9 @@ function normalizeAllowEntry(channel: PairingChannel, entry: string): string {
 export async function readChannelAllowFromStore(
   channel: PairingChannel,
   env: NodeJS.ProcessEnv = process.env,
+  accountId?: string | null,
 ): Promise<string[]> {
-  const filePath = resolveAllowFromPath(channel, env);
+  const filePath = resolveAllowFromPath(channel, env, accountId);
   const { value } = await readJsonFile<AllowFromStore>(filePath, {
     version: 1,
     allowFrom: [],
@@ -237,9 +266,10 @@ export async function addChannelAllowFromStoreEntry(params: {
   channel: PairingChannel;
   entry: string | number;
   env?: NodeJS.ProcessEnv;
+  accountId?: string | null;
 }): Promise<{ changed: boolean; allowFrom: string[] }> {
   const env = params.env ?? process.env;
-  const filePath = resolveAllowFromPath(params.channel, env);
+  const filePath = resolveAllowFromPath(params.channel, env, params.accountId);
   return await withFileLock(
     filePath,
     { version: 1, allowFrom: [] } satisfies AllowFromStore,
@@ -272,9 +302,10 @@ export async function removeChannelAllowFromStoreEntry(params: {
   channel: PairingChannel;
   entry: string | number;
   env?: NodeJS.ProcessEnv;
+  accountId?: string | null;
 }): Promise<{ changed: boolean; allowFrom: string[] }> {
   const env = params.env ?? process.env;
-  const filePath = resolveAllowFromPath(params.channel, env);
+  const filePath = resolveAllowFromPath(params.channel, env, params.accountId);
   return await withFileLock(
     filePath,
     { version: 1, allowFrom: [] } satisfies AllowFromStore,
@@ -306,8 +337,9 @@ export async function removeChannelAllowFromStoreEntry(params: {
 export async function listChannelPairingRequests(
   channel: PairingChannel,
   env: NodeJS.ProcessEnv = process.env,
+  accountId?: string | null,
 ): Promise<PairingRequest[]> {
-  const filePath = resolvePairingPath(channel, env);
+  const filePath = resolvePairingPath(channel, env, accountId);
   return await withFileLock(
     filePath,
     { version: 1, requests: [] } satisfies PairingStore,
@@ -351,11 +383,12 @@ export async function upsertChannelPairingRequest(params: {
   id: string | number;
   meta?: Record<string, string | undefined | null>;
   env?: NodeJS.ProcessEnv;
+  accountId?: string | null;
   /** Extension channels can pass their adapter directly to bypass registry lookup. */
   pairingAdapter?: ChannelPairingAdapter;
 }): Promise<{ code: string; created: boolean }> {
   const env = params.env ?? process.env;
-  const filePath = resolvePairingPath(params.channel, env);
+  const filePath = resolvePairingPath(params.channel, env, params.accountId);
   return await withFileLock(
     filePath,
     { version: 1, requests: [] } satisfies PairingStore,
@@ -447,6 +480,7 @@ export async function approveChannelPairingCode(params: {
   channel: PairingChannel;
   code: string;
   env?: NodeJS.ProcessEnv;
+  accountId?: string | null;
 }): Promise<{ id: string; entry?: PairingRequest } | null> {
   const env = params.env ?? process.env;
   const code = params.code.trim().toUpperCase();
@@ -454,7 +488,7 @@ export async function approveChannelPairingCode(params: {
     return null;
   }
 
-  const filePath = resolvePairingPath(params.channel, env);
+  const filePath = resolvePairingPath(params.channel, env, params.accountId);
   return await withFileLock(
     filePath,
     { version: 1, requests: [] } satisfies PairingStore,
@@ -489,6 +523,7 @@ export async function approveChannelPairingCode(params: {
         channel: params.channel,
         entry: entry.id,
         env,
+        accountId: params.accountId,
       });
       return { id: entry.id, entry };
     },

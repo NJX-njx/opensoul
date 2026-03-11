@@ -3,23 +3,32 @@ import { describe, expect, it, vi } from "vitest";
 import type { AppViewState } from "../app-view-state.ts";
 import {
   INITIAL_CREATE_SOULMATE_STATE,
+  type CreateSoulmateModalState,
   defaultWorkspace,
   renderCreateSoulmateModal,
 } from "./create-soulmate-modal.ts";
 
+function createFieldChangeSpy() {
+  return vi.fn<(field: keyof CreateSoulmateModalState, value: string | boolean | null) => void>();
+}
+
+function createSubmitSpy() {
+  return vi.fn<() => void>();
+}
+
 function renderModal(opts?: {
   modalState?: typeof INITIAL_CREATE_SOULMATE_STATE;
-  onFieldChange?: ReturnType<typeof vi.fn>;
-  onSubmit?: ReturnType<typeof vi.fn>;
+  onFieldChange?: ReturnType<typeof createFieldChangeSpy>;
+  onSubmit?: ReturnType<typeof createSubmitSpy>;
 }) {
   const state = {
     showCreateSoulmateModal: true,
     uiLocale: "en",
   } as AppViewState;
-  const modalState = { ...INITIAL_CREATE_SOULMATE_STATE, ...(opts?.modalState ?? {}) };
+  const modalState = { ...INITIAL_CREATE_SOULMATE_STATE, ...opts?.modalState };
   const onClose = vi.fn();
-  const onFieldChange = opts?.onFieldChange ?? vi.fn();
-  const onSubmit = opts?.onSubmit ?? vi.fn();
+  const onFieldChange = opts?.onFieldChange ?? createFieldChangeSpy();
+  const onSubmit = opts?.onSubmit ?? createSubmitSpy();
   const container = document.createElement("div");
   render(renderCreateSoulmateModal(state, modalState, onClose, onFieldChange, onSubmit), container);
   return { container, onFieldChange, onSubmit };

@@ -17,6 +17,8 @@ const createHost = (tab: Tab): SettingsHost => ({
     chatFocusMode: false,
     chatShowThinking: true,
     splitRatio: 0.6,
+    chatListWidth: 280,
+    chatListHiddenAgentIds: [],
     navCollapsed: false,
     navGroupsCollapsed: {},
   },

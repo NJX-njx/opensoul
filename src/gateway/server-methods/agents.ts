@@ -508,7 +508,8 @@ export const agentsHandlers: GatewayRequestHandlers = {
   /** Bootstrap agent workspace with core files (IDENTITY.md, SOUL.md, etc.) when missing. */
   "agents.workspace.ensure": async ({ params, respond }) => {
     const cfg = loadConfig();
-    const agentId = resolveAgentIdOrError(String(params?.agentId ?? ""), cfg);
+    const rawAgentId = typeof params?.agentId === "string" ? params.agentId : "";
+    const agentId = resolveAgentIdOrError(rawAgentId, cfg);
     if (!agentId) {
       respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, "unknown agent id"));
       return;

@@ -187,6 +187,7 @@ export type ChannelPairingAdapter = {
   notifyApproval?: (params: {
     cfg: OpenSoulConfig;
     id: string;
+    accountId?: string;
     runtime?: RuntimeEnv;
   }) => Promise<void>;
 };

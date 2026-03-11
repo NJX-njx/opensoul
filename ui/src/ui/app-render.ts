@@ -73,7 +73,6 @@ import {
   TAB_GROUPS,
   subtitleForTab,
   titleForTab,
-  type Tab,
 } from "./navigation.ts";
 
 // Module-scope debounce for usage date changes (avoids type-unsafe hacks on state object)

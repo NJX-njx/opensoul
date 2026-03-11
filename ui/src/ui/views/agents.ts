@@ -774,7 +774,7 @@ function renderAgentHeader(
                         `Delete agent "${displayName}" (${agent.id})? Workspace, sessions, and config will be permanently removed. This cannot be undone.`,
                       )
                     ) {
-                      onDeleteAgent(agent.id);
+                      onDeleteAgent?.(agent.id);
                     }
                   }}
                 >

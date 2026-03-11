@@ -1,8 +1,8 @@
 import { html, nothing } from "lit";
-import { uiText } from "../i18n.ts";
 import type { EventLogEntry } from "../app-events.ts";
-import { formatEventPayload } from "../presenter.ts";
 import type { Locale } from "./onboarding/i18n.ts";
+import { uiText } from "../i18n.ts";
+import { formatEventPayload } from "../presenter.ts";
 
 export type DebugProps = {
   locale: Locale;
@@ -30,18 +30,34 @@ function previewJson(payload: unknown): string {
     }
     return `${text.slice(0, 420)}\n...`;
   } catch {
-    return String(payload ?? "");
+    if (typeof payload === "string") {
+      return payload;
+    }
+    if (payload instanceof Error) {
+      return payload.message;
+    }
+    if (payload == null) {
+      return "";
+    }
+    if (
+      typeof payload === "number" ||
+      typeof payload === "boolean" ||
+      typeof payload === "bigint"
+    ) {
+      return `${payload}`;
+    }
+    return typeof payload === "symbol"
+      ? payload.description
+        ? `Symbol(${payload.description})`
+        : "Symbol()"
+      : "[unserializable payload]";
   }
 }
 
-function healthBadgeLabel(
-  health: Record<string, unknown> | null,
-): { tone: string; label: string } {
+function healthBadgeLabel(health: Record<string, unknown> | null): { tone: string; label: string } {
   const raw = health ? (health as { ok?: unknown }).ok : undefined;
   if (typeof raw === "boolean") {
-    return raw
-      ? { tone: "ok", label: "Healthy" }
-      : { tone: "danger", label: "Issue detected" };
+    return raw ? { tone: "ok", label: "Healthy" } : { tone: "danger", label: "Issue detected" };
   }
   return { tone: "muted", label: "Unknown" };
 }
@@ -88,11 +104,21 @@ export function renderDebug(props: DebugProps) {
         <div class="debug-status-card debug-status-card--${health.tone}">
           <div class="debug-status-card__icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              ${health.tone === "ok"
-                ? html`<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>`
-                : health.tone === "danger"
-                  ? html`<circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>`
-                  : html`<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>`
+              ${
+                health.tone === "ok"
+                  ? html`
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path
+                      ><polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    `
+                  : health.tone === "danger"
+                    ? html`
+                        <circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line
+                        ><line x1="9" y1="9" x2="15" y2="15"></line>
+                      `
+                    : html`
+                        <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line
+                        ><line x1="12" y1="16" x2="12.01" y2="16"></line>
+                      `
               }
             </svg>
           </div>

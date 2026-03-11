@@ -349,13 +349,14 @@ export const handleAllowlistCommand: CommandHandler = async (params, allowTextCo
     };
   }
   const accountId = normalizeAccountId(parsed.account ?? params.ctx.AccountId);
+  const storeAccountId = channelId === "whatsapp" ? accountId : undefined;
   const scope = parsed.scope;
 
   if (parsed.action === "list") {
     const pairingChannels = listPairingChannels();
     const supportsStore = pairingChannels.includes(channelId);
     const storeAllowFrom = supportsStore
-      ? await readChannelAllowFromStore(channelId).catch(() => [])
+      ? await readChannelAllowFromStore(channelId, process.env, storeAccountId).catch(() => [])
       : [];
 
     let dmAllowFrom: string[] = [];
@@ -649,9 +650,17 @@ export const handleAllowlistCommand: CommandHandler = async (params, allowTextCo
 
     if (shouldTouchStore) {
       if (parsed.action === "add") {
-        await addChannelAllowFromStoreEntry({ channel: channelId, entry: parsed.entry });
+        await addChannelAllowFromStoreEntry({
+          channel: channelId,
+          entry: parsed.entry,
+          ...(storeAccountId ? { accountId: storeAccountId } : {}),
+        });
       } else if (parsed.action === "remove") {
-        await removeChannelAllowFromStoreEntry({ channel: channelId, entry: parsed.entry });
+        await removeChannelAllowFromStoreEntry({
+          channel: channelId,
+          entry: parsed.entry,
+          ...(storeAccountId ? { accountId: storeAccountId } : {}),
+        });
       }
     }
 
@@ -681,9 +690,17 @@ export const handleAllowlistCommand: CommandHandler = async (params, allowTextCo
   }
 
   if (parsed.action === "add") {
-    await addChannelAllowFromStoreEntry({ channel: channelId, entry: parsed.entry });
+    await addChannelAllowFromStoreEntry({
+      channel: channelId,
+      entry: parsed.entry,
+      ...(storeAccountId ? { accountId: storeAccountId } : {}),
+    });
   } else if (parsed.action === "remove") {
-    await removeChannelAllowFromStoreEntry({ channel: channelId, entry: parsed.entry });
+    await removeChannelAllowFromStoreEntry({
+      channel: channelId,
+      entry: parsed.entry,
+      ...(storeAccountId ? { accountId: storeAccountId } : {}),
+    });
   }
 
   const actionLabel = parsed.action === "add" ? "added" : "removed";

@@ -92,12 +92,16 @@ export function renderCreateSoulmateModal(
       return;
     }
     const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
+    reader.addEventListener("load", () => {
+      const dataUrl = typeof reader.result === "string" ? reader.result : null;
+      if (!dataUrl) {
+        onFieldChange("error", t("Failed to read image", "读取图片失败"));
+        return;
+      }
       onFieldChange("avatarDataUrl", dataUrl);
       onFieldChange("avatarFileName", file.name);
       onFieldChange("error", null);
-    };
+    });
     reader.readAsDataURL(file);
     input.value = "";
   }

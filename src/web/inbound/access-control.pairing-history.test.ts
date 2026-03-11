@@ -82,4 +82,73 @@ describe("checkInboundAccessControl", () => {
     expect(upsertPairingRequestMock).toHaveBeenCalled();
     expect(sendMessageMock).toHaveBeenCalled();
   });
+
+  it("uses account-specific dmPolicy and store scope for WhatsApp accounts", async () => {
+    config = {
+      channels: {
+        whatsapp: {
+          dmPolicy: "open",
+          allowFrom: [],
+          accounts: {
+            work: {
+              dmPolicy: "disabled",
+            },
+          },
+        },
+      },
+    };
+
+    const result = await checkInboundAccessControl({
+      accountId: "work",
+      from: "+15550001111",
+      selfE164: "+15550009999",
+      senderE164: "+15550001111",
+      group: false,
+      pushName: "Sam",
+      isFromMe: false,
+      sock: { sendMessage: sendMessageMock },
+      remoteJid: "15550001111@s.whatsapp.net",
+    });
+
+    expect(result.allowed).toBe(false);
+    expect(result.resolvedAccountId).toBe("work");
+    expect(upsertPairingRequestMock).not.toHaveBeenCalled();
+    expect(readAllowFromStoreMock).toHaveBeenCalledWith("whatsapp", process.env, "work");
+  });
+
+  it("writes WhatsApp pairing requests into the matching account store", async () => {
+    config = {
+      channels: {
+        whatsapp: {
+          dmPolicy: "pairing",
+          allowFrom: [],
+          accounts: {
+            work: {
+              dmPolicy: "pairing",
+            },
+          },
+        },
+      },
+    };
+
+    await checkInboundAccessControl({
+      accountId: "work",
+      from: "+15550001111",
+      selfE164: "+15550009999",
+      senderE164: "+15550001111",
+      group: false,
+      pushName: "Sam",
+      isFromMe: false,
+      sock: { sendMessage: sendMessageMock },
+      remoteJid: "15550001111@s.whatsapp.net",
+    });
+
+    expect(upsertPairingRequestMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        channel: "whatsapp",
+        accountId: "work",
+        id: "+15550001111",
+      }),
+    );
+  });
 });

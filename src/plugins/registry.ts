@@ -548,7 +548,10 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
           return;
         }
         try {
-          await handler(...args);
+          await (handler as (...hookArgs: Parameters<PluginHookHandlerMap[K]>) => unknown).apply(
+            undefined,
+            args,
+          );
         } catch (err) {
           markRuntimeFailure(record, `typed-hook:${String(hookName)}`, err);
         }

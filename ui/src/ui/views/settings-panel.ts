@@ -11,7 +11,7 @@ import type { SettingsTab } from "../navigation.ts";
 import { renderThemeToggle } from "../app-render.helpers.ts";
 import { resolveUiLocale, uiText } from "../i18n.ts";
 import { icons } from "../icons.ts";
-import { AVAILABLE_LOCALES, type Locale } from "./onboarding/i18n.ts";
+import { AVAILABLE_LOCALES } from "./onboarding/i18n.ts";
 
 type SettingsSection = SettingsTab | "general";
 

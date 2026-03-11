@@ -1,12 +1,15 @@
 import { Command } from "commander";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const listChannelPairingRequests = vi.fn();
 const approveChannelPairingCode = vi.fn();
 const notifyPairingApproved = vi.fn();
+const loadConfigMock = vi.fn().mockReturnValue({});
+const listWhatsAppAccountIdsMock = vi.fn(() => ["default"]);
 const pairingIdLabels: Record<string, string> = {
   telegram: "telegramUserId",
   discord: "discordUserId",
+  whatsapp: "whatsappSenderId",
 };
 const normalizeChannelId = vi.fn((raw: string) => {
   if (!raw) {
@@ -15,7 +18,7 @@ const normalizeChannelId = vi.fn((raw: string) => {
   if (raw === "imsg") {
     return "imessage";
   }
-  if (["telegram", "discord", "imessage"].includes(raw)) {
+  if (["telegram", "discord", "imessage", "whatsapp"].includes(raw)) {
     return raw;
   }
   return null;
@@ -23,7 +26,7 @@ const normalizeChannelId = vi.fn((raw: string) => {
 const getPairingAdapter = vi.fn((channel: string) => ({
   idLabel: pairingIdLabels[channel] ?? "userId",
 }));
-const listPairingChannels = vi.fn(() => ["telegram", "discord", "imessage"]);
+const listPairingChannels = vi.fn(() => ["telegram", "discord", "imessage", "whatsapp"]);
 
 vi.mock("../pairing/pairing-store.js", () => ({
   listChannelPairingRequests,
@@ -41,10 +44,22 @@ vi.mock("../channels/plugins/index.js", () => ({
 }));
 
 vi.mock("../config/config.js", () => ({
-  loadConfig: vi.fn().mockReturnValue({}),
+  loadConfig: loadConfigMock,
+}));
+
+vi.mock("../web/accounts.js", () => ({
+  listWhatsAppAccountIds: listWhatsAppAccountIdsMock,
 }));
 
 describe("pairing cli", () => {
+  beforeEach(() => {
+    listChannelPairingRequests.mockReset();
+    approveChannelPairingCode.mockReset();
+    notifyPairingApproved.mockReset();
+    loadConfigMock.mockReset().mockReturnValue({});
+    listWhatsAppAccountIdsMock.mockReset().mockReturnValue(["default"]);
+  });
+
   it("evaluates pairing channels when registering the CLI (not at import)", async () => {
     listPairingChannels.mockClear();
 
@@ -169,5 +184,119 @@ describe("pairing cli", () => {
       code: "ABCDEFGH",
     });
     expect(log).toHaveBeenCalledWith(expect.stringContaining("Approved"));
+  });
+
+  it("aggregates WhatsApp pairing requests across accounts by default", async () => {
+    const { registerPairingCli } = await import("./pairing-cli.js");
+    listWhatsAppAccountIdsMock.mockReturnValue(["default", "work"]);
+    listChannelPairingRequests
+      .mockResolvedValueOnce([
+        {
+          id: "+111",
+          code: "AAA11111",
+          createdAt: "2026-01-08T00:00:00Z",
+          lastSeenAt: "2026-01-08T00:00:00Z",
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: "+222",
+          code: "BBB22222",
+          createdAt: "2026-01-09T00:00:00Z",
+          lastSeenAt: "2026-01-09T00:00:00Z",
+        },
+      ]);
+
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const program = new Command();
+    program.name("test");
+    registerPairingCli(program);
+    await program.parseAsync(["pairing", "list", "--channel", "whatsapp", "--json"], {
+      from: "user",
+    });
+
+    expect(listChannelPairingRequests).toHaveBeenNthCalledWith(
+      1,
+      "whatsapp",
+      process.env,
+      "default",
+    );
+    expect(listChannelPairingRequests).toHaveBeenNthCalledWith(2, "whatsapp", process.env, "work");
+    const output = log.mock.calls.map((call) => call.join(" ")).join("\n");
+    expect(output).toContain('"accountId": "default"');
+    expect(output).toContain('"accountId": "work"');
+  });
+
+  it("approves WhatsApp code from the unique matching account when account is omitted", async () => {
+    const { registerPairingCli } = await import("./pairing-cli.js");
+    listWhatsAppAccountIdsMock.mockReturnValue(["default", "work"]);
+    listChannelPairingRequests
+      .mockResolvedValueOnce([
+        {
+          id: "+111",
+          code: "AAA11111",
+          createdAt: "2026-01-08T00:00:00Z",
+          lastSeenAt: "2026-01-08T00:00:00Z",
+        },
+      ])
+      .mockResolvedValueOnce([]);
+    approveChannelPairingCode.mockResolvedValueOnce({
+      id: "+111",
+      entry: {
+        id: "+111",
+        code: "AAA11111",
+        createdAt: "2026-01-08T00:00:00Z",
+        lastSeenAt: "2026-01-08T00:00:00Z",
+      },
+    });
+
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const program = new Command();
+    program.name("test");
+    registerPairingCli(program);
+    await program.parseAsync(["pairing", "approve", "whatsapp", "AAA11111"], {
+      from: "user",
+    });
+
+    expect(approveChannelPairingCode).toHaveBeenCalledWith({
+      channel: "whatsapp",
+      code: "AAA11111",
+      accountId: "default",
+    });
+    const output = log.mock.calls.map((call) => call.join(" ")).join("\n");
+    expect(output).toContain("account default");
+  });
+
+  it("rejects ambiguous WhatsApp approve requests without an account", async () => {
+    const { registerPairingCli } = await import("./pairing-cli.js");
+    listWhatsAppAccountIdsMock.mockReturnValue(["default", "work"]);
+    listChannelPairingRequests
+      .mockResolvedValueOnce([
+        {
+          id: "+111",
+          code: "AAA11111",
+          createdAt: "2026-01-08T00:00:00Z",
+          lastSeenAt: "2026-01-08T00:00:00Z",
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: "+222",
+          code: "AAA11111",
+          createdAt: "2026-01-09T00:00:00Z",
+          lastSeenAt: "2026-01-09T00:00:00Z",
+        },
+      ]);
+
+    const program = new Command();
+    program.name("test");
+    registerPairingCli(program);
+
+    await expect(
+      program.parseAsync(["pairing", "approve", "whatsapp", "AAA11111"], {
+        from: "user",
+      }),
+    ).rejects.toThrow(/Re-run with --account <id>/);
+    expect(approveChannelPairingCode).not.toHaveBeenCalled();
   });
 });

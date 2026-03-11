@@ -28,6 +28,7 @@ import {
 import { logVerbose, shouldLogVerbose } from "../../../globals.js";
 import { readChannelAllowFromStore } from "../../../pairing/pairing-store.js";
 import { jidToE164, normalizeE164 } from "../../../utils.js";
+import { resolveWhatsAppAccount } from "../../accounts.js";
 import { newConnectionId } from "../../reconnect.js";
 import { formatError } from "../../session.js";
 import { deliverWebReply } from "../deliver-reply.js";
@@ -72,10 +73,13 @@ async function resolveWhatsAppCommandAuthorized(params: {
     return false;
   }
 
-  const configuredAllowFrom = params.cfg.channels?.whatsapp?.allowFrom ?? [];
+  const account = resolveWhatsAppAccount({
+    cfg: params.cfg,
+    accountId: params.msg.accountId,
+  });
+  const configuredAllowFrom = account.allowFrom ?? [];
   const configuredGroupAllowFrom =
-    params.cfg.channels?.whatsapp?.groupAllowFrom ??
-    (configuredAllowFrom.length > 0 ? configuredAllowFrom : undefined);
+    account.groupAllowFrom ?? (configuredAllowFrom.length > 0 ? configuredAllowFrom : undefined);
 
   if (isGroup) {
     if (!configuredGroupAllowFrom || configuredGroupAllowFrom.length === 0) {
@@ -87,7 +91,11 @@ async function resolveWhatsAppCommandAuthorized(params: {
     return normalizeAllowFromE164(configuredGroupAllowFrom).includes(senderE164);
   }
 
-  const storeAllowFrom = await readChannelAllowFromStore("whatsapp").catch(() => []);
+  const storeAllowFrom = await readChannelAllowFromStore(
+    "whatsapp",
+    process.env,
+    account.accountId,
+  ).catch(() => []);
   const combinedAllowFrom = Array.from(
     new Set([...(configuredAllowFrom ?? []), ...storeAllowFrom]),
   );

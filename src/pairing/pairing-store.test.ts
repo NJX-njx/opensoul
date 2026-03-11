@@ -4,7 +4,13 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { resolveOAuthDir } from "../config/paths.js";
-import { listChannelPairingRequests, upsertChannelPairingRequest } from "./pairing-store.js";
+import {
+  addChannelAllowFromStoreEntry,
+  approveChannelPairingCode,
+  listChannelPairingRequests,
+  readChannelAllowFromStore,
+  upsertChannelPairingRequest,
+} from "./pairing-store.js";
 
 async function withTempStateDir<T>(fn: (stateDir: string) => Promise<T>) {
   const previous = process.env.OPENSOUL_STATE_DIR;
@@ -129,6 +135,60 @@ describe("pairing store", () => {
       expect(listIds).toContain("+15550000002");
       expect(listIds).toContain("+15550000003");
       expect(listIds).not.toContain("+15550000004");
+    });
+  });
+
+  it("isolates WhatsApp allowFrom entries by account", async () => {
+    await withTempStateDir(async () => {
+      await addChannelAllowFromStoreEntry({
+        channel: "whatsapp",
+        entry: "+15550000001",
+      });
+      await addChannelAllowFromStoreEntry({
+        channel: "whatsapp",
+        accountId: "work",
+        entry: "+15550000002",
+      });
+
+      expect(await readChannelAllowFromStore("whatsapp")).toEqual(["+15550000001"]);
+      expect(await readChannelAllowFromStore("whatsapp", process.env, "work")).toEqual([
+        "+15550000002",
+      ]);
+    });
+  });
+
+  it("isolates WhatsApp pairing requests and approvals by account", async () => {
+    await withTempStateDir(async () => {
+      const defaultReq = await upsertChannelPairingRequest({
+        channel: "whatsapp",
+        id: "+15550000001",
+      });
+      const workReq = await upsertChannelPairingRequest({
+        channel: "whatsapp",
+        accountId: "work",
+        id: "+15550000002",
+      });
+
+      expect((await listChannelPairingRequests("whatsapp")).map((entry) => entry.id)).toEqual([
+        "+15550000001",
+      ]);
+      expect(
+        (await listChannelPairingRequests("whatsapp", process.env, "work")).map(
+          (entry) => entry.id,
+        ),
+      ).toEqual(["+15550000002"]);
+
+      const approved = await approveChannelPairingCode({
+        channel: "whatsapp",
+        code: workReq.code,
+        accountId: "work",
+      });
+      expect(approved?.id).toBe("+15550000002");
+      expect(await readChannelAllowFromStore("whatsapp", process.env, "work")).toEqual([
+        "+15550000002",
+      ]);
+      expect(await readChannelAllowFromStore("whatsapp")).toEqual([]);
+      expect(defaultReq.code).not.toBe(workReq.code);
     });
   });
 });

@@ -51,6 +51,7 @@ export function resolvePairingChannel(raw: unknown): ChannelId {
 export async function notifyPairingApproved(params: {
   channelId: ChannelId;
   id: string;
+  accountId?: string;
   cfg: OpenSoulConfig;
   runtime?: RuntimeEnv;
   /** Extension channels can pass their adapter directly to bypass registry lookup. */
@@ -64,6 +65,7 @@ export async function notifyPairingApproved(params: {
   await adapter.notifyApproval({
     cfg: params.cfg,
     id: params.id,
+    accountId: params.accountId,
     runtime: params.runtime,
   });
 }
