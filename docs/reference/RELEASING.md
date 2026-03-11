@@ -44,9 +44,12 @@ When the operator says “release”, immediately do this preflight (no extra qu
 
 - [ ] `pnpm build`
 - [ ] `pnpm check`
+- [ ] `pnpm github:validate` (required when changing `.github/workflows/**` or `.github/actions/**`)
+- [ ] `pnpm protocol:check` (required when protocol schemas, gateway methods, or generated protocol models change)
 - [ ] `pnpm test` (or `pnpm test:coverage` if you need coverage output)
 - [ ] `pnpm release:check` (verifies npm pack contents)
 - [ ] `OPENSOUL_INSTALL_SMOKE_SKIP_NONROOT=1 pnpm test:install:smoke` (Docker install smoke test, fast path; required before release)
+  - Run this whenever install scripts, installer URLs, Docker smoke fixtures, or publish/install packaging paths change.
   - If the immediate previous npm release is known broken, set `OPENSOUL_INSTALL_SMOKE_PREVIOUS=<last-good-version>` or `OPENSOUL_INSTALL_SMOKE_SKIP_PREVIOUS=1` for the preinstall step.
 - [ ] (Optional) Full installer smoke (adds non-root + CLI coverage): `pnpm test:install:smoke`
 - [ ] (Optional) Installer E2E (Docker, runs `curl -fsSL https://opensoul.ai/install.sh | bash`, onboards, then runs real tool calls):

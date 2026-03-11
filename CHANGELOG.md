@@ -2,6 +2,14 @@
 
 ## Unreleased (2026-03-09)
 
+### CI & Release Reliability
+
+- Pinned the `install-smoke` workflow to Node 22 to avoid CI engine and lockfile mismatches during pnpm setup.
+- Standardized installer smoke coverage and the macOS CLI installer on `https://opensoul.ai/install.sh` and `https://opensoul.ai/install-cli.sh`.
+- Added retry and timeout handling to Docker-based installer smoke scripts to reduce transient network failures against the public install endpoints.
+- Fixed typed plugin hook wrapping so synchronous `tool_result_persist` handlers stay synchronous during transcript persistence.
+- Repaired the logging console-settings regression test import path and restored targeted coverage for persistence and console-setting guardrails.
+
 ### CLI & Packaging
 
 - Switched npm publish target from GitHub Packages to public npmjs.com registry (`publishConfig`).

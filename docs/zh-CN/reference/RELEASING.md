@@ -50,9 +50,12 @@ x-i18n:
 
 - [ ] `pnpm build`
 - [ ] `pnpm check`
+- [ ] `pnpm github:validate`（修改 `.github/workflows/**` 或 `.github/actions/**` 时必跑）
+- [ ] `pnpm protocol:check`（协议 schema、gateway method 或生成的协议模型变更时必跑）
 - [ ] `pnpm test`（如需覆盖率输出则使用 `pnpm test:coverage`）
 - [ ] `pnpm release:check`（验证 npm pack 内容）
 - [ ] `OPENSOUL_INSTALL_SMOKE_SKIP_NONROOT=1 pnpm test:install:smoke`（Docker 安装冒烟测试，快速路径；发布前必需）
+  - 只要改动了安装脚本、安装地址、Docker smoke fixture，或发布/安装相关打包路径，就应运行这一项。
   - 如果已知上一个 npm 发布版本有问题，为预安装步骤设置 `OPENSOUL_INSTALL_SMOKE_PREVIOUS=<last-good-version>` 或 `OPENSOUL_INSTALL_SMOKE_SKIP_PREVIOUS=1`。
 - [ ]（可选）完整安装程序冒烟测试（添加非 root + CLI 覆盖）：`pnpm test:install:smoke`
 - [ ]（可选）安装程序 E2E（Docker，运行 `curl -fsSL https://opensoul.ai/install.sh | bash`，新手引导，然后运行真实工具调用）：

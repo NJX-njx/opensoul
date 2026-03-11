@@ -67,6 +67,8 @@ Based on recent updates in [CHANGELOG](CHANGELOG.md):
 - **Docs & onboarding**: beginner deployment guide, Create Soulmate guide, and improved actionable error messaging.
 - **CLI & packaging audit**: published to public npm, Node version preinstall check, env var help docs, `--deliver` deprecation, lazy subcommand caching, gateway error unification, plugin shortname resolution.
 - **Install improvements**: platform-specific native dependency docs, re-enabled install-smoke CI, simplified npm/pnpm install instructions.
+- **CI & installer reliability**: pinned install-smoke to Node 22, standardized public installer URLs on `opensoul.ai`, and added retry/timeout handling for Docker smoke coverage.
+- **Release validation**: release and contributor docs now call out `pnpm github:validate`, `pnpm protocol:check`, and install smoke coverage when workflows, protocol models, or installer paths change.
 
 ## Features
 

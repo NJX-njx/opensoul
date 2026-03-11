@@ -26,7 +26,9 @@ Be concise; concise review > grammar. Omit any non-applicable sections.
 - `pnpm check`
 - `pnpm build`
 - `pnpm test`
+- Workflow/action changes: `pnpm github:validate`
 - Protocol changes: `pnpm protocol:check`
+- Installer/release path changes: `OPENSOUL_INSTALL_SMOKE_SKIP_NONROOT=1 pnpm test:install:smoke`
 
 ## Progressive disclosure
 

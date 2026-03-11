@@ -29,7 +29,9 @@ Validation (run/fix before PR):
 - `pnpm check`
 - `pnpm build`
 - `pnpm test`
+- If workflow/action code: `pnpm github:validate`
 - If protocol code: `pnpm protocol:check`
+- If installer or release-path code: `OPENSOUL_INSTALL_SMOKE_SKIP_NONROOT=1 pnpm test:install:smoke`
 
 ### Templates
 
