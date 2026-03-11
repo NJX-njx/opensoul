@@ -19,17 +19,12 @@
 <p align="center">
   <a href="#overview">Overview</a> •
   <a href="#whats-new">What's New</a> •
-  <a href="#features">Features</a> •
-  <a href="#architecture">Architecture</a> •
-  <a href="#repository-layout">Repository Layout</a> •
-  <a href="#tech-stack">Tech Stack</a> •
   <a href="#quick-start">Quick Start</a> •
   <a href="#configuration">Configuration</a> •
   <a href="#developer-workflow">Developer Workflow</a> •
-  <a href="#testing">Testing</a> •
-  <a href="#extension-development">Extensions</a> •
+  <a href="#architecture">Architecture</a> •
   <a href="#troubleshooting">Troubleshooting</a> •
-  <a href="#documentation">Docs</a> •
+  <a href="#docs">Docs</a> •
   <a href="ROADMAP.md">Roadmap</a>
 </p>
 
@@ -39,66 +34,108 @@
 
 OpenSoul is a **self-hosted AI agent gateway**. Run one gateway process and talk to the same agent across WhatsApp, Telegram, Discord, Slack, iMessage, and many more channels.
 
-It is a **local-first control plane**: channel adapters connect into one runtime where you control model routing, memory, tools, and security boundaries.
+It is a **local-first control plane**: channel adapters connect into one runtime where you control model routing, memory, tools, and security boundaries. The project includes the gateway, Web Control UI, CLI/TUI workflows, and native clients.
 
-## Product Preview
-
-<p align="center">
-  <img src="docs/images/mobile-ui-screenshot.png" alt="OpenSoul mobile UI screenshot" width="360">
-</p>
-
-## What's New (v0.2.4)
+## What's New
 
 Based on recent updates in [CHANGELOG](CHANGELOG.md):
 
-- **Session transcripts**: load and review past conversation history directly from the Control UI.
-- **Create Soulmate modal**: streamlined agent creation workflow in the Control UI.
-- **Gateway reconnect**: automatic WebSocket reconnection after connection drops.
-- **Onboarding improvements**: better MiniMax support, empty-response error visibility, and localized config forms.
-- **Developer experience**: enhanced CLI dev defaults, GitHub workflow validation, and repo cleanup.
-- **Windows desktop client**: native installer with system proxy detection (v0.2.3).
+### Latest maintenance updates (2026-03-09)
 
-### Latest Maintenance Updates (post-v0.2.4)
+- **Install & release reliability**: pinned install-smoke CI to Node 22, standardized public install URLs on `opensoul.ai`, and added retry/timeout handling for Docker smoke coverage.
+- **CLI & packaging**: published to public npm, added a friendly Node version check, expanded `opensoul --help` environment docs, and improved plugin shortname resolution.
+- **Runtime safety**: hardened WebSocket limits and keepalive, durable transcript writes, safer embedded runner CWD handling, and plugin auto-disable after repeated runtime failures.
+- **Docs & onboarding**: added beginner deployment and Create Soulmate guides, plus clearer Control UI error messages.
 
-- **Security hardening**: WebSocket connection limits, ping/pong keepalive, and slow-consumer handling.
-- **Data safety**: durable transcript writes with fsync and write-lock protection.
-- **Runtime stability**: concurrency-safe embedded runner CWD handling and plugin runtime auto-disable after repeated failures.
-- **Repository hygiene**: removed committed secret test files and tracked release bundles; added pre-commit secret/bundle guards.
-- **Docs & onboarding**: beginner deployment guide, Create Soulmate guide, and improved actionable error messaging.
-- **CLI & packaging audit**: published to public npm, Node version preinstall check, env var help docs, `--deliver` deprecation, lazy subcommand caching, gateway error unification, plugin shortname resolution.
-- **Install improvements**: platform-specific native dependency docs, re-enabled install-smoke CI, simplified npm/pnpm install instructions.
-- **CI & installer reliability**: pinned install-smoke to Node 22, standardized public installer URLs on `opensoul.ai`, and added retry/timeout handling for Docker smoke coverage.
-- **Release validation**: release and contributor docs now call out `pnpm github:validate`, `pnpm protocol:check`, and install smoke coverage when workflows, protocol models, or installer paths change.
+### Recent release highlights (0.2.4)
 
-## Features
+- Session transcript loading in the Control UI.
+- Create Soulmate modal and better workspace management flows.
+- More reliable WebSocket reconnect behavior after connection drops.
+- Better onboarding flows, MiniMax support, and CLI developer defaults.
 
-### 🌐 30+ Channels
+## Quick Start
 
-| Category      | Channels                                                             |
-| ------------- | -------------------------------------------------------------------- |
-| Messaging     | WhatsApp · Telegram · Signal · iMessage · Matrix · Mattermost · Zalo |
-| Collaboration | Slack · Discord · Microsoft Teams · Lark (Feishu) · LINE             |
-| Web + API     | Web Control UI · WebChat · REST API · WebSocket                      |
-| Voice + Media | Voice Call · Audio · Images · Documents                              |
+### Prerequisites
 
-### 🧠 Agent Runtime
+- Node.js >= 22.12.0
+- pnpm >= 10
 
-- Multi-model routing (OpenAI, Anthropic, Gemini, Bedrock, Ollama, MiniMax, OpenRouter, and more)
-- Session isolation by sender/workspace
-- Long-term memory with vector search
-- Tool execution, sandboxing, and plugin-driven extensibility
+### Install from source
 
-### 🛠️ Skills & Tools
+```bash
+git clone https://github.com/NJX-njx/opensoul.git
+cd opensoul
+pnpm install
+pnpm build
+```
 
-- 50+ built-in skills in [skills/](skills/)
-- Integrations for GitHub, Notion, Obsidian, Canvas, tmux, browser automation, and more
-- Public plugin SDK for custom channels, tools, hooks, and providers
+### Configure for local development
 
-### 📱 Cross-Platform Clients
+```bash
+# macOS / Linux
+export OPENSOUL_SKIP_CHANNELS=1
+export OPENSOUL_GATEWAY_TOKEN=dev-token
+# Optional: set at least one model provider key
+export OPENAI_API_KEY=your-api-key
+```
 
-- Native apps for macOS, iOS, Android, and Windows
-- Web Control UI plus CLI/TUI workflows
-- See the [Client Release-Readiness Matrix](docs/platforms/client-release-readiness.md) for per-platform availability, install routes, and known blockers
+### Start locally
+
+```bash
+pnpm gateway:dev
+```
+
+### Start locally on Windows (PowerShell)
+
+```powershell
+$env:OPENSOUL_SKIP_CHANNELS = "1"
+$env:OPENSOUL_GATEWAY_TOKEN = "dev-token"
+$env:OPENAI_API_KEY = "your-api-key"
+node scripts/run-node.mjs --dev gateway
+```
+
+### Install and run via CLI
+
+```bash
+npm install -g opensoul@latest
+opensoul onboard
+opensoul gateway run
+```
+
+For model keys and provider setup, see the [Model Setup Guide](docs/guides/model-setup.md). For end-to-end deploy steps, see the [Beginner Deployment Guide](docs/start/deployment-beginner.md).
+
+## Configuration
+
+Put shared settings in `.env` or `~/.opensoul/.env`:
+
+```bash
+OPENAI_API_KEY=
+ANTHROPIC_API_KEY=
+OPENROUTER_API_KEY=
+GEMINI_API_KEY=
+MINIMAX_API_KEY=
+OPENSOUL_GATEWAY_TOKEN=
+```
+
+- `OPENSOUL_GATEWAY_TOKEN` (or `gateway.auth.token`) is required for gateway startup.
+- Use `OPENSOUL_SKIP_CHANNELS=1` for local development unless channel credentials are already configured.
+- Config supports JSON5, includes, and `${ENV}` substitution. See [Environment](docs/help/environment.md).
+
+## Developer Workflow
+
+```bash
+pnpm install
+pnpm build
+pnpm dev
+pnpm gateway:dev
+pnpm check
+pnpm test
+```
+
+- After changing `ui/`, run `pnpm ui:build` and restart the gateway.
+- `pnpm check` runs type-check, lint, and format checks.
+- `pnpm check:loc` uses repository limits: `--max 2000 --max-function 150`.
 
 ## Architecture
 
@@ -113,159 +150,48 @@ flowchart LR
   B --> H["Native Apps"]
 ```
 
-### Core Modules
+### Core modules
 
-| Module        | Path                 | Responsibility                                         |
-| ------------- | -------------------- | ------------------------------------------------------ |
-| Gateway       | src/gateway          | HTTP/WS server, orchestration, sidecars                |
-| Agent Runtime | src/agents           | Session execution, tool injection, runtime integration |
-| Routing       | src/routing          | Message-to-agent/session resolution                    |
-| Plugins       | src/plugins          | Discovery, loading, registry, runtime API              |
-| Channels      | src/_ + extensions/_ | Channel adapters and protocol integration              |
-| Memory        | src/memory           | Long-term memory and storage                           |
-| Web UI        | ui/                  | Control UI (Lit + Vite)                                |
-| Apps          | apps/                | Native mobile/desktop clients                          |
+| Module             | Path                                   | Responsibility                                          |
+| ------------------ | -------------------------------------- | ------------------------------------------------------- |
+| Gateway            | `src/gateway`                          | HTTP/WS server, orchestration, sidecars                 |
+| Agent Runtime      | `src/agents`                           | Session execution, tool injection, runtime integration  |
+| Routing            | `src/routing`                          | Message-to-agent/session resolution                     |
+| Plugins & Channels | `src/plugins`, `src/_`, `extensions/_` | Plugin loading, channel adapters, protocol integrations |
+| Memory             | `src/memory`                           | Long-term memory and storage                            |
+| UI & Apps          | `ui/`, `apps/`                         | Web Control UI and native clients                       |
 
-## Repository Layout
+### Repository layout
 
 ```text
-src/           Core gateway, agent runtime, routing, config, plugins
+src/           Core gateway, runtime, routing, config, plugins
 extensions/    External channel/provider/hook plugins
 ui/            Web Control UI assets and app
 skills/        Built-in skills
 docs/          User and reference documentation
-apps/          Native clients (Android/iOS/macOS/Windows)
+apps/          Native clients
 scripts/       Build, release, test, and tooling scripts
 ```
 
-## Tech Stack
+### Tech stack
 
-| Layer         | Version                      |
-| ------------- | ---------------------------- |
-| Node.js       | >= 22.12.0                   |
-| pnpm          | 10.23.0                      |
-| TypeScript    | 5.9.3                        |
-| Web UI        | Lit 3.3.2 + Vite             |
-| API Server    | Hono 4.11.10 / Express 5.2.1 |
-| Testing       | Vitest 4.0.18                |
-| Lint / Format | Oxlint 1.43.0 + Oxfmt 0.28.0 |
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js >= 22
-- pnpm
-
-### Install
-
-**Via npm (recommended):**
-
-```bash
-npm install -g opensoul@latest
-opensoul onboard --install-daemon
-```
-
-**From source:**
-
-```bash
-git clone https://github.com/NJX-njx/opensoul.git
-cd opensoul
-pnpm install
-pnpm build
-```
-
-### Start Gateway (Dev)
-
-```bash
-# Skips channels that require external credentials
-export OPENSOUL_SKIP_CHANNELS=1
-export OPENSOUL_GATEWAY_TOKEN=dev-token
-pnpm gateway:dev
-```
-
-### Start Gateway on Windows (PowerShell)
-
-```powershell
-$env:OPENSOUL_SKIP_CHANNELS = "1"; $env:OPENSOUL_GATEWAY_TOKEN = "dev-token"; node scripts/run-node.mjs --dev gateway
-```
-
-### Production Runtime
-
-```bash
-opensoul onboard
-opensoul gateway run
-```
-
-> **Model setup:** see the [Model Setup Guide](docs/guides/model-setup.md) for API key, OAuth,
-> and local Ollama paths — including minimal config snippets, verification commands, and
-> common failure fixes.
-
-> **Beginner deployment path:** see the [Beginner Deployment Guide](docs/start/deployment-beginner.md)
-> for Windows/macOS/Linux commands, post-deploy checks, and rollback/uninstall paths.
-
-## Configuration
-
-### Environment Template
-
-You can place these in `.env` or `~/.opensoul/.env`:
-
-```bash
-OPENAI_API_KEY=
-ANTHROPIC_API_KEY=
-OPENROUTER_API_KEY=
-GEMINI_API_KEY=
-MINIMAX_API_KEY=
-OPENCODE_API_KEY=
-ZAI_API_KEY=
-OPENSOUL_GATEWAY_TOKEN=
-```
-
-See [Environment](docs/help/environment.md) for loading order and precedence.
-
-### Key Notes
-
-- `OPENSOUL_GATEWAY_TOKEN` (or `gateway.auth.token`) is required for gateway startup.
-- Prefer `OPENSOUL_SKIP_CHANNELS=1` for local development unless channel credentials are configured.
-- Config supports JSON5, includes, and `${ENV}` substitution.
-
-## Developer Workflow
-
-### Core Commands
-
-```bash
-pnpm install
-pnpm build
-pnpm dev
-pnpm gateway:dev
-pnpm check
-pnpm test
-```
-
-### UI Workflow
-
-After changing `ui/`:
-
-1. Run `pnpm ui:build`
-2. Restart gateway to refresh served control UI assets
-
-### Quality Gate
-
-- `pnpm check` = type-check + lint + format-check
-- `pnpm check:loc` uses repository limits: `--max 2000 --max-function 150`
+- Runtime: Node.js 22+, TypeScript 5.9, pnpm 10
+- Web UI: Lit 3 + Vite
+- API: Hono + Express
+- Testing and quality: Vitest, Oxlint, Oxfmt
 
 ## Testing
 
-- Main test entry: `pnpm test`
-- Config variants: `vitest.config.ts`, `vitest.e2e.config.ts`, `vitest.gateway.config.ts`, `vitest.extensions.config.ts`, `vitest.live.config.ts`
-- Docker/e2e suites are available under `scripts/e2e/` and `test:docker:*` scripts
+- Main entry: `pnpm test`
+- Additional configs: `vitest.config.ts`, `vitest.e2e.config.ts`, `vitest.gateway.config.ts`, `vitest.extensions.config.ts`, `vitest.live.config.ts`
+- Docker and e2e suites live under `scripts/e2e/` and `test:docker:*`
 
 ## Extension Development
 
 - Place extensions under `extensions/<name>/`
 - Use `opensoul/plugin-sdk` as the public API surface
 - Do not import internal `src/*` modules from external extensions
-- Typical extension package includes `opensoul.plugin.json` and `index.ts`
+- Typical packages include `opensoul.plugin.json` and `index.ts`
 
 ## Troubleshooting
 
@@ -276,24 +202,16 @@ After changing `ui/`:
 | Port conflict                         | Port already in use                  | Change `gateway.port` or run `pnpm test:force` cleanup  |
 | API keys not available in service run | Shell env not inherited              | Put keys in `~/.opensoul/.env` or enable `env.shellEnv` |
 
-## Documentation
+## Docs
 
-- [**Wiki**](https://github.com/NJX-njx/opensoul/wiki) — Comprehensive project knowledge base
 - [Getting Started](docs/start/)
-- [**Model Setup Guide**](docs/guides/model-setup.md) — API key / OAuth / local Ollama setup with verification commands
-- [Create Soulmate Guide](docs/guides/create-soulmate.md) — creation flow, constraints, failure recovery, and post-create checks
+- [Model Setup Guide](docs/guides/model-setup.md)
+- [Beginner Deployment Guide](docs/start/deployment-beginner.md)
 - [Gateway Configuration](docs/gateway/configuration.md)
 - [Channels](docs/channels/)
 - [Skills & Tools](docs/tools/)
-- [Model Providers](docs/concepts/model-providers.md)
-- [Web Control UI](docs/web/control-ui.md)
-- [Client Release-Readiness Matrix](docs/platforms/client-release-readiness.md) — per-platform availability, install routes, and known blockers
-- [Platforms](docs/platforms/index.md)
-
-## API Reference
-
-- [Gateway RPC](docs/reference/rpc.md)
 - [Reference Index](docs/reference/)
+- [Project Wiki](https://github.com/NJX-njx/opensoul/wiki)
 
 ## Roadmap
 
