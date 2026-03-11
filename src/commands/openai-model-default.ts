@@ -1,7 +1,7 @@
 import type { OpenSoulConfig } from "../config/config.js";
 import { ensureModelAllowlistEntry } from "./model-allowlist.js";
 
-export const OPENAI_DEFAULT_MODEL = "openai/gpt-5.1-codex";
+export const OPENAI_DEFAULT_MODEL = "openai/gpt-5.2";
 
 export function applyOpenAIProviderConfig(cfg: OpenSoulConfig): OpenSoulConfig {
   const next = ensureModelAllowlistEntry({

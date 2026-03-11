@@ -2,6 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { OpenSoulConfig } from "../../config/types.js";
+import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../agents/defaults.js";
 import { resolveWorkspaceTemplateDir } from "../../agents/workspace-templates.js";
 import { resolveDefaultAgentWorkspaceDir } from "../../agents/workspace.js";
 import { handleReset } from "../../commands/onboard-helpers.js";
@@ -14,6 +15,7 @@ export const DEV_IDENTITY_NAME = "sophie";
 const DEV_IDENTITY_THEME = "protocol droid";
 const DEV_IDENTITY_EMOJI = "🤖";
 const DEV_AGENT_WORKSPACE_SUFFIX = "dev";
+const DEV_DEFAULT_MODEL_REF = `${DEFAULT_PROVIDER}/${DEFAULT_MODEL}`;
 
 async function loadDevTemplate(name: string, fallback: string): Promise<string> {
   try {
@@ -121,6 +123,37 @@ function enforceDevAgentInConfig(cfg: OpenSoulConfig, workspace: string): OpenSo
   };
 }
 
+function seedDevDefaultModel(cfg: OpenSoulConfig): OpenSoulConfig {
+  const defaults = cfg.agents?.defaults;
+  const existingModel = defaults?.model;
+  const primary =
+    typeof existingModel === "string"
+      ? existingModel.trim()
+      : typeof existingModel?.primary === "string"
+        ? existingModel.primary.trim()
+        : "";
+  if (primary) {
+    return cfg;
+  }
+
+  const nextModels = { ...defaults?.models };
+  if (!nextModels[DEV_DEFAULT_MODEL_REF]) {
+    nextModels[DEV_DEFAULT_MODEL_REF] = {};
+  }
+
+  return {
+    ...cfg,
+    agents: {
+      ...cfg.agents,
+      defaults: {
+        ...defaults,
+        model: { primary: DEV_DEFAULT_MODEL_REF },
+        models: nextModels,
+      },
+    },
+  };
+}
+
 export async function ensureDevGatewayConfig(opts: { reset?: boolean }) {
   const workspace = resolveDevWorkspaceDir();
   if (opts.reset) {
@@ -133,7 +166,7 @@ export async function ensureDevGatewayConfig(opts: { reset?: boolean }) {
 
   if (configExists && !opts.reset) {
     const cfg = loadConfig();
-    const enforced = enforceDevAgentInConfig(cfg, workspace);
+    const enforced = seedDevDefaultModel(enforceDevAgentInConfig(cfg, workspace));
     await writeConfigFile(enforced);
   } else {
     await writeConfigFile({
@@ -143,6 +176,10 @@ export async function ensureDevGatewayConfig(opts: { reset?: boolean }) {
       },
       agents: {
         defaults: {
+          model: { primary: DEV_DEFAULT_MODEL_REF },
+          models: {
+            [DEV_DEFAULT_MODEL_REF]: {},
+          },
           workspace,
           skipBootstrap: true,
         },

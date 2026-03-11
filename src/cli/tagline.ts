@@ -1,4 +1,4 @@
-const DEFAULT_TAGLINE = "All your chats, one OpenSoul.";
+const DEFAULT_TAGLINE = "thank you for using opensoul";
 
 const HOLIDAY_TAGLINES = {
   newYear:
@@ -252,19 +252,8 @@ export function activeTaglines(options: TaglineOptions = {}): string[] {
 }
 
 export function pickTagline(options: TaglineOptions = {}): string {
-  const env = options.env ?? process.env;
-  const override = env?.OPENSOUL_TAGLINE_INDEX;
-  if (override !== undefined) {
-    const parsed = Number.parseInt(override, 10);
-    if (!Number.isNaN(parsed) && parsed >= 0) {
-      const pool = TAGLINES.length > 0 ? TAGLINES : [DEFAULT_TAGLINE];
-      return pool[parsed % pool.length];
-    }
-  }
-  const pool = activeTaglines(options);
-  const rand = options.random ?? Math.random;
-  const index = Math.floor(rand() * pool.length) % pool.length;
-  return pool[index];
+  void options;
+  return DEFAULT_TAGLINE;
 }
 
 export { TAGLINES, HOLIDAY_RULES, DEFAULT_TAGLINE };

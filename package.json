@@ -50,11 +50,10 @@
     "./cli-entry": "./opensoul.mjs"
   },
   "publishConfig": {
-    "registry": "https://registry.npmjs.org",
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "scripts": {
-    "preinstall": "node scripts/check-node-version.mjs",
     "android:assemble": "cd apps/android && ./gradlew :app:assembleDebug",
     "android:install": "cd apps/android && ./gradlew :app:installDebug",
     "android:run": "cd apps/android && ./gradlew :app:installDebug && adb shell am start -n ai.opensoul.android/.MainActivity",
@@ -67,6 +66,7 @@
     "check:docs": "pnpm format:docs && pnpm lint:docs && pnpm docs:build",
     "check:loc": "node --import tsx scripts/check-ts-max-loc.ts --max 2000 --max-function 150 --top 10 --report .check-loc-report.json",
     "dev": "node scripts/run-node.mjs",
+    "dev:tui+gateway": "set OPENSOUL_PROFILE=dev&& start \"opensoul-gateway\" cmd /k \"set OPENSOUL_SKIP_CHANNELS=1&& set OPENSOUL_GATEWAY_TOKEN=dev-token&& node scripts/run-node.mjs --dev gateway\" && timeout /t 2 >nul && pnpm opensoul --dev tui --token dev-token",
     "docs:bin": "node scripts/build-docs-list.mjs",
     "docs:build": "cd docs && pnpm dlx --reporter append-only mint broken-links",
     "docs:check-links": "node scripts/docs-link-audit.mjs",
@@ -98,6 +98,7 @@
     "opensoul": "node scripts/run-node.mjs",
     "opensoul:rpc": "node scripts/run-node.mjs agent --mode rpc --json",
     "plugins:sync": "node --import tsx scripts/sync-plugin-versions.ts",
+    "preinstall": "node scripts/check-node-version.mjs",
     "prepack": "pnpm build && pnpm ui:build",
     "prepare": "command -v git >/dev/null 2>&1 && git config core.hooksPath git-hooks || exit 0",
     "protocol:check": "pnpm protocol:gen && pnpm protocol:gen:swift && git diff --exit-code -- dist/protocol.schema.json apps/macos/Sources/OpenSoulProtocol/GatewayModels.swift",
