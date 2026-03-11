@@ -607,6 +607,7 @@ export async function handleOpenResponsesHttpRequest(
   let unsubscribe = () => {};
   let finalUsage: Usage | undefined;
   let finalizeRequested: { status: ResponseResource["status"]; text: string } | null = null;
+  const abortController = new AbortController();
 
   const maybeFinalize = () => {
     if (closed) {
@@ -744,9 +745,10 @@ export async function handleOpenResponsesHttpRequest(
     }
   });
 
-  req.on("close", () => {
+  req.once("close", () => {
     closed = true;
     unsubscribe();
+    abortController.abort();
   });
 
   void (async () => {
@@ -763,6 +765,7 @@ export async function handleOpenResponsesHttpRequest(
           deliver: false,
           messageChannel: "webchat",
           bestEffortDeliver: false,
+          abortSignal: abortController.signal,
         },
         defaultRuntime,
         deps,

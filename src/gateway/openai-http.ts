@@ -273,6 +273,7 @@ export async function handleOpenAiHttpRequest(
   let wroteRole = false;
   let sawAssistantDelta = false;
   let closed = false;
+  const abortController = new AbortController();
 
   const unsubscribe = onAgentEvent((evt) => {
     if (evt.runId !== runId) {
@@ -329,9 +330,10 @@ export async function handleOpenAiHttpRequest(
     }
   });
 
-  req.on("close", () => {
+  req.once("close", () => {
     closed = true;
     unsubscribe();
+    abortController.abort();
   });
 
   void (async () => {
@@ -345,6 +347,7 @@ export async function handleOpenAiHttpRequest(
           deliver: false,
           messageChannel: "webchat",
           bestEffortDeliver: false,
+          abortSignal: abortController.signal,
         },
         defaultRuntime,
         deps,

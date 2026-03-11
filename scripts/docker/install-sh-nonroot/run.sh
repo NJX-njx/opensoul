@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INSTALL_URL="${OPENSOUL_INSTALL_URL:-https://opensoul.bot/install.sh}"
+INSTALL_URL="${OPENSOUL_INSTALL_URL:-https://opensoul.ai/install.sh}"
 DEFAULT_PACKAGE="opensoul"
 PACKAGE_NAME="${OPENSOUL_INSTALL_PACKAGE:-$DEFAULT_PACKAGE}"
+CURL_ARGS=(--retry 5 --retry-delay 2 --retry-all-errors --connect-timeout 15 --max-time 180 -fsSL)
 
 echo "==> Pre-flight: ensure git absent"
 if command -v git >/dev/null; then
@@ -12,7 +13,7 @@ if command -v git >/dev/null; then
 fi
 
 echo "==> Run installer (non-root user)"
-curl -fsSL "$INSTALL_URL" | bash
+curl "${CURL_ARGS[@]}" "$INSTALL_URL" | bash
 
 # Ensure PATH picks up user npm prefix
 export PATH="$HOME/.npm-global/bin:$PATH"

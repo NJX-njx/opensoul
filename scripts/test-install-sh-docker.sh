@@ -4,8 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SMOKE_IMAGE="${OPENSOUL_INSTALL_SMOKE_IMAGE:-${OPENCLAW_INSTALL_SMOKE_IMAGE:-opensoul-install-smoke:local}}"
 NONROOT_IMAGE="${OPENSOUL_INSTALL_NONROOT_IMAGE:-${OPENCLAW_INSTALL_NONROOT_IMAGE:-opensoul-install-nonroot:local}}"
-INSTALL_URL="${OPENSOUL_INSTALL_URL:-${OPENCLAW_INSTALL_URL:-https://opensoul.bot/install.sh}}"
-CLI_INSTALL_URL="${OPENSOUL_INSTALL_CLI_URL:-${OPENCLAW_INSTALL_CLI_URL:-https://opensoul.bot/install-cli.sh}}"
+INSTALL_URL="${OPENSOUL_INSTALL_URL:-${OPENCLAW_INSTALL_URL:-https://opensoul.ai/install.sh}}"
+CLI_INSTALL_URL="${OPENSOUL_INSTALL_CLI_URL:-${OPENCLAW_INSTALL_CLI_URL:-https://opensoul.ai/install-cli.sh}}"
 SKIP_NONROOT="${OPENSOUL_INSTALL_SMOKE_SKIP_NONROOT:-${OPENCLAW_INSTALL_SMOKE_SKIP_NONROOT:-0}}"
 LATEST_DIR="$(mktemp -d)"
 LATEST_FILE="${LATEST_DIR}/latest"
@@ -67,4 +67,4 @@ docker run --rm -t \
   -e OPENSOUL_INSTALL_CLI_URL="$CLI_INSTALL_URL" \
   -e OPENSOUL_NO_ONBOARD=1 \
   -e DEBIAN_FRONTEND=noninteractive \
-  "$NONROOT_IMAGE" -lc "curl -fsSL \"$CLI_INSTALL_URL\" | bash -s -- --set-npm-prefix --no-onboard"
+  "$NONROOT_IMAGE" -lc "curl --retry 5 --retry-delay 2 --retry-all-errors --connect-timeout 15 --max-time 180 -fsSL \"$CLI_INSTALL_URL\" | bash -s -- --set-npm-prefix --no-onboard"

@@ -428,4 +428,58 @@ describe("OpenAI-compatible HTTP API (e2e)", () => {
       // shared server
     }
   });
+
+  it("aborts the streaming agent run when the client disconnects", async () => {
+    const port = enabledPort;
+    try {
+      agentCommand.mockReset();
+      let startedResolve: (() => void) | undefined;
+      const started = new Promise<void>((resolve) => {
+        startedResolve = resolve;
+      });
+      let abortedResolve: (() => void) | undefined;
+      const aborted = new Promise<void>((resolve) => {
+        abortedResolve = resolve;
+      });
+
+      agentCommand.mockImplementationOnce(async (opts: unknown) => {
+        const runId = (opts as { runId?: string } | undefined)?.runId ?? "";
+        const abortSignal = (opts as { abortSignal?: AbortSignal } | undefined)?.abortSignal;
+        if (!abortSignal) {
+          throw new Error("missing abortSignal");
+        }
+        emitAgentEvent({ runId, stream: "assistant", data: { delta: "hello" } });
+        startedResolve?.();
+        await new Promise<void>((resolve) => {
+          if (abortSignal.aborted) {
+            resolve();
+            return;
+          }
+          abortSignal.addEventListener(
+            "abort",
+            () => {
+              abortedResolve?.();
+              resolve();
+            },
+            { once: true },
+          );
+        });
+        return { payloads: [{ text: "hello" }], meta: { aborted: true } } as never;
+      });
+
+      const res = await postChatCompletions(port, {
+        stream: true,
+        model: "opensoul",
+        messages: [{ role: "user", content: "hi" }],
+      });
+      expect(res.status).toBe(200);
+      expect(res.body).toBeTruthy();
+
+      await started;
+      await res.body?.cancel();
+      await aborted;
+    } finally {
+      // shared server
+    }
+  });
 });

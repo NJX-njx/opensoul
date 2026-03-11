@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 IMAGE_NAME="${OPENSOUL_INSTALL_E2E_IMAGE:-${OPENCLAW_INSTALL_E2E_IMAGE:-opensoul-install-e2e:local}}"
-INSTALL_URL="${OPENSOUL_INSTALL_URL:-${OPENCLAW_INSTALL_URL:-https://opensoul.bot/install.sh}}"
+INSTALL_URL="${OPENSOUL_INSTALL_URL:-${OPENCLAW_INSTALL_URL:-https://opensoul.ai/install.sh}}"
 
 OPENAI_API_KEY="${OPENAI_API_KEY:-}"
 ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}"

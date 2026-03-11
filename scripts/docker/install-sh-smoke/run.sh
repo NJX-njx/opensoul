@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INSTALL_URL="${OPENSOUL_INSTALL_URL:-https://opensoul.bot/install.sh}"
+INSTALL_URL="${OPENSOUL_INSTALL_URL:-https://opensoul.ai/install.sh}"
 SMOKE_PREVIOUS_VERSION="${OPENSOUL_INSTALL_SMOKE_PREVIOUS:-}"
 SKIP_PREVIOUS="${OPENSOUL_INSTALL_SMOKE_SKIP_PREVIOUS:-0}"
 DEFAULT_PACKAGE="opensoul"
 PACKAGE_NAME="${OPENSOUL_INSTALL_PACKAGE:-$DEFAULT_PACKAGE}"
+CURL_ARGS=(--retry 5 --retry-delay 2 --retry-all-errors --connect-timeout 15 --max-time 180 -fsSL)
 
 echo "==> Resolve npm versions"
 LATEST_VERSION="$(npm view "$PACKAGE_NAME" version)"
@@ -48,7 +49,7 @@ else
 fi
 
 echo "==> Run official installer one-liner"
-curl -fsSL "$INSTALL_URL" | bash
+curl "${CURL_ARGS[@]}" "$INSTALL_URL" | bash
 
 echo "==> Verify installed version"
 CLI_NAME="$PACKAGE_NAME"
