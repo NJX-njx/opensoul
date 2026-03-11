@@ -22,6 +22,31 @@ export function getBearerToken(req: IncomingMessage): string | undefined {
   return token || undefined;
 }
 
+export function getCookie(req: IncomingMessage, name: string): string | undefined {
+  const cookieHeader = getHeader(req, "cookie")?.trim() ?? "";
+  if (!cookieHeader || !name.trim()) {
+    return undefined;
+  }
+  const target = name.trim();
+  const parts = cookieHeader.split(";");
+  for (const part of parts) {
+    const [rawName, ...rawValueParts] = part.split("=");
+    if (rawName?.trim() !== target) {
+      continue;
+    }
+    const rawValue = rawValueParts.join("=").trim();
+    if (!rawValue) {
+      return undefined;
+    }
+    try {
+      return decodeURIComponent(rawValue);
+    } catch {
+      return rawValue;
+    }
+  }
+  return undefined;
+}
+
 export function resolveAgentIdFromHeader(req: IncomingMessage): string | undefined {
   const raw =
     getHeader(req, "x-opensoul-agent-id")?.trim() ||

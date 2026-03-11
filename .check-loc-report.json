@@ -1,0 +1,4028 @@
+{
+  "maxLines": 2000,
+  "maxFunctionLines": 150,
+  "topFiles": [
+    {
+      "filePath": "ui/src/ui/views/usage.ts",
+      "lines": 5413
+    },
+    {
+      "filePath": "src/telegram/bot.test.ts",
+      "lines": 3068
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/monitor.ts",
+      "lines": 2518
+    },
+    {
+      "filePath": "src/memory/manager.ts",
+      "lines": 2412
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/monitor.test.ts",
+      "lines": 2385
+    },
+    {
+      "filePath": "ui/src/ui/views/agents.ts",
+      "lines": 2021
+    },
+    {
+      "filePath": "src/agents/bash-tools.exec.ts",
+      "lines": 1631
+    },
+    {
+      "filePath": "src/tts/tts.ts",
+      "lines": 1580
+    },
+    {
+      "filePath": "src/infra/exec-approvals.ts",
+      "lines": 1542
+    },
+    {
+      "filePath": "src/line/flex-templates.ts",
+      "lines": 1512
+    }
+  ],
+  "fileOffenders": [
+    {
+      "filePath": "ui/src/ui/views/usage.ts",
+      "lines": 5413
+    },
+    {
+      "filePath": "src/telegram/bot.test.ts",
+      "lines": 3068
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/monitor.ts",
+      "lines": 2518
+    },
+    {
+      "filePath": "src/memory/manager.ts",
+      "lines": 2412
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/monitor.test.ts",
+      "lines": 2385
+    },
+    {
+      "filePath": "ui/src/ui/views/agents.ts",
+      "lines": 2021
+    }
+  ],
+  "functionOffenders": [
+    {
+      "filePath": ".pi/extensions/diff.ts",
+      "name": "<anonymous>",
+      "lines": 171,
+      "startLine": 25
+    },
+    {
+      "filePath": ".pi/extensions/diff.ts",
+      "name": "<anonymous>",
+      "lines": 166,
+      "startLine": 28
+    },
+    {
+      "filePath": ".pi/extensions/files.ts",
+      "name": "<anonymous>",
+      "lines": 168,
+      "startLine": 27
+    },
+    {
+      "filePath": ".pi/extensions/files.ts",
+      "name": "<anonymous>",
+      "lines": 163,
+      "startLine": 30
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/actions.test.ts",
+      "name": "<anonymous>",
+      "lines": 607,
+      "startLine": 44
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/actions.test.ts",
+      "name": "<anonymous>",
+      "lines": 497,
+      "startLine": 153
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/actions.ts",
+      "name": "<anonymous>",
+      "lines": 327,
+      "startLine": 111
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/attachments.test.ts",
+      "name": "<anonymous>",
+      "lines": 221,
+      "startLine": 19
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/chat.test.ts",
+      "name": "<anonymous>",
+      "lines": 444,
+      "startLine": 18
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/chat.test.ts",
+      "name": "<anonymous>",
+      "lines": 172,
+      "startLine": 145
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/monitor.test.ts",
+      "name": "createMockRuntime",
+      "lines": 159,
+      "startLine": 72
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/monitor.test.ts",
+      "name": "<anonymous>",
+      "lines": 2093,
+      "startLine": 292
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/monitor.test.ts",
+      "name": "<anonymous>",
+      "lines": 373,
+      "startLine": 313
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/monitor.test.ts",
+      "name": "<anonymous>",
+      "lines": 242,
+      "startLine": 687
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/monitor.test.ts",
+      "name": "<anonymous>",
+      "lines": 155,
+      "startLine": 930
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/monitor.test.ts",
+      "name": "<anonymous>",
+      "lines": 203,
+      "startLine": 1391
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/monitor.test.ts",
+      "name": "<anonymous>",
+      "lines": 225,
+      "startLine": 1819
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/monitor.test.ts",
+      "name": "<anonymous>",
+      "lines": 159,
+      "startLine": 2095
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/monitor.ts",
+      "name": "normalizeWebhookMessage",
+      "lines": 161,
+      "startLine": 1142
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/monitor.ts",
+      "name": "processMessage",
+      "lines": 777,
+      "startLine": 1592
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/onboarding.ts",
+      "name": "<anonymous>",
+      "lines": 185,
+      "startLine": 159
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/reactions.test.ts",
+      "name": "<anonymous>",
+      "lines": 375,
+      "startLine": 18
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/reactions.test.ts",
+      "name": "<anonymous>",
+      "lines": 364,
+      "startLine": 28
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/send.test.ts",
+      "name": "<anonymous>",
+      "lines": 871,
+      "startLine": 19
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/send.test.ts",
+      "name": "<anonymous>",
+      "lines": 320,
+      "startLine": 29
+    },
+    {
+      "filePath": "extensions/bluebubbles/src/send.test.ts",
+      "name": "<anonymous>",
+      "lines": 539,
+      "startLine": 350
+    },
+    {
+      "filePath": "extensions/diagnostics-otel/src/service.ts",
+      "name": "createDiagnosticsOtelService",
+      "lines": 594,
+      "startLine": 42
+    },
+    {
+      "filePath": "extensions/diagnostics-otel/src/service.ts",
+      "name": "start",
+      "lines": 570,
+      "startLine": 50
+    },
+    {
+      "filePath": "extensions/feishu/src/bot.ts",
+      "name": "handleFeishuMessage",
+      "lines": 363,
+      "startLine": 509
+    },
+    {
+      "filePath": "extensions/feishu/src/onboarding.ts",
+      "name": "<anonymous>",
+      "lines": 166,
+      "startLine": 180
+    },
+    {
+      "filePath": "extensions/google-gemini-cli-auth/oauth.test.ts",
+      "name": "<anonymous>",
+      "lines": 220,
+      "startLine": 21
+    },
+    {
+      "filePath": "extensions/googlechat/src/monitor.ts",
+      "name": "processMessageWithPipeline",
+      "lines": 348,
+      "startLine": 417
+    },
+    {
+      "filePath": "extensions/line/src/card-command.ts",
+      "name": "registerLineCardCommand",
+      "lines": 188,
+      "startLine": 157
+    },
+    {
+      "filePath": "extensions/line/src/card-command.ts",
+      "name": "<anonymous>",
+      "lines": 180,
+      "startLine": 163
+    },
+    {
+      "filePath": "extensions/line/src/channel.sendPayload.test.ts",
+      "name": "<anonymous>",
+      "lines": 176,
+      "startLine": 90
+    },
+    {
+      "filePath": "extensions/line/src/channel.ts",
+      "name": "<anonymous>",
+      "lines": 176,
+      "startLine": 337
+    },
+    {
+      "filePath": "extensions/llm-task/src/llm-task-tool.ts",
+      "name": "createLlmTaskTool",
+      "lines": 177,
+      "startLine": 69
+    },
+    {
+      "filePath": "extensions/llm-task/src/llm-task-tool.ts",
+      "name": "execute",
+      "lines": 154,
+      "startLine": 90
+    },
+    {
+      "filePath": "extensions/lobster/src/lobster-tool.test.ts",
+      "name": "<anonymous>",
+      "lines": 174,
+      "startLine": 74
+    },
+    {
+      "filePath": "extensions/matrix/src/matrix/monitor/handler.ts",
+      "name": "createMatrixRoomMessageHandler",
+      "lines": 576,
+      "startLine": 90
+    },
+    {
+      "filePath": "extensions/matrix/src/matrix/monitor/handler.ts",
+      "name": "<anonymous>",
+      "lines": 550,
+      "startLine": 115
+    },
+    {
+      "filePath": "extensions/matrix/src/matrix/monitor/index.ts",
+      "name": "monitorMatrixProvider",
+      "lines": 308,
+      "startLine": 31
+    },
+    {
+      "filePath": "extensions/matrix/src/onboarding.ts",
+      "name": "<anonymous>",
+      "lines": 239,
+      "startLine": 203
+    },
+    {
+      "filePath": "extensions/mattermost/src/mattermost/monitor.ts",
+      "name": "monitorMattermostProvider",
+      "lines": 744,
+      "startLine": 248
+    },
+    {
+      "filePath": "extensions/mattermost/src/mattermost/monitor.ts",
+      "name": "<anonymous>",
+      "lines": 459,
+      "startLine": 385
+    },
+    {
+      "filePath": "extensions/memory-lancedb/index.ts",
+      "name": "register",
+      "lines": 370,
+      "startLine": 250
+    },
+    {
+      "filePath": "extensions/msteams/src/attachments.test.ts",
+      "name": "<anonymous>",
+      "lines": 438,
+      "startLine": 22
+    },
+    {
+      "filePath": "extensions/msteams/src/attachments.test.ts",
+      "name": "<anonymous>",
+      "lines": 199,
+      "startLine": 103
+    },
+    {
+      "filePath": "extensions/msteams/src/media-helpers.test.ts",
+      "name": "<anonymous>",
+      "lines": 186,
+      "startLine": 4
+    },
+    {
+      "filePath": "extensions/msteams/src/messenger.test.ts",
+      "name": "<anonymous>",
+      "lines": 213,
+      "startLine": 36
+    },
+    {
+      "filePath": "extensions/msteams/src/messenger.test.ts",
+      "name": "<anonymous>",
+      "lines": 164,
+      "startLine": 84
+    },
+    {
+      "filePath": "extensions/msteams/src/monitor-handler/message-handler.ts",
+      "name": "createMSTeamsMessageHandler",
+      "lines": 601,
+      "startLine": 41
+    },
+    {
+      "filePath": "extensions/msteams/src/monitor-handler/message-handler.ts",
+      "name": "<anonymous>",
+      "lines": 477,
+      "startLine": 82
+    },
+    {
+      "filePath": "extensions/msteams/src/monitor.ts",
+      "name": "monitorMSTeamsProvider",
+      "lines": 261,
+      "startLine": 35
+    },
+    {
+      "filePath": "extensions/msteams/src/onboarding.ts",
+      "name": "<anonymous>",
+      "lines": 208,
+      "startLine": 215
+    },
+    {
+      "filePath": "extensions/msteams/src/policy.test.ts",
+      "name": "<anonymous>",
+      "lines": 201,
+      "startLine": 9
+    },
+    {
+      "filePath": "extensions/msteams/src/send.ts",
+      "name": "sendMessageMSTeams",
+      "lines": 229,
+      "startLine": 93
+    },
+    {
+      "filePath": "extensions/nextcloud-talk/src/inbound.ts",
+      "name": "handleNextcloudTalkInbound",
+      "lines": 270,
+      "startLine": 58
+    },
+    {
+      "filePath": "extensions/nextcloud-talk/src/onboarding.ts",
+      "name": "<anonymous>",
+      "lines": 155,
+      "startLine": 180
+    },
+    {
+      "filePath": "extensions/nostr/src/metrics.ts",
+      "name": "createMetrics",
+      "lines": 287,
+      "startLine": 158
+    },
+    {
+      "filePath": "extensions/nostr/src/metrics.ts",
+      "name": "emit",
+      "lines": 156,
+      "startLine": 241
+    },
+    {
+      "filePath": "extensions/nostr/src/nostr-bus.integration.test.ts",
+      "name": "<anonymous>",
+      "lines": 183,
+      "startLine": 9
+    },
+    {
+      "filePath": "extensions/nostr/src/nostr-bus.integration.test.ts",
+      "name": "<anonymous>",
+      "lines": 178,
+      "startLine": 197
+    },
+    {
+      "filePath": "extensions/nostr/src/nostr-bus.integration.test.ts",
+      "name": "<anonymous>",
+      "lines": 157,
+      "startLine": 198
+    },
+    {
+      "filePath": "extensions/nostr/src/nostr-bus.ts",
+      "name": "startNostrBus",
+      "lines": 265,
+      "startLine": 321
+    },
+    {
+      "filePath": "extensions/nostr/src/nostr-profile-http.test.ts",
+      "name": "<anonymous>",
+      "lines": 269,
+      "startLine": 110
+    },
+    {
+      "filePath": "extensions/nostr/src/nostr-profile.fuzz.test.ts",
+      "name": "<anonymous>",
+      "lines": 172,
+      "startLine": 18
+    },
+    {
+      "filePath": "extensions/nostr/src/seen-tracker.ts",
+      "name": "createSeenTracker",
+      "lines": 260,
+      "startLine": 44
+    },
+    {
+      "filePath": "extensions/tlon/src/monitor/index.ts",
+      "name": "monitorTlonProvider",
+      "lines": 509,
+      "startLine": 72
+    },
+    {
+      "filePath": "extensions/tlon/src/monitor/index.ts",
+      "name": "<anonymous>",
+      "lines": 173,
+      "startLine": 267
+    },
+    {
+      "filePath": "extensions/twitch/src/access-control.test.ts",
+      "name": "<anonymous>",
+      "lines": 438,
+      "startLine": 5
+    },
+    {
+      "filePath": "extensions/twitch/src/access-control.test.ts",
+      "name": "<anonymous>",
+      "lines": 157,
+      "startLine": 242
+    },
+    {
+      "filePath": "extensions/twitch/src/onboarding.test.ts",
+      "name": "<anonymous>",
+      "lines": 279,
+      "startLine": 33
+    },
+    {
+      "filePath": "extensions/twitch/src/outbound.test.ts",
+      "name": "<anonymous>",
+      "lines": 338,
+      "startLine": 36
+    },
+    {
+      "filePath": "extensions/twitch/src/send.test.ts",
+      "name": "<anonymous>",
+      "lines": 253,
+      "startLine": 37
+    },
+    {
+      "filePath": "extensions/twitch/src/send.test.ts",
+      "name": "<anonymous>",
+      "lines": 219,
+      "startLine": 70
+    },
+    {
+      "filePath": "extensions/twitch/src/status.test.ts",
+      "name": "<anonymous>",
+      "lines": 254,
+      "startLine": 17
+    },
+    {
+      "filePath": "extensions/twitch/src/status.test.ts",
+      "name": "<anonymous>",
+      "lines": 252,
+      "startLine": 18
+    },
+    {
+      "filePath": "extensions/twitch/src/token.test.ts",
+      "name": "<anonymous>",
+      "lines": 157,
+      "startLine": 15
+    },
+    {
+      "filePath": "extensions/twitch/src/twitch-client.test.ts",
+      "name": "<anonymous>",
+      "lines": 507,
+      "startLine": 83
+    },
+    {
+      "filePath": "extensions/voice-call/index.ts",
+      "name": "register",
+      "lines": 344,
+      "startLine": 147
+    },
+    {
+      "filePath": "extensions/voice-call/src/cli.ts",
+      "name": "registerVoiceCallCli",
+      "lines": 233,
+      "startLine": 47
+    },
+    {
+      "filePath": "extensions/voice-call/src/config.test.ts",
+      "name": "<anonymous>",
+      "lines": 194,
+      "startLine": 41
+    },
+    {
+      "filePath": "extensions/voice-call/src/manager.test.ts",
+      "name": "<anonymous>",
+      "lines": 182,
+      "startLine": 43
+    },
+    {
+      "filePath": "extensions/voice-call/src/webhook-security.test.ts",
+      "name": "<anonymous>",
+      "lines": 210,
+      "startLine": 168
+    },
+    {
+      "filePath": "extensions/zalo/src/monitor.ts",
+      "name": "processMessageWithPipeline",
+      "lines": 215,
+      "startLine": 407
+    },
+    {
+      "filePath": "extensions/zalo/src/onboarding.ts",
+      "name": "<anonymous>",
+      "lines": 174,
+      "startLine": 227
+    },
+    {
+      "filePath": "extensions/zalouser/src/monitor.ts",
+      "name": "processMessage",
+      "lines": 220,
+      "startLine": 156
+    },
+    {
+      "filePath": "extensions/zalouser/src/monitor.ts",
+      "name": "monitorZalouserProvider",
+      "lines": 163,
+      "startLine": 439
+    },
+    {
+      "filePath": "extensions/zalouser/src/onboarding.ts",
+      "name": "<anonymous>",
+      "lines": 176,
+      "startLine": 328
+    },
+    {
+      "filePath": "src/agents/agent-scope.test.ts",
+      "name": "<anonymous>",
+      "lines": 195,
+      "startLine": 9
+    },
+    {
+      "filePath": "src/agents/auth-profiles.resolve-auth-profile-order.does-not-prioritize-lastgood-round-robin-ordering.test.ts",
+      "name": "<anonymous>",
+      "lines": 231,
+      "startLine": 4
+    },
+    {
+      "filePath": "src/agents/auth-profiles.resolve-auth-profile-order.uses-stored-profiles-no-config-exists.test.ts",
+      "name": "<anonymous>",
+      "lines": 166,
+      "startLine": 4
+    },
+    {
+      "filePath": "src/agents/auth-profiles/oauth.fallback-to-main-agent.test.ts",
+      "name": "<anonymous>",
+      "lines": 165,
+      "startLine": 9
+    },
+    {
+      "filePath": "src/agents/bash-process-registry.test.ts",
+      "name": "<anonymous>",
+      "lines": 167,
+      "startLine": 14
+    },
+    {
+      "filePath": "src/agents/bash-tools.exec.approval-id.test.ts",
+      "name": "<anonymous>",
+      "lines": 168,
+      "startLine": 17
+    },
+    {
+      "filePath": "src/agents/bash-tools.exec.ts",
+      "name": "runExecProcess",
+      "lines": 378,
+      "startLine": 421
+    },
+    {
+      "filePath": "src/agents/bash-tools.exec.ts",
+      "name": "createExecTool",
+      "lines": 829,
+      "startLine": 800
+    },
+    {
+      "filePath": "src/agents/bash-tools.exec.ts",
+      "name": "<anonymous>",
+      "lines": 795,
+      "startLine": 832
+    },
+    {
+      "filePath": "src/agents/bash-tools.process.ts",
+      "name": "createProcessTool",
+      "lines": 620,
+      "startLine": 44
+    },
+    {
+      "filePath": "src/agents/bash-tools.process.ts",
+      "name": "<anonymous>",
+      "lines": 601,
+      "startLine": 61
+    },
+    {
+      "filePath": "src/agents/bash-tools.test.ts",
+      "name": "<anonymous>",
+      "lines": 202,
+      "startLine": 70
+    },
+    {
+      "filePath": "src/agents/bedrock-discovery.test.ts",
+      "name": "<anonymous>",
+      "lines": 187,
+      "startLine": 7
+    },
+    {
+      "filePath": "src/agents/cli-credentials.test.ts",
+      "name": "<anonymous>",
+      "lines": 234,
+      "startLine": 8
+    },
+    {
+      "filePath": "src/agents/cli-runner.ts",
+      "name": "runCliAgent",
+      "lines": 290,
+      "startLine": 35
+    },
+    {
+      "filePath": "src/agents/compaction.test.ts",
+      "name": "<anonymous>",
+      "lines": 246,
+      "startLine": 48
+    },
+    {
+      "filePath": "src/agents/identity.per-channel-prefix.test.ts",
+      "name": "<anonymous>",
+      "lines": 294,
+      "startLine": 7
+    },
+    {
+      "filePath": "src/agents/memory-search.test.ts",
+      "name": "<anonymous>",
+      "lines": 255,
+      "startLine": 4
+    },
+    {
+      "filePath": "src/agents/memory-search.ts",
+      "name": "mergeConfig",
+      "lines": 175,
+      "startLine": 120
+    },
+    {
+      "filePath": "src/agents/model-auth.test.ts",
+      "name": "<anonymous>",
+      "lines": 501,
+      "startLine": 14
+    },
+    {
+      "filePath": "src/agents/model-fallback.test.ts",
+      "name": "<anonymous>",
+      "lines": 519,
+      "startLine": 26
+    },
+    {
+      "filePath": "src/agents/models-config.skips-writing-models-json-no-env-token.test.ts",
+      "name": "<anonymous>",
+      "lines": 186,
+      "startLine": 35
+    },
+    {
+      "filePath": "src/agents/models.profiles.live.test.ts",
+      "name": "<anonymous>",
+      "lines": 334,
+      "startLine": 177
+    },
+    {
+      "filePath": "src/agents/models.profiles.live.test.ts",
+      "name": "<anonymous>",
+      "lines": 328,
+      "startLine": 180
+    },
+    {
+      "filePath": "src/agents/openai-responses.reasoning-replay.test.ts",
+      "name": "<anonymous>",
+      "lines": 160,
+      "startLine": 56
+    },
+    {
+      "filePath": "src/agents/opensoul-tools.session-status.test.ts",
+      "name": "<anonymous>",
+      "lines": 196,
+      "startLine": 82
+    },
+    {
+      "filePath": "src/agents/opensoul-tools.sessions.test.ts",
+      "name": "<anonymous>",
+      "lines": 637,
+      "startLine": 37
+    },
+    {
+      "filePath": "src/agents/opensoul-tools.subagents.sessions-spawn-applies-model-child-session.test.ts",
+      "name": "<anonymous>",
+      "lines": 179,
+      "startLine": 28
+    },
+    {
+      "filePath": "src/agents/opensoul-tools.subagents.sessions-spawn-normalizes-allowlisted-agent-ids.test.ts",
+      "name": "<anonymous>",
+      "lines": 316,
+      "startLine": 29
+    },
+    {
+      "filePath": "src/agents/opensoul-tools.subagents.sessions-spawn-resolves-main-announce-target-from.test.ts",
+      "name": "<anonymous>",
+      "lines": 166,
+      "startLine": 30
+    },
+    {
+      "filePath": "src/agents/pi-embedded-helpers.validate-turns.test.ts",
+      "name": "<anonymous>",
+      "lines": 176,
+      "startLine": 121
+    },
+    {
+      "filePath": "src/agents/pi-embedded-runner.google-sanitize-thinking.test.ts",
+      "name": "<anonymous>",
+      "lines": 353,
+      "startLine": 6
+    },
+    {
+      "filePath": "src/agents/pi-embedded-runner.run-embedded-pi-agent.auth-profile-rotation.test.ts",
+      "name": "<anonymous>",
+      "lines": 437,
+      "startLine": 122
+    },
+    {
+      "filePath": "src/agents/pi-embedded-runner.sanitize-session-history.test.ts",
+      "name": "<anonymous>",
+      "lines": 250,
+      "startLine": 23
+    },
+    {
+      "filePath": "src/agents/pi-embedded-runner.test.ts",
+      "name": "<anonymous>",
+      "lines": 369,
+      "startLine": 175
+    },
+    {
+      "filePath": "src/agents/pi-embedded-runner/compact.ts",
+      "name": "compactEmbeddedPiSessionDirect",
+      "lines": 371,
+      "startLine": 116
+    },
+    {
+      "filePath": "src/agents/pi-embedded-runner/run.overflow-compaction.test.ts",
+      "name": "<anonymous>",
+      "lines": 230,
+      "startLine": 207
+    },
+    {
+      "filePath": "src/agents/pi-embedded-runner/run.ts",
+      "name": "runEmbeddedPiAgent",
+      "lines": 724,
+      "startLine": 137
+    },
+    {
+      "filePath": "src/agents/pi-embedded-runner/run.ts",
+      "name": "<anonymous>",
+      "lines": 703,
+      "startLine": 156
+    },
+    {
+      "filePath": "src/agents/pi-embedded-runner/run.ts",
+      "name": "<anonymous>",
+      "lines": 702,
+      "startLine": 157
+    },
+    {
+      "filePath": "src/agents/pi-embedded-runner/run/attempt.ts",
+      "name": "runEmbeddedAttempt",
+      "lines": 791,
+      "startLine": 141
+    },
+    {
+      "filePath": "src/agents/pi-embedded-runner/run/images.test.ts",
+      "name": "<anonymous>",
+      "lines": 172,
+      "startLine": 4
+    },
+    {
+      "filePath": "src/agents/pi-embedded-runner/run/payloads.test.ts",
+      "name": "<anonymous>",
+      "lines": 243,
+      "startLine": 5
+    },
+    {
+      "filePath": "src/agents/pi-embedded-runner/run/payloads.ts",
+      "name": "buildEmbeddedRunPayloads",
+      "lines": 233,
+      "startLine": 23
+    },
+    {
+      "filePath": "src/agents/pi-embedded-subscribe.handlers.messages.ts",
+      "name": "handleMessageEnd",
+      "lines": 182,
+      "startLine": 191
+    },
+    {
+      "filePath": "src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.does-not-emit-duplicate-block-replies-text.test.ts",
+      "name": "<anonymous>",
+      "lines": 165,
+      "startLine": 11
+    },
+    {
+      "filePath": "src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.subscribeembeddedpisession.test.ts",
+      "name": "<anonymous>",
+      "lines": 312,
+      "startLine": 9
+    },
+    {
+      "filePath": "src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.waits-multiple-compaction-retries-before-resolving.test.ts",
+      "name": "<anonymous>",
+      "lines": 231,
+      "startLine": 9
+    },
+    {
+      "filePath": "src/agents/pi-embedded-subscribe.ts",
+      "name": "subscribeEmbeddedPiSession",
+      "lines": 588,
+      "startLine": 31
+    },
+    {
+      "filePath": "src/agents/pi-embedded-utils.test.ts",
+      "name": "<anonymous>",
+      "lines": 506,
+      "startLine": 5
+    },
+    {
+      "filePath": "src/agents/pi-embedded-utils.ts",
+      "name": "stripDowngradedToolCallText",
+      "lines": 155,
+      "startLine": 36
+    },
+    {
+      "filePath": "src/agents/pi-extensions/compaction-safeguard.ts",
+      "name": "compactionSafeguardExtension",
+      "lines": 176,
+      "startLine": 161
+    },
+    {
+      "filePath": "src/agents/pi-extensions/compaction-safeguard.ts",
+      "name": "<anonymous>",
+      "lines": 174,
+      "startLine": 162
+    },
+    {
+      "filePath": "src/agents/pi-extensions/context-pruning.test.ts",
+      "name": "<anonymous>",
+      "lines": 445,
+      "startLine": 81
+    },
+    {
+      "filePath": "src/agents/pi-tools-agent-config.test.ts",
+      "name": "<anonymous>",
+      "lines": 516,
+      "startLine": 7
+    },
+    {
+      "filePath": "src/agents/pi-tools.create-opensoul-coding-tools.adds-claude-style-aliases-schemas-without-dropping.test.ts",
+      "name": "<anonymous>",
+      "lines": 466,
+      "startLine": 14
+    },
+    {
+      "filePath": "src/agents/pi-tools.ts",
+      "name": "createOpenSoulCodingTools",
+      "lines": 339,
+      "startLine": 115
+    },
+    {
+      "filePath": "src/agents/sandbox-agent-config.agent-specific-sandbox-config.should-allow-agent-specific-docker-settings-beyond.test.ts",
+      "name": "<anonymous>",
+      "lines": 165,
+      "startLine": 58
+    },
+    {
+      "filePath": "src/agents/sandbox-agent-config.agent-specific-sandbox-config.should-use-global-sandbox-config-no-agent.test.ts",
+      "name": "<anonymous>",
+      "lines": 155,
+      "startLine": 51
+    },
+    {
+      "filePath": "src/agents/sandbox-create-args.test.ts",
+      "name": "<anonymous>",
+      "lines": 157,
+      "startLine": 4
+    },
+    {
+      "filePath": "src/agents/schema/clean-for-gemini.ts",
+      "name": "cleanSchemaForGeminiWithDefs",
+      "lines": 198,
+      "startLine": 167
+    },
+    {
+      "filePath": "src/agents/session-tool-result-guard.test.ts",
+      "name": "<anonymous>",
+      "lines": 258,
+      "startLine": 15
+    },
+    {
+      "filePath": "src/agents/session-transcript-repair.test.ts",
+      "name": "<anonymous>",
+      "lines": 202,
+      "startLine": 9
+    },
+    {
+      "filePath": "src/agents/session-transcript-repair.ts",
+      "name": "repairToolUseResultPairing",
+      "lines": 153,
+      "startLine": 166
+    },
+    {
+      "filePath": "src/agents/session-write-lock.test.ts",
+      "name": "<anonymous>",
+      "lines": 155,
+      "startLine": 7
+    },
+    {
+      "filePath": "src/agents/skills-install.ts",
+      "name": "installSkill",
+      "lines": 176,
+      "startLine": 396
+    },
+    {
+      "filePath": "src/agents/subagent-announce.format.test.ts",
+      "name": "<anonymous>",
+      "lines": 508,
+      "startLine": 63
+    },
+    {
+      "filePath": "src/agents/subagent-announce.ts",
+      "name": "runSubagentAnnounceFlow",
+      "lines": 206,
+      "startLine": 367
+    },
+    {
+      "filePath": "src/agents/subagent-registry.persistence.test.ts",
+      "name": "<anonymous>",
+      "lines": 258,
+      "startLine": 25
+    },
+    {
+      "filePath": "src/agents/system-prompt.test.ts",
+      "name": "<anonymous>",
+      "lines": 425,
+      "startLine": 4
+    },
+    {
+      "filePath": "src/agents/system-prompt.ts",
+      "name": "buildAgentSystemPrompt",
+      "lines": 390,
+      "startLine": 27
+    },
+    {
+      "filePath": "src/agents/tool-call-id.test.ts",
+      "name": "<anonymous>",
+      "lines": 260,
+      "startLine": 8
+    },
+    {
+      "filePath": "src/agents/tools/browser-tool.test.ts",
+      "name": "<anonymous>",
+      "lines": 173,
+      "startLine": 74
+    },
+    {
+      "filePath": "src/agents/tools/browser-tool.ts",
+      "name": "createBrowserTool",
+      "lines": 505,
+      "startLine": 220
+    },
+    {
+      "filePath": "src/agents/tools/browser-tool.ts",
+      "name": "<anonymous>",
+      "lines": 480,
+      "startLine": 243
+    },
+    {
+      "filePath": "src/agents/tools/cron-tool.test.ts",
+      "name": "<anonymous>",
+      "lines": 330,
+      "startLine": 14
+    },
+    {
+      "filePath": "src/agents/tools/cron-tool.ts",
+      "name": "createCronTool",
+      "lines": 198,
+      "startLine": 226
+    },
+    {
+      "filePath": "src/agents/tools/discord-actions-guild.ts",
+      "name": "handleDiscordGuildAction",
+      "lines": 466,
+      "startLine": 42
+    },
+    {
+      "filePath": "src/agents/tools/discord-actions-messaging.ts",
+      "name": "handleDiscordMessagingAction",
+      "lines": 401,
+      "startLine": 50
+    },
+    {
+      "filePath": "src/agents/tools/discord-actions-presence.test.ts",
+      "name": "<anonymous>",
+      "lines": 194,
+      "startLine": 17
+    },
+    {
+      "filePath": "src/agents/tools/discord-actions.test.ts",
+      "name": "<anonymous>",
+      "lines": 177,
+      "startLine": 80
+    },
+    {
+      "filePath": "src/agents/tools/discord-actions.test.ts",
+      "name": "<anonymous>",
+      "lines": 242,
+      "startLine": 261
+    },
+    {
+      "filePath": "src/agents/tools/gateway-tool.ts",
+      "name": "createGatewayTool",
+      "lines": 191,
+      "startLine": 64
+    },
+    {
+      "filePath": "src/agents/tools/gateway-tool.ts",
+      "name": "<anonymous>",
+      "lines": 179,
+      "startLine": 74
+    },
+    {
+      "filePath": "src/agents/tools/image-tool.test.ts",
+      "name": "<anonymous>",
+      "lines": 197,
+      "startLine": 17
+    },
+    {
+      "filePath": "src/agents/tools/nodes-tool.ts",
+      "name": "createNodesTool",
+      "lines": 399,
+      "startLine": 93
+    },
+    {
+      "filePath": "src/agents/tools/nodes-tool.ts",
+      "name": "<anonymous>",
+      "lines": 382,
+      "startLine": 108
+    },
+    {
+      "filePath": "src/agents/tools/session-status-tool.ts",
+      "name": "createSessionStatusTool",
+      "lines": 222,
+      "startLine": 251
+    },
+    {
+      "filePath": "src/agents/tools/session-status-tool.ts",
+      "name": "<anonymous>",
+      "lines": 210,
+      "startLine": 261
+    },
+    {
+      "filePath": "src/agents/tools/sessions-list-tool.ts",
+      "name": "createSessionsListTool",
+      "lines": 233,
+      "startLine": 32
+    },
+    {
+      "filePath": "src/agents/tools/sessions-list-tool.ts",
+      "name": "<anonymous>",
+      "lines": 222,
+      "startLine": 41
+    },
+    {
+      "filePath": "src/agents/tools/sessions-send-tool.ts",
+      "name": "createSessionsSendTool",
+      "lines": 354,
+      "startLine": 37
+    },
+    {
+      "filePath": "src/agents/tools/sessions-send-tool.ts",
+      "name": "<anonymous>",
+      "lines": 341,
+      "startLine": 48
+    },
+    {
+      "filePath": "src/agents/tools/sessions-spawn-tool.ts",
+      "name": "createSessionsSpawnTool",
+      "lines": 240,
+      "startLine": 68
+    },
+    {
+      "filePath": "src/agents/tools/sessions-spawn-tool.ts",
+      "name": "<anonymous>",
+      "lines": 219,
+      "startLine": 87
+    },
+    {
+      "filePath": "src/agents/tools/slack-actions.test.ts",
+      "name": "<anonymous>",
+      "lines": 401,
+      "startLine": 35
+    },
+    {
+      "filePath": "src/agents/tools/slack-actions.ts",
+      "name": "handleSlackAction",
+      "lines": 233,
+      "startLine": 81
+    },
+    {
+      "filePath": "src/agents/tools/telegram-actions.test.ts",
+      "name": "<anonymous>",
+      "lines": 485,
+      "startLine": 24
+    },
+    {
+      "filePath": "src/agents/tools/telegram-actions.ts",
+      "name": "handleTelegramAction",
+      "lines": 253,
+      "startLine": 72
+    },
+    {
+      "filePath": "src/agents/tools/web-fetch.ts",
+      "name": "runWebFetch",
+      "lines": 214,
+      "startLine": 364
+    },
+    {
+      "filePath": "src/agents/tools/web-tools.enabled-defaults.test.ts",
+      "name": "<anonymous>",
+      "lines": 183,
+      "startLine": 126
+    },
+    {
+      "filePath": "src/agents/tools/web-tools.enabled-defaults.test.ts",
+      "name": "<anonymous>",
+      "lines": 186,
+      "startLine": 310
+    },
+    {
+      "filePath": "src/agents/tools/web-tools.fetch.test.ts",
+      "name": "<anonymous>",
+      "lines": 385,
+      "startLine": 93
+    },
+    {
+      "filePath": "src/auto-reply/command-control.test.ts",
+      "name": "<anonymous>",
+      "lines": 186,
+      "startLine": 29
+    },
+    {
+      "filePath": "src/auto-reply/commands-registry.data.ts",
+      "name": "buildChatCommands",
+      "lines": 458,
+      "startLine": 131
+    },
+    {
+      "filePath": "src/auto-reply/commands-registry.test.ts",
+      "name": "<anonymous>",
+      "lines": 154,
+      "startLine": 173
+    },
+    {
+      "filePath": "src/auto-reply/reply.block-streaming.test.ts",
+      "name": "<anonymous>",
+      "lines": 282,
+      "startLine": 29
+    },
+    {
+      "filePath": "src/auto-reply/reply.directive.directive-behavior.accepts-thinking-xhigh-codex-models.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 270,
+      "startLine": 61
+    },
+    {
+      "filePath": "src/auto-reply/reply.directive.directive-behavior.applies-inline-reasoning-mixed-messages-acks-immediately.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 228,
+      "startLine": 49
+    },
+    {
+      "filePath": "src/auto-reply/reply.directive.directive-behavior.defaults-think-low-reasoning-capable-models-no.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 222,
+      "startLine": 49
+    },
+    {
+      "filePath": "src/auto-reply/reply.directive.directive-behavior.lists-allowlisted-models-model-list.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 254,
+      "startLine": 49
+    },
+    {
+      "filePath": "src/auto-reply/reply.directive.directive-behavior.prefers-alias-matches-fuzzy-selection-is-ambiguous.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 205,
+      "startLine": 51
+    },
+    {
+      "filePath": "src/auto-reply/reply.directive.directive-behavior.requires-per-agent-allowlist-addition-global.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 220,
+      "startLine": 49
+    },
+    {
+      "filePath": "src/auto-reply/reply.directive.directive-behavior.returns-status-alongside-directive-only-acks.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 217,
+      "startLine": 49
+    },
+    {
+      "filePath": "src/auto-reply/reply.directive.directive-behavior.shows-current-elevated-level-as-off-after.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 196,
+      "startLine": 49
+    },
+    {
+      "filePath": "src/auto-reply/reply.directive.directive-behavior.shows-current-verbose-level-verbose-has-no.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 235,
+      "startLine": 49
+    },
+    {
+      "filePath": "src/auto-reply/reply.directive.directive-behavior.supports-fuzzy-model-matches-model-directive.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 238,
+      "startLine": 49
+    },
+    {
+      "filePath": "src/auto-reply/reply.directive.directive-behavior.updates-tool-verbose-during-flight-run-toggle.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 205,
+      "startLine": 49
+    },
+    {
+      "filePath": "src/auto-reply/reply.directive.parse.test.ts",
+      "name": "<anonymous>",
+      "lines": 212,
+      "startLine": 13
+    },
+    {
+      "filePath": "src/auto-reply/reply.raw-body.test.ts",
+      "name": "<anonymous>",
+      "lines": 208,
+      "startLine": 35
+    },
+    {
+      "filePath": "src/auto-reply/reply.triggers.trigger-handling.filters-usage-summary-current-model-provider.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 249,
+      "startLine": 108
+    },
+    {
+      "filePath": "src/auto-reply/reply.triggers.trigger-handling.shows-quick-model-picker-grouped-by-model.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 175,
+      "startLine": 97
+    },
+    {
+      "filePath": "src/auto-reply/reply.triggers.trigger-handling.targets-active-session-native-stop.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 188,
+      "startLine": 98
+    },
+    {
+      "filePath": "src/auto-reply/reply/abort.test.ts",
+      "name": "<anonymous>",
+      "lines": 178,
+      "startLine": 30
+    },
+    {
+      "filePath": "src/auto-reply/reply/agent-runner-execution.ts",
+      "name": "runAgentTurnWithFallback",
+      "lines": 551,
+      "startLine": 54
+    },
+    {
+      "filePath": "src/auto-reply/reply/agent-runner-execution.ts",
+      "name": "<anonymous>",
+      "lines": 311,
+      "startLine": 155
+    },
+    {
+      "filePath": "src/auto-reply/reply/agent-runner-memory.ts",
+      "name": "runMemoryFlushIfNeeded",
+      "lines": 176,
+      "startLine": 27
+    },
+    {
+      "filePath": "src/auto-reply/reply/agent-runner.heartbeat-typing.runreplyagent-typing-heartbeat.retries-after-compaction-failure-by-resetting-session.test.ts",
+      "name": "<anonymous>",
+      "lines": 162,
+      "startLine": 123
+    },
+    {
+      "filePath": "src/auto-reply/reply/agent-runner.ts",
+      "name": "runReplyAgent",
+      "lines": 479,
+      "startLine": 47
+    },
+    {
+      "filePath": "src/auto-reply/reply/bash-command.ts",
+      "name": "handleBashChatCommand",
+      "lines": 216,
+      "startLine": 206
+    },
+    {
+      "filePath": "src/auto-reply/reply/block-reply-pipeline.ts",
+      "name": "createBlockReplyPipeline",
+      "lines": 171,
+      "startLine": 72
+    },
+    {
+      "filePath": "src/auto-reply/reply/commands-allowlist.ts",
+      "name": "<anonymous>",
+      "lines": 373,
+      "startLine": 323
+    },
+    {
+      "filePath": "src/auto-reply/reply/commands-config.ts",
+      "name": "<anonymous>",
+      "lines": 153,
+      "startLine": 25
+    },
+    {
+      "filePath": "src/auto-reply/reply/commands-context-report.ts",
+      "name": "buildContextReply",
+      "lines": 157,
+      "startLine": 181
+    },
+    {
+      "filePath": "src/auto-reply/reply/commands-subagents.ts",
+      "name": "<anonymous>",
+      "lines": 263,
+      "startLine": 168
+    },
+    {
+      "filePath": "src/auto-reply/reply/commands-tts.ts",
+      "name": "<anonymous>",
+      "lines": 209,
+      "startLine": 71
+    },
+    {
+      "filePath": "src/auto-reply/reply/commands.test.ts",
+      "name": "<anonymous>",
+      "lines": 165,
+      "startLine": 256
+    },
+    {
+      "filePath": "src/auto-reply/reply/directive-handling.auth.ts",
+      "name": "<anonymous>",
+      "lines": 186,
+      "startLine": 29
+    },
+    {
+      "filePath": "src/auto-reply/reply/directive-handling.impl.ts",
+      "name": "handleDirectiveOnly",
+      "lines": 444,
+      "startLine": 61
+    },
+    {
+      "filePath": "src/auto-reply/reply/directive-handling.persist.ts",
+      "name": "persistInlineDirectives",
+      "lines": 204,
+      "startLine": 25
+    },
+    {
+      "filePath": "src/auto-reply/reply/dispatch-from-config.test.ts",
+      "name": "<anonymous>",
+      "lines": 374,
+      "startLine": 70
+    },
+    {
+      "filePath": "src/auto-reply/reply/dispatch-from-config.ts",
+      "name": "dispatchReplyFromConfig",
+      "lines": 377,
+      "startLine": 82
+    },
+    {
+      "filePath": "src/auto-reply/reply/followup-runner.ts",
+      "name": "createFollowupRunner",
+      "lines": 257,
+      "startLine": 29
+    },
+    {
+      "filePath": "src/auto-reply/reply/followup-runner.ts",
+      "name": "<anonymous>",
+      "lines": 171,
+      "startLine": 114
+    },
+    {
+      "filePath": "src/auto-reply/reply/get-reply-directives-apply.ts",
+      "name": "applyInlineDirectiveOverrides",
+      "lines": 279,
+      "startLine": 36
+    },
+    {
+      "filePath": "src/auto-reply/reply/get-reply-directives.ts",
+      "name": "resolveReplyDirectives",
+      "lines": 402,
+      "startLine": 87
+    },
+    {
+      "filePath": "src/auto-reply/reply/get-reply-inline-actions.ts",
+      "name": "handleInlineActions",
+      "lines": 328,
+      "startLine": 57
+    },
+    {
+      "filePath": "src/auto-reply/reply/get-reply-run.ts",
+      "name": "runPreparedReply",
+      "lines": 326,
+      "startLine": 109
+    },
+    {
+      "filePath": "src/auto-reply/reply/get-reply.ts",
+      "name": "getReplyFromConfig",
+      "lines": 283,
+      "startLine": 53
+    },
+    {
+      "filePath": "src/auto-reply/reply/line-directives.test.ts",
+      "name": "<anonymous>",
+      "lines": 325,
+      "startLine": 53
+    },
+    {
+      "filePath": "src/auto-reply/reply/line-directives.ts",
+      "name": "parseLineDirectives",
+      "lines": 307,
+      "startLine": 27
+    },
+    {
+      "filePath": "src/auto-reply/reply/model-selection.ts",
+      "name": "resolveModelDirectiveSelection",
+      "lines": 172,
+      "startLine": 404
+    },
+    {
+      "filePath": "src/auto-reply/reply/queue.collect-routing.test.ts",
+      "name": "<anonymous>",
+      "lines": 171,
+      "startLine": 37
+    },
+    {
+      "filePath": "src/auto-reply/reply/route-reply.test.ts",
+      "name": "<anonymous>",
+      "lines": 291,
+      "startLine": 109
+    },
+    {
+      "filePath": "src/auto-reply/reply/session-resets.test.ts",
+      "name": "<anonymous>",
+      "lines": 238,
+      "startLine": 19
+    },
+    {
+      "filePath": "src/auto-reply/reply/session.test.ts",
+      "name": "<anonymous>",
+      "lines": 237,
+      "startLine": 200
+    },
+    {
+      "filePath": "src/auto-reply/reply/session.ts",
+      "name": "initSessionState",
+      "lines": 300,
+      "startLine": 94
+    },
+    {
+      "filePath": "src/auto-reply/reply/stage-sandbox-media.ts",
+      "name": "stageSandboxMedia",
+      "lines": 153,
+      "startLine": 13
+    },
+    {
+      "filePath": "src/auto-reply/reply/typing.ts",
+      "name": "createTypingController",
+      "lines": 183,
+      "startLine": 14
+    },
+    {
+      "filePath": "src/auto-reply/status.test.ts",
+      "name": "<anonymous>",
+      "lines": 384,
+      "startLine": 26
+    },
+    {
+      "filePath": "src/auto-reply/status.ts",
+      "name": "buildStatusMessage",
+      "lines": 160,
+      "startLine": 309
+    },
+    {
+      "filePath": "src/browser/cdp.test.ts",
+      "name": "<anonymous>",
+      "lines": 183,
+      "startLine": 7
+    },
+    {
+      "filePath": "src/browser/chrome.ts",
+      "name": "launchOpenSoulChrome",
+      "lines": 151,
+      "startLine": 163
+    },
+    {
+      "filePath": "src/browser/client.test.ts",
+      "name": "<anonymous>",
+      "lines": 272,
+      "startLine": 13
+    },
+    {
+      "filePath": "src/browser/client.test.ts",
+      "name": "<anonymous>",
+      "lines": 169,
+      "startLine": 115
+    },
+    {
+      "filePath": "src/browser/config.test.ts",
+      "name": "<anonymous>",
+      "lines": 163,
+      "startLine": 4
+    },
+    {
+      "filePath": "src/browser/extension-relay.test.ts",
+      "name": "<anonymous>",
+      "lines": 247,
+      "startLine": 137
+    },
+    {
+      "filePath": "src/browser/extension-relay.ts",
+      "name": "ensureChromeExtensionRelayServer",
+      "lines": 572,
+      "startLine": 205
+    },
+    {
+      "filePath": "src/browser/pw-tools-core.waits-next-download-saves-it.test.ts",
+      "name": "<anonymous>",
+      "lines": 156,
+      "startLine": 37
+    },
+    {
+      "filePath": "src/browser/routes/agent.act.ts",
+      "name": "registerBrowserAgentActRoutes",
+      "lines": 523,
+      "startLine": 19
+    },
+    {
+      "filePath": "src/browser/routes/agent.act.ts",
+      "name": "<anonymous>",
+      "lines": 311,
+      "startLine": 23
+    },
+    {
+      "filePath": "src/browser/routes/agent.snapshot.ts",
+      "name": "registerBrowserAgentSnapshotRoutes",
+      "lines": 305,
+      "startLine": 25
+    },
+    {
+      "filePath": "src/browser/routes/agent.snapshot.ts",
+      "name": "<anonymous>",
+      "lines": 171,
+      "startLine": 158
+    },
+    {
+      "filePath": "src/browser/routes/agent.storage.ts",
+      "name": "registerBrowserAgentStorageRoutes",
+      "lines": 430,
+      "startLine": 6
+    },
+    {
+      "filePath": "src/browser/routes/basic.ts",
+      "name": "registerBrowserBasicRoutes",
+      "lines": 184,
+      "startLine": 7
+    },
+    {
+      "filePath": "src/browser/server-context.ensure-tab-available.prefers-last-target.test.ts",
+      "name": "<anonymous>",
+      "lines": 186,
+      "startLine": 15
+    },
+    {
+      "filePath": "src/browser/server-context.remote-tab-ops.test.ts",
+      "name": "<anonymous>",
+      "lines": 198,
+      "startLine": 47
+    },
+    {
+      "filePath": "src/browser/server-context.ts",
+      "name": "createProfileContext",
+      "lines": 476,
+      "startLine": 84
+    },
+    {
+      "filePath": "src/browser/server.agent-contract-form-layout-act-commands.test.ts",
+      "name": "<anonymous>",
+      "lines": 292,
+      "startLine": 189
+    },
+    {
+      "filePath": "src/browser/server.agent-contract-snapshot-endpoints.test.ts",
+      "name": "<anonymous>",
+      "lines": 235,
+      "startLine": 188
+    },
+    {
+      "filePath": "src/browser/server.covers-additional-endpoint-branches.test.ts",
+      "name": "<anonymous>",
+      "lines": 197,
+      "startLine": 315
+    },
+    {
+      "filePath": "src/browser/server.post-tabs-open-profile-unknown-returns-404.test.ts",
+      "name": "<anonymous>",
+      "lines": 166,
+      "startLine": 293
+    },
+    {
+      "filePath": "src/browser/server.skips-default-maxchars-explicitly-set-zero.test.ts",
+      "name": "<anonymous>",
+      "lines": 277,
+      "startLine": 187
+    },
+    {
+      "filePath": "src/canvas-host/server.test.ts",
+      "name": "<anonymous>",
+      "lines": 237,
+      "startLine": 13
+    },
+    {
+      "filePath": "src/canvas-host/server.ts",
+      "name": "createCanvasHostHandler",
+      "lines": 186,
+      "startLine": 244
+    },
+    {
+      "filePath": "src/channels/plugins/actions/discord/handle-action.guild-admin.ts",
+      "name": "tryHandleDiscordMessageActionGuildAdmin",
+      "lines": 426,
+      "startLine": 12
+    },
+    {
+      "filePath": "src/channels/plugins/actions/discord/handle-action.ts",
+      "name": "handleDiscordMessageAction",
+      "lines": 225,
+      "startLine": 24
+    },
+    {
+      "filePath": "src/channels/plugins/onboarding/discord.ts",
+      "name": "<anonymous>",
+      "lines": 199,
+      "startLine": 287
+    },
+    {
+      "filePath": "src/channels/plugins/onboarding/slack.ts",
+      "name": "<anonymous>",
+      "lines": 198,
+      "startLine": 338
+    },
+    {
+      "filePath": "src/channels/plugins/onboarding/whatsapp.ts",
+      "name": "promptWhatsAppAllowFrom",
+      "lines": 202,
+      "startLine": 50
+    },
+    {
+      "filePath": "src/channels/plugins/slack.actions.ts",
+      "name": "createSlackActions",
+      "lines": 211,
+      "startLine": 12
+    },
+    {
+      "filePath": "src/cli/browser-cli-actions-input/register.element.ts",
+      "name": "registerBrowserElementCommands",
+      "lines": 232,
+      "startLine": 7
+    },
+    {
+      "filePath": "src/cli/browser-cli-actions-input/register.files-downloads.ts",
+      "name": "registerBrowserFilesAndDownloadsCommands",
+      "lines": 177,
+      "startLine": 8
+    },
+    {
+      "filePath": "src/cli/browser-cli-debug.ts",
+      "name": "registerBrowserDebugCommands",
+      "lines": 194,
+      "startLine": 15
+    },
+    {
+      "filePath": "src/cli/browser-cli-inspect.ts",
+      "name": "registerBrowserInspectCommands",
+      "lines": 152,
+      "startLine": 9
+    },
+    {
+      "filePath": "src/cli/browser-cli-manage.ts",
+      "name": "registerBrowserManageCommands",
+      "lines": 499,
+      "startLine": 23
+    },
+    {
+      "filePath": "src/cli/browser-cli-state.cookies-storage.ts",
+      "name": "registerBrowserCookiesAndStorageCommands",
+      "lines": 209,
+      "startLine": 6
+    },
+    {
+      "filePath": "src/cli/browser-cli-state.ts",
+      "name": "registerBrowserStateCommands",
+      "lines": 322,
+      "startLine": 21
+    },
+    {
+      "filePath": "src/cli/channels-cli.ts",
+      "name": "registerChannelsCli",
+      "lines": 179,
+      "startLine": 69
+    },
+    {
+      "filePath": "src/cli/cron-cli.test.ts",
+      "name": "<anonymous>",
+      "lines": 438,
+      "startLine": 30
+    },
+    {
+      "filePath": "src/cli/cron-cli/register.cron-add.ts",
+      "name": "registerCronAddCommand",
+      "lines": 195,
+      "startLine": 61
+    },
+    {
+      "filePath": "src/cli/cron-cli/register.cron-add.ts",
+      "name": "<anonymous>",
+      "lines": 160,
+      "startLine": 94
+    },
+    {
+      "filePath": "src/cli/cron-cli/register.cron-edit.ts",
+      "name": "registerCronEditCommand",
+      "lines": 195,
+      "startLine": 24
+    },
+    {
+      "filePath": "src/cli/cron-cli/register.cron-edit.ts",
+      "name": "<anonymous>",
+      "lines": 158,
+      "startLine": 59
+    },
+    {
+      "filePath": "src/cli/daemon-cli.coverage.test.ts",
+      "name": "<anonymous>",
+      "lines": 202,
+      "startLine": 82
+    },
+    {
+      "filePath": "src/cli/daemon-cli/status.gather.ts",
+      "name": "gatherDaemonStatus",
+      "lines": 168,
+      "startLine": 108
+    },
+    {
+      "filePath": "src/cli/daemon-cli/status.print.ts",
+      "name": "printDaemonStatus",
+      "lines": 273,
+      "startLine": 49
+    },
+    {
+      "filePath": "src/cli/devices-cli.ts",
+      "name": "registerDevicesCli",
+      "lines": 156,
+      "startLine": 100
+    },
+    {
+      "filePath": "src/cli/directory-cli.ts",
+      "name": "registerDirectoryCli",
+      "lines": 226,
+      "startLine": 40
+    },
+    {
+      "filePath": "src/cli/dns-cli.ts",
+      "name": "registerDnsCli",
+      "lines": 161,
+      "startLine": 102
+    },
+    {
+      "filePath": "src/cli/exec-approvals-cli.ts",
+      "name": "registerExecApprovalsCli",
+      "lines": 236,
+      "startLine": 220
+    },
+    {
+      "filePath": "src/cli/gateway-cli.coverage.test.ts",
+      "name": "<anonymous>",
+      "lines": 244,
+      "startLine": 115
+    },
+    {
+      "filePath": "src/cli/gateway-cli/register.ts",
+      "name": "registerGatewayCli",
+      "lines": 239,
+      "startLine": 121
+    },
+    {
+      "filePath": "src/cli/gateway-cli/run.ts",
+      "name": "runGatewayCommand",
+      "lines": 256,
+      "startLine": 54
+    },
+    {
+      "filePath": "src/cli/hooks-cli.ts",
+      "name": "registerHooksCli",
+      "lines": 438,
+      "startLine": 437
+    },
+    {
+      "filePath": "src/cli/hooks-cli.ts",
+      "name": "<anonymous>",
+      "lines": 212,
+      "startLine": 538
+    },
+    {
+      "filePath": "src/cli/memory-cli.test.ts",
+      "name": "<anonymous>",
+      "lines": 340,
+      "startLine": 28
+    },
+    {
+      "filePath": "src/cli/memory-cli.ts",
+      "name": "runMemoryStatus",
+      "lines": 242,
+      "startLine": 243
+    },
+    {
+      "filePath": "src/cli/memory-cli.ts",
+      "name": "registerMemoryCli",
+      "lines": 226,
+      "startLine": 486
+    },
+    {
+      "filePath": "src/cli/models-cli.ts",
+      "name": "registerModelsCli",
+      "lines": 407,
+      "startLine": 37
+    },
+    {
+      "filePath": "src/cli/nodes-cli.coverage.test.ts",
+      "name": "<anonymous>",
+      "lines": 178,
+      "startLine": 77
+    },
+    {
+      "filePath": "src/cli/nodes-cli/register.camera.ts",
+      "name": "registerNodesCameraCommands",
+      "lines": 223,
+      "startLine": 28
+    },
+    {
+      "filePath": "src/cli/nodes-cli/register.canvas.ts",
+      "name": "registerNodesCanvasCommands",
+      "lines": 233,
+      "startLine": 29
+    },
+    {
+      "filePath": "src/cli/nodes-cli/register.invoke.ts",
+      "name": "registerNodesInvokeCommands",
+      "lines": 250,
+      "startLine": 134
+    },
+    {
+      "filePath": "src/cli/nodes-cli/register.invoke.ts",
+      "name": "<anonymous>",
+      "lines": 186,
+      "startLine": 195
+    },
+    {
+      "filePath": "src/cli/nodes-cli/register.invoke.ts",
+      "name": "<anonymous>",
+      "lines": 184,
+      "startLine": 196
+    },
+    {
+      "filePath": "src/cli/nodes-cli/register.status.ts",
+      "name": "registerNodesStatusCommands",
+      "lines": 325,
+      "startLine": 99
+    },
+    {
+      "filePath": "src/cli/plugins-cli.ts",
+      "name": "registerPluginsCli",
+      "lines": 461,
+      "startLine": 99
+    },
+    {
+      "filePath": "src/cli/plugins-cli.ts",
+      "name": "<anonymous>",
+      "lines": 158,
+      "startLine": 316
+    },
+    {
+      "filePath": "src/cli/program.nodes-basic.test.ts",
+      "name": "<anonymous>",
+      "lines": 291,
+      "startLine": 56
+    },
+    {
+      "filePath": "src/cli/program.nodes-media.test.ts",
+      "name": "<anonymous>",
+      "lines": 408,
+      "startLine": 57
+    },
+    {
+      "filePath": "src/cli/program.smoke.test.ts",
+      "name": "<anonymous>",
+      "lines": 175,
+      "startLine": 65
+    },
+    {
+      "filePath": "src/cli/program/message/register.discord-admin.ts",
+      "name": "registerMessageDiscordAdminCommands",
+      "lines": 154,
+      "startLine": 4
+    },
+    {
+      "filePath": "src/cli/program/register.agent.ts",
+      "name": "registerAgentCommands",
+      "lines": 194,
+      "startLine": 20
+    },
+    {
+      "filePath": "src/cli/progress.ts",
+      "name": "createCliProgress",
+      "lines": 158,
+      "startLine": 43
+    },
+    {
+      "filePath": "src/cli/skills-cli.test.ts",
+      "name": "<anonymous>",
+      "lines": 222,
+      "startLine": 55
+    },
+    {
+      "filePath": "src/cli/update-cli.test.ts",
+      "name": "<anonymous>",
+      "lines": 611,
+      "startLine": 82
+    },
+    {
+      "filePath": "src/cli/update-cli.ts",
+      "name": "updateCommand",
+      "lines": 430,
+      "startLine": 682
+    },
+    {
+      "filePath": "src/commands/agent.delivery.test.ts",
+      "name": "<anonymous>",
+      "lines": 269,
+      "startLine": 32
+    },
+    {
+      "filePath": "src/commands/agent.test.ts",
+      "name": "<anonymous>",
+      "lines": 344,
+      "startLine": 76
+    },
+    {
+      "filePath": "src/commands/agent.ts",
+      "name": "agentCommand",
+      "lines": 469,
+      "startLine": 64
+    },
+    {
+      "filePath": "src/commands/agents.commands.add.ts",
+      "name": "agentsAddCommand",
+      "lines": 317,
+      "startLine": 51
+    },
+    {
+      "filePath": "src/commands/agents.commands.identity.ts",
+      "name": "agentsSetIdentityCommand",
+      "lines": 166,
+      "startLine": 68
+    },
+    {
+      "filePath": "src/commands/agents.identity.test.ts",
+      "name": "<anonymous>",
+      "lines": 220,
+      "startLine": 40
+    },
+    {
+      "filePath": "src/commands/auth-choice.apply.api-providers.ts",
+      "name": "applyAuthChoiceApiProviders",
+      "lines": 800,
+      "startLine": 64
+    },
+    {
+      "filePath": "src/commands/auth-choice.apply.openai.ts",
+      "name": "applyAuthChoiceOpenAI",
+      "lines": 169,
+      "startLine": 25
+    },
+    {
+      "filePath": "src/commands/auth-choice.test.ts",
+      "name": "<anonymous>",
+      "lines": 785,
+      "startLine": 30
+    },
+    {
+      "filePath": "src/commands/channels.adds-non-default-telegram-account.test.ts",
+      "name": "<anonymous>",
+      "lines": 429,
+      "startLine": 62
+    },
+    {
+      "filePath": "src/commands/channels/add.ts",
+      "name": "channelsAddCommand",
+      "lines": 199,
+      "startLine": 79
+    },
+    {
+      "filePath": "src/commands/chutes-oauth.test.ts",
+      "name": "<anonymous>",
+      "lines": 155,
+      "startLine": 22
+    },
+    {
+      "filePath": "src/commands/configure.gateway.ts",
+      "name": "promptGatewayConfig",
+      "lines": 213,
+      "startLine": 12
+    },
+    {
+      "filePath": "src/commands/configure.wizard.ts",
+      "name": "runConfigureWizard",
+      "lines": 424,
+      "startLine": 172
+    },
+    {
+      "filePath": "src/commands/daemon-install-helpers.test.ts",
+      "name": "<anonymous>",
+      "lines": 188,
+      "startLine": 45
+    },
+    {
+      "filePath": "src/commands/doctor-gateway-daemon-flow.ts",
+      "name": "maybeRepairGatewayDaemon",
+      "lines": 173,
+      "startLine": 88
+    },
+    {
+      "filePath": "src/commands/doctor-security.ts",
+      "name": "noteSecurityWarnings",
+      "lines": 175,
+      "startLine": 11
+    },
+    {
+      "filePath": "src/commands/doctor-state-integrity.ts",
+      "name": "noteStateIntegrity",
+      "lines": 244,
+      "startLine": 134
+    },
+    {
+      "filePath": "src/commands/doctor-state-migrations.test.ts",
+      "name": "<anonymous>",
+      "lines": 471,
+      "startLine": 38
+    },
+    {
+      "filePath": "src/commands/doctor.ts",
+      "name": "doctorCommand",
+      "lines": 249,
+      "startLine": 65
+    },
+    {
+      "filePath": "src/commands/gateway-status.test.ts",
+      "name": "<anonymous>",
+      "lines": 241,
+      "startLine": 111
+    },
+    {
+      "filePath": "src/commands/gateway-status.ts",
+      "name": "gatewayStatusCommand",
+      "lines": 321,
+      "startLine": 24
+    },
+    {
+      "filePath": "src/commands/health.snapshot.test.ts",
+      "name": "<anonymous>",
+      "lines": 233,
+      "startLine": 38
+    },
+    {
+      "filePath": "src/commands/health.test.ts",
+      "name": "<anonymous>",
+      "lines": 160,
+      "startLine": 16
+    },
+    {
+      "filePath": "src/commands/health.ts",
+      "name": "getHealthSnapshot",
+      "lines": 176,
+      "startLine": 385
+    },
+    {
+      "filePath": "src/commands/health.ts",
+      "name": "healthCommand",
+      "lines": 226,
+      "startLine": 562
+    },
+    {
+      "filePath": "src/commands/message-format.ts",
+      "name": "formatMessageCliText",
+      "lines": 162,
+      "startLine": 261
+    },
+    {
+      "filePath": "src/commands/message.test.ts",
+      "name": "<anonymous>",
+      "lines": 164,
+      "startLine": 121
+    },
+    {
+      "filePath": "src/commands/model-picker.ts",
+      "name": "promptDefaultModel",
+      "lines": 196,
+      "startLine": 104
+    },
+    {
+      "filePath": "src/commands/model-picker.ts",
+      "name": "promptModelAllowlist",
+      "lines": 151,
+      "startLine": 301
+    },
+    {
+      "filePath": "src/commands/models.list.test.ts",
+      "name": "<anonymous>",
+      "lines": 216,
+      "startLine": 68
+    },
+    {
+      "filePath": "src/commands/models/list.probe.ts",
+      "name": "buildProbeTargets",
+      "lines": 152,
+      "startLine": 136
+    },
+    {
+      "filePath": "src/commands/models/list.status-command.ts",
+      "name": "modelsStatusCommand",
+      "lines": 636,
+      "startLine": 56
+    },
+    {
+      "filePath": "src/commands/models/scan.ts",
+      "name": "modelsScanCommand",
+      "lines": 242,
+      "startLine": 141
+    },
+    {
+      "filePath": "src/commands/onboard-channels.test.ts",
+      "name": "<anonymous>",
+      "lines": 178,
+      "startLine": 31
+    },
+    {
+      "filePath": "src/commands/onboard-channels.ts",
+      "name": "setupChannels",
+      "lines": 389,
+      "startLine": 287
+    },
+    {
+      "filePath": "src/commands/onboard-hooks.test.ts",
+      "name": "<anonymous>",
+      "lines": 228,
+      "startLine": 18
+    },
+    {
+      "filePath": "src/commands/onboard-non-interactive.gateway.test.ts",
+      "name": "<anonymous>",
+      "lines": 196,
+      "startLine": 99
+    },
+    {
+      "filePath": "src/commands/onboard-non-interactive.provider-auth.test.ts",
+      "name": "<anonymous>",
+      "lines": 191,
+      "startLine": 137
+    },
+    {
+      "filePath": "src/commands/onboard-non-interactive/local/auth-choice.ts",
+      "name": "applyNonInteractiveAuthChoice",
+      "lines": 231,
+      "startLine": 55
+    },
+    {
+      "filePath": "src/commands/onboard-skills.ts",
+      "name": "setupSkills",
+      "lines": 157,
+      "startLine": 49
+    },
+    {
+      "filePath": "src/commands/sandbox-explain.ts",
+      "name": "sandboxExplainCommand",
+      "lines": 209,
+      "startLine": 129
+    },
+    {
+      "filePath": "src/commands/sandbox.test.ts",
+      "name": "<anonymous>",
+      "lines": 159,
+      "startLine": 169
+    },
+    {
+      "filePath": "src/commands/status-all.ts",
+      "name": "statusAllCommand",
+      "lines": 430,
+      "startLine": 35
+    },
+    {
+      "filePath": "src/commands/status-all.ts",
+      "name": "<anonymous>",
+      "lines": 425,
+      "startLine": 39
+    },
+    {
+      "filePath": "src/commands/status-all/channels.ts",
+      "name": "buildChannelsTable",
+      "lines": 179,
+      "startLine": 319
+    },
+    {
+      "filePath": "src/commands/status-all/diagnosis.ts",
+      "name": "appendStatusAllDiagnosis",
+      "lines": 206,
+      "startLine": 42
+    },
+    {
+      "filePath": "src/commands/status-all/report-lines.ts",
+      "name": "buildStatusAllReportLines",
+      "lines": 157,
+      "startLine": 40
+    },
+    {
+      "filePath": "src/commands/status.command.ts",
+      "name": "statusCommand",
+      "lines": 601,
+      "startLine": 43
+    },
+    {
+      "filePath": "src/commands/status.test.ts",
+      "name": "<anonymous>",
+      "lines": 189,
+      "startLine": 292
+    },
+    {
+      "filePath": "src/config/config.identity-defaults.test.ts",
+      "name": "<anonymous>",
+      "lines": 346,
+      "startLine": 7
+    },
+    {
+      "filePath": "src/config/config.legacy-config-detection.accepts-imessage-dmpolicy.test.ts",
+      "name": "<anonymous>",
+      "lines": 404,
+      "startLine": 6
+    },
+    {
+      "filePath": "src/config/config.legacy-config-detection.rejects-routing-allowfrom.test.ts",
+      "name": "<anonymous>",
+      "lines": 439,
+      "startLine": 3
+    },
+    {
+      "filePath": "src/config/config.nix-integration-u3-u5-u9.test.ts",
+      "name": "<anonymous>",
+      "lines": 254,
+      "startLine": 6
+    },
+    {
+      "filePath": "src/config/config.plugin-validation.test.ts",
+      "name": "<anonymous>",
+      "lines": 159,
+      "startLine": 32
+    },
+    {
+      "filePath": "src/config/env-substitution.test.ts",
+      "name": "<anonymous>",
+      "lines": 286,
+      "startLine": 4
+    },
+    {
+      "filePath": "src/config/includes.test.ts",
+      "name": "<anonymous>",
+      "lines": 244,
+      "startLine": 45
+    },
+    {
+      "filePath": "src/config/io.ts",
+      "name": "createConfigIO",
+      "lines": 343,
+      "startLine": 203
+    },
+    {
+      "filePath": "src/config/io.ts",
+      "name": "readConfigFileSnapshot",
+      "lines": 156,
+      "startLine": 323
+    },
+    {
+      "filePath": "src/config/legacy.migrations.part-2.ts",
+      "name": "<anonymous>",
+      "lines": 161,
+      "startLine": 17
+    },
+    {
+      "filePath": "src/config/redact-snapshot.test.ts",
+      "name": "<anonymous>",
+      "lines": 203,
+      "startLine": 24
+    },
+    {
+      "filePath": "src/config/sessions.cache.test.ts",
+      "name": "<anonymous>",
+      "lines": 202,
+      "startLine": 12
+    },
+    {
+      "filePath": "src/config/sessions.test.ts",
+      "name": "<anonymous>",
+      "lines": 438,
+      "startLine": 19
+    },
+    {
+      "filePath": "src/config/validation.ts",
+      "name": "validateConfigObjectWithPlugins",
+      "lines": 226,
+      "startLine": 136
+    },
+    {
+      "filePath": "src/cron/isolated-agent.skips-delivery-without-whatsapp-recipient-besteffortdeliver-true.test.ts",
+      "name": "<anonymous>",
+      "lines": 317,
+      "startLine": 89
+    },
+    {
+      "filePath": "src/cron/isolated-agent.uses-last-non-empty-agent-text-as.test.ts",
+      "name": "<anonymous>",
+      "lines": 579,
+      "startLine": 87
+    },
+    {
+      "filePath": "src/cron/isolated-agent/run.ts",
+      "name": "runCronIsolatedAgentTurn",
+      "lines": 487,
+      "startLine": 110
+    },
+    {
+      "filePath": "src/cron/normalize.test.ts",
+      "name": "<anonymous>",
+      "lines": 292,
+      "startLine": 4
+    },
+    {
+      "filePath": "src/cron/service.every-jobs-fire.test.ts",
+      "name": "<anonymous>",
+      "lines": 184,
+      "startLine": 42
+    },
+    {
+      "filePath": "src/cron/service.issue-regressions.test.ts",
+      "name": "<anonymous>",
+      "lines": 295,
+      "startLine": 52
+    },
+    {
+      "filePath": "src/cron/service.runs-one-shot-main-job-disables-it.test.ts",
+      "name": "<anonymous>",
+      "lines": 491,
+      "startLine": 38
+    },
+    {
+      "filePath": "src/cron/service/store.ts",
+      "name": "ensureLoaded",
+      "lines": 222,
+      "startLine": 264
+    },
+    {
+      "filePath": "src/daemon/schtasks.test.ts",
+      "name": "<anonymous>",
+      "lines": 154,
+      "startLine": 95
+    },
+    {
+      "filePath": "src/discord/monitor.test.ts",
+      "name": "<anonymous>",
+      "lines": 184,
+      "startLine": 165
+    },
+    {
+      "filePath": "src/discord/monitor.tool-result.accepts-guild-messages-mentionpatterns-match.test.ts",
+      "name": "<anonymous>",
+      "lines": 704,
+      "startLine": 58
+    },
+    {
+      "filePath": "src/discord/monitor.tool-result.sends-status-replies-responseprefix.test.ts",
+      "name": "<anonymous>",
+      "lines": 485,
+      "startLine": 57
+    },
+    {
+      "filePath": "src/discord/monitor/message-handler.inbound-contract.test.ts",
+      "name": "<anonymous>",
+      "lines": 154,
+      "startLine": 27
+    },
+    {
+      "filePath": "src/discord/monitor/message-handler.preflight.ts",
+      "name": "preflightDiscordMessage",
+      "lines": 517,
+      "startLine": 59
+    },
+    {
+      "filePath": "src/discord/monitor/message-handler.process.ts",
+      "name": "processDiscordMessage",
+      "lines": 405,
+      "startLine": 46
+    },
+    {
+      "filePath": "src/discord/monitor/native-command.ts",
+      "name": "dispatchDiscordCommandInteraction",
+      "lines": 360,
+      "startLine": 490
+    },
+    {
+      "filePath": "src/discord/monitor/provider.ts",
+      "name": "monitorDiscordProvider",
+      "lines": 533,
+      "startLine": 143
+    },
+    {
+      "filePath": "src/discord/resolve-channels.ts",
+      "name": "resolveDiscordChannelAllowlist",
+      "lines": 169,
+      "startLine": 155
+    },
+    {
+      "filePath": "src/gateway/call.ts",
+      "name": "callGateway",
+      "lines": 153,
+      "startLine": 156
+    },
+    {
+      "filePath": "src/gateway/chat-attachments.test.ts",
+      "name": "<anonymous>",
+      "lines": 154,
+      "startLine": 60
+    },
+    {
+      "filePath": "src/gateway/client.test.ts",
+      "name": "<anonymous>",
+      "lines": 160,
+      "startLine": 19
+    },
+    {
+      "filePath": "src/gateway/gateway-cli-backend.live.test.ts",
+      "name": "<anonymous>",
+      "lines": 266,
+      "startLine": 204
+    },
+    {
+      "filePath": "src/gateway/gateway-cli-backend.live.test.ts",
+      "name": "<anonymous>",
+      "lines": 264,
+      "startLine": 205
+    },
+    {
+      "filePath": "src/gateway/gateway-models.profiles.live.test.ts",
+      "name": "runGatewayModelSuite",
+      "lines": 519,
+      "startLine": 492
+    },
+    {
+      "filePath": "src/gateway/gateway-models.profiles.live.test.ts",
+      "name": "<anonymous>",
+      "lines": 236,
+      "startLine": 1012
+    },
+    {
+      "filePath": "src/gateway/gateway.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 256,
+      "startLine": 23
+    },
+    {
+      "filePath": "src/gateway/hooks-mapping.test.ts",
+      "name": "<anonymous>",
+      "lines": 159,
+      "startLine": 9
+    },
+    {
+      "filePath": "src/gateway/openai-http.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 370,
+      "startLine": 62
+    },
+    {
+      "filePath": "src/gateway/openai-http.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 251,
+      "startLine": 95
+    },
+    {
+      "filePath": "src/gateway/openai-http.ts",
+      "name": "handleOpenAiHttpRequest",
+      "lines": 256,
+      "startLine": 171
+    },
+    {
+      "filePath": "src/gateway/openresponses-http.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 423,
+      "startLine": 85
+    },
+    {
+      "filePath": "src/gateway/openresponses-http.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 308,
+      "startLine": 116
+    },
+    {
+      "filePath": "src/gateway/openresponses-http.ts",
+      "name": "handleOpenResponsesHttpRequest",
+      "lines": 585,
+      "startLine": 330
+    },
+    {
+      "filePath": "src/gateway/openresponses-http.ts",
+      "name": "<anonymous>",
+      "lines": 160,
+      "startLine": 752
+    },
+    {
+      "filePath": "src/gateway/openresponses-parity.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 306,
+      "startLine": 10
+    },
+    {
+      "filePath": "src/gateway/server-channels.ts",
+      "name": "createChannelManager",
+      "lines": 245,
+      "startLine": 64
+    },
+    {
+      "filePath": "src/gateway/server-chat.agent-events.test.ts",
+      "name": "<anonymous>",
+      "lines": 197,
+      "startLine": 9
+    },
+    {
+      "filePath": "src/gateway/server-chat.ts",
+      "name": "createAgentEventHandler",
+      "lines": 194,
+      "startLine": 220
+    },
+    {
+      "filePath": "src/gateway/server-http.ts",
+      "name": "createGatewayHttpServer",
+      "lines": 154,
+      "startLine": 279
+    },
+    {
+      "filePath": "src/gateway/server-methods/agent.ts",
+      "name": "<anonymous>",
+      "lines": 388,
+      "startLine": 48
+    },
+    {
+      "filePath": "src/gateway/server-methods/channels.ts",
+      "name": "<anonymous>",
+      "lines": 167,
+      "startLine": 70
+    },
+    {
+      "filePath": "src/gateway/server-methods/chat.ts",
+      "name": "<anonymous>",
+      "lines": 320,
+      "startLine": 342
+    },
+    {
+      "filePath": "src/gateway/server-methods/exec-approval.test.ts",
+      "name": "<anonymous>",
+      "lines": 269,
+      "startLine": 8
+    },
+    {
+      "filePath": "src/gateway/server-methods/send.ts",
+      "name": "<anonymous>",
+      "lines": 197,
+      "startLine": 46
+    },
+    {
+      "filePath": "src/gateway/server-methods/usage.ts",
+      "name": "<anonymous>",
+      "lines": 477,
+      "startLine": 270
+    },
+    {
+      "filePath": "src/gateway/server-node-events.ts",
+      "name": "<anonymous>",
+      "lines": 235,
+      "startLine": 14
+    },
+    {
+      "filePath": "src/gateway/server-runtime-state.ts",
+      "name": "createGatewayRuntimeState",
+      "lines": 182,
+      "startLine": 29
+    },
+    {
+      "filePath": "src/gateway/server.agent.gateway-server-agent-a.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 484,
+      "startLine": 170
+    },
+    {
+      "filePath": "src/gateway/server.agent.gateway-server-agent-b.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 337,
+      "startLine": 119
+    },
+    {
+      "filePath": "src/gateway/server.auth.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 574,
+      "startLine": 53
+    },
+    {
+      "filePath": "src/gateway/server.chat.gateway-server-chat-b.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 476,
+      "startLine": 44
+    },
+    {
+      "filePath": "src/gateway/server.chat.gateway-server-chat-b.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 469,
+      "startLine": 49
+    },
+    {
+      "filePath": "src/gateway/server.chat.gateway-server-chat.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 445,
+      "startLine": 49
+    },
+    {
+      "filePath": "src/gateway/server.chat.gateway-server-chat.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 254,
+      "startLine": 50
+    },
+    {
+      "filePath": "src/gateway/server.config-patch.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 328,
+      "startLine": 33
+    },
+    {
+      "filePath": "src/gateway/server.cron.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 332,
+      "startLine": 53
+    },
+    {
+      "filePath": "src/gateway/server.cron.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 233,
+      "startLine": 54
+    },
+    {
+      "filePath": "src/gateway/server.health.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 254,
+      "startLine": 53
+    },
+    {
+      "filePath": "src/gateway/server.impl.ts",
+      "name": "startGatewayServer",
+      "lines": 385,
+      "startLine": 132
+    },
+    {
+      "filePath": "src/gateway/server.models-voicewake-misc.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 222,
+      "startLine": 92
+    },
+    {
+      "filePath": "src/gateway/server.sessions.gateway-server-sessions-a.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 401,
+      "startLine": 73
+    },
+    {
+      "filePath": "src/gateway/server.sessions.gateway-server-sessions-a.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 295,
+      "startLine": 79
+    },
+    {
+      "filePath": "src/gateway/server/ws-connection.ts",
+      "name": "attachGatewayWsConnectionHandler",
+      "lines": 298,
+      "startLine": 24
+    },
+    {
+      "filePath": "src/gateway/server/ws-connection.ts",
+      "name": "<anonymous>",
+      "lines": 255,
+      "startLine": 66
+    },
+    {
+      "filePath": "src/gateway/server/ws-connection/message-handler.ts",
+      "name": "attachGatewayWsMessageHandler",
+      "lines": 876,
+      "startLine": 133
+    },
+    {
+      "filePath": "src/gateway/server/ws-connection/message-handler.ts",
+      "name": "<anonymous>",
+      "lines": 774,
+      "startLine": 234
+    },
+    {
+      "filePath": "src/gateway/session-utils.fs.test.ts",
+      "name": "<anonymous>",
+      "lines": 188,
+      "startLine": 158
+    },
+    {
+      "filePath": "src/gateway/session-utils.test.ts",
+      "name": "<anonymous>",
+      "lines": 168,
+      "startLine": 192
+    },
+    {
+      "filePath": "src/gateway/session-utils.ts",
+      "name": "listSessionsFromStore",
+      "lines": 181,
+      "startLine": 558
+    },
+    {
+      "filePath": "src/gateway/sessions-patch.ts",
+      "name": "applySessionsPatchToStore",
+      "lines": 280,
+      "startLine": 61
+    },
+    {
+      "filePath": "src/gateway/test-helpers.mocks.ts",
+      "name": "<anonymous>",
+      "lines": 245,
+      "startLine": 288
+    },
+    {
+      "filePath": "src/gateway/tools-invoke-http.test.ts",
+      "name": "<anonymous>",
+      "lines": 320,
+      "startLine": 25
+    },
+    {
+      "filePath": "src/gateway/tools-invoke-http.ts",
+      "name": "handleToolsInvokeHttpRequest",
+      "lines": 226,
+      "startLine": 102
+    },
+    {
+      "filePath": "src/hooks/bundled/session-memory/handler.test.ts",
+      "name": "<anonymous>",
+      "lines": 346,
+      "startLine": 43
+    },
+    {
+      "filePath": "src/hooks/gmail-ops.ts",
+      "name": "runGmailSetup",
+      "lines": 192,
+      "startLine": 90
+    },
+    {
+      "filePath": "src/hooks/install.test.ts",
+      "name": "<anonymous>",
+      "lines": 188,
+      "startLine": 28
+    },
+    {
+      "filePath": "src/hooks/internal-hooks.test.ts",
+      "name": "<anonymous>",
+      "lines": 234,
+      "startLine": 14
+    },
+    {
+      "filePath": "src/hooks/loader.test.ts",
+      "name": "<anonymous>",
+      "lines": 261,
+      "startLine": 14
+    },
+    {
+      "filePath": "src/hooks/loader.test.ts",
+      "name": "<anonymous>",
+      "lines": 229,
+      "startLine": 45
+    },
+    {
+      "filePath": "src/imessage/monitor.skips-group-messages-without-mention-by-default.test.ts",
+      "name": "<anonymous>",
+      "lines": 434,
+      "startLine": 103
+    },
+    {
+      "filePath": "src/imessage/monitor/monitor-provider.ts",
+      "name": "monitorIMessageProvider",
+      "lines": 591,
+      "startLine": 159
+    },
+    {
+      "filePath": "src/imessage/monitor/monitor-provider.ts",
+      "name": "handleMessageNow",
+      "lines": 417,
+      "startLine": 249
+    },
+    {
+      "filePath": "src/infra/bonjour-discovery.test.ts",
+      "name": "<anonymous>",
+      "lines": 305,
+      "startLine": 7
+    },
+    {
+      "filePath": "src/infra/bonjour-discovery.ts",
+      "name": "discoverWideAreaViaTailnetDns",
+      "lines": 155,
+      "startLine": 299
+    },
+    {
+      "filePath": "src/infra/bonjour.test.ts",
+      "name": "<anonymous>",
+      "lines": 333,
+      "startLine": 48
+    },
+    {
+      "filePath": "src/infra/bonjour.ts",
+      "name": "startGatewayBonjourAdvertiser",
+      "lines": 198,
+      "startLine": 84
+    },
+    {
+      "filePath": "src/infra/control-ui-assets.test.ts",
+      "name": "<anonymous>",
+      "lines": 211,
+      "startLine": 14
+    },
+    {
+      "filePath": "src/infra/heartbeat-runner.respects-ackmaxchars-heartbeat-acks.test.ts",
+      "name": "<anonymous>",
+      "lines": 602,
+      "startLine": 32
+    },
+    {
+      "filePath": "src/infra/heartbeat-runner.returns-default-unset.test.ts",
+      "name": "<anonymous>",
+      "lines": 194,
+      "startLine": 132
+    },
+    {
+      "filePath": "src/infra/heartbeat-runner.returns-default-unset.test.ts",
+      "name": "<anonymous>",
+      "lines": 719,
+      "startLine": 360
+    },
+    {
+      "filePath": "src/infra/heartbeat-runner.ts",
+      "name": "runHeartbeatOnce",
+      "lines": 371,
+      "startLine": 490
+    },
+    {
+      "filePath": "src/infra/heartbeat-runner.ts",
+      "name": "startHeartbeatRunner",
+      "lines": 169,
+      "startLine": 862
+    },
+    {
+      "filePath": "src/infra/heartbeat-visibility.test.ts",
+      "name": "<anonymous>",
+      "lines": 300,
+      "startLine": 5
+    },
+    {
+      "filePath": "src/infra/outbound/deliver.test.ts",
+      "name": "<anonymous>",
+      "lines": 329,
+      "startLine": 30
+    },
+    {
+      "filePath": "src/infra/outbound/deliver.ts",
+      "name": "deliverOutboundPayloads",
+      "lines": 197,
+      "startLine": 179
+    },
+    {
+      "filePath": "src/infra/outbound/message-action-runner.test.ts",
+      "name": "<anonymous>",
+      "lines": 324,
+      "startLine": 41
+    },
+    {
+      "filePath": "src/infra/outbound/message-action-runner.threading.test.ts",
+      "name": "<anonymous>",
+      "lines": 191,
+      "startLine": 52
+    },
+    {
+      "filePath": "src/infra/outbound/message-action-runner.ts",
+      "name": "handleSendAction",
+      "lines": 168,
+      "startLine": 731
+    },
+    {
+      "filePath": "src/infra/path-env.test.ts",
+      "name": "<anonymous>",
+      "lines": 174,
+      "startLine": 7
+    },
+    {
+      "filePath": "src/infra/provider-usage.fetch.antigravity.test.ts",
+      "name": "<anonymous>",
+      "lines": 569,
+      "startLine": 10
+    },
+    {
+      "filePath": "src/infra/provider-usage.test.ts",
+      "name": "<anonymous>",
+      "lines": 322,
+      "startLine": 72
+    },
+    {
+      "filePath": "src/infra/session-cost-usage.test.ts",
+      "name": "<anonymous>",
+      "lines": 232,
+      "startLine": 12
+    },
+    {
+      "filePath": "src/infra/session-cost-usage.ts",
+      "name": "loadSessionCostSummary",
+      "lines": 272,
+      "startLine": 559
+    },
+    {
+      "filePath": "src/infra/session-cost-usage.ts",
+      "name": "<anonymous>",
+      "lines": 164,
+      "startLine": 600
+    },
+    {
+      "filePath": "src/infra/session-cost-usage.ts",
+      "name": "loadSessionLogs",
+      "lines": 164,
+      "startLine": 929
+    },
+    {
+      "filePath": "src/infra/tailscale.test.ts",
+      "name": "<anonymous>",
+      "lines": 178,
+      "startLine": 14
+    },
+    {
+      "filePath": "src/infra/unhandled-rejections.fatal-detection.test.ts",
+      "name": "<anonymous>",
+      "lines": 157,
+      "startLine": 5
+    },
+    {
+      "filePath": "src/infra/update-runner.test.ts",
+      "name": "<anonymous>",
+      "lines": 573,
+      "startLine": 33
+    },
+    {
+      "filePath": "src/infra/update-runner.ts",
+      "name": "runGatewayUpdate",
+      "lines": 546,
+      "startLine": 367
+    },
+    {
+      "filePath": "src/line/accounts.test.ts",
+      "name": "<anonymous>",
+      "lines": 189,
+      "startLine": 11
+    },
+    {
+      "filePath": "src/line/auto-reply-delivery.test.ts",
+      "name": "<anonymous>",
+      "lines": 175,
+      "startLine": 27
+    },
+    {
+      "filePath": "src/line/bot-message-context.ts",
+      "name": "buildLineMessageContext",
+      "lines": 169,
+      "startLine": 139
+    },
+    {
+      "filePath": "src/line/flex-templates.ts",
+      "name": "createEventCard",
+      "lines": 168,
+      "startLine": 584
+    },
+    {
+      "filePath": "src/line/flex-templates.ts",
+      "name": "createAgendaCard",
+      "lines": 182,
+      "startLine": 759
+    },
+    {
+      "filePath": "src/line/flex-templates.ts",
+      "name": "createMediaPlayerCard",
+      "lines": 245,
+      "startLine": 948
+    },
+    {
+      "filePath": "src/line/monitor.ts",
+      "name": "monitorLineProvider",
+      "lines": 257,
+      "startLine": 129
+    },
+    {
+      "filePath": "src/macos/gateway-daemon.ts",
+      "name": "main",
+      "lines": 188,
+      "startLine": 29
+    },
+    {
+      "filePath": "src/markdown/ir.ts",
+      "name": "renderTokens",
+      "lines": 179,
+      "startLine": 505
+    },
+    {
+      "filePath": "src/media-understanding/apply.test.ts",
+      "name": "<anonymous>",
+      "lines": 827,
+      "startLine": 36
+    },
+    {
+      "filePath": "src/media-understanding/runner.ts",
+      "name": "runProviderEntry",
+      "lines": 183,
+      "startLine": 808
+    },
+    {
+      "filePath": "src/media/parse.ts",
+      "name": "splitMediaFromOutput",
+      "lines": 165,
+      "startLine": 56
+    },
+    {
+      "filePath": "src/media/store.test.ts",
+      "name": "<anonymous>",
+      "lines": 268,
+      "startLine": 9
+    },
+    {
+      "filePath": "src/memory/batch-voyage.test.ts",
+      "name": "<anonymous>",
+      "lines": 163,
+      "startLine": 12
+    },
+    {
+      "filePath": "src/memory/embeddings.test.ts",
+      "name": "<anonymous>",
+      "lines": 153,
+      "startLine": 330
+    },
+    {
+      "filePath": "src/memory/index.test.ts",
+      "name": "<anonymous>",
+      "lines": 454,
+      "startLine": 36
+    },
+    {
+      "filePath": "src/memory/manager.batch.test.ts",
+      "name": "<anonymous>",
+      "lines": 470,
+      "startLine": 27
+    },
+    {
+      "filePath": "src/memory/manager.embedding-batches.test.ts",
+      "name": "<anonymous>",
+      "lines": 282,
+      "startLine": 22
+    },
+    {
+      "filePath": "src/memory/qmd-manager.test.ts",
+      "name": "<anonymous>",
+      "lines": 501,
+      "startLine": 50
+    },
+    {
+      "filePath": "src/node-host/runner.ts",
+      "name": "handleInvoke",
+      "lines": 552,
+      "startLine": 653
+    },
+    {
+      "filePath": "src/plugins/hooks.ts",
+      "name": "createHookRunner",
+      "lines": 376,
+      "startLine": 93
+    },
+    {
+      "filePath": "src/plugins/install.test.ts",
+      "name": "<anonymous>",
+      "lines": 402,
+      "startLine": 94
+    },
+    {
+      "filePath": "src/plugins/install.ts",
+      "name": "installPluginFromPackageDir",
+      "lines": 175,
+      "startLine": 135
+    },
+    {
+      "filePath": "src/plugins/loader.test.ts",
+      "name": "<anonymous>",
+      "lines": 467,
+      "startLine": 61
+    },
+    {
+      "filePath": "src/plugins/loader.ts",
+      "name": "loadOpenSoulPlugins",
+      "lines": 285,
+      "startLine": 169
+    },
+    {
+      "filePath": "src/plugins/registry.ts",
+      "name": "createPluginRegistry",
+      "lines": 470,
+      "startLine": 146
+    },
+    {
+      "filePath": "src/plugins/runtime/index.ts",
+      "name": "createPluginRuntime",
+      "lines": 193,
+      "startLine": 165
+    },
+    {
+      "filePath": "src/plugins/update.ts",
+      "name": "updateNpmInstalledPlugins",
+      "lines": 172,
+      "startLine": 140
+    },
+    {
+      "filePath": "src/providers/google-shared.preserves-parameters-type-is-missing.test.ts",
+      "name": "<anonymous>",
+      "lines": 270,
+      "startLine": 154
+    },
+    {
+      "filePath": "src/routing/resolve-route.test.ts",
+      "name": "<anonymous>",
+      "lines": 224,
+      "startLine": 5
+    },
+    {
+      "filePath": "src/routing/resolve-route.test.ts",
+      "name": "<anonymous>",
+      "lines": 156,
+      "startLine": 256
+    },
+    {
+      "filePath": "src/security/audit-extra.ts",
+      "name": "collectStateDeepFilesystemFindings",
+      "lines": 155,
+      "startLine": 852
+    },
+    {
+      "filePath": "src/security/audit.test.ts",
+      "name": "<anonymous>",
+      "lines": 1484,
+      "startLine": 28
+    },
+    {
+      "filePath": "src/security/audit.test.ts",
+      "name": "<anonymous>",
+      "lines": 313,
+      "startLine": 1198
+    },
+    {
+      "filePath": "src/security/audit.ts",
+      "name": "collectChannelSecurityFindings",
+      "lines": 390,
+      "startLine": 464
+    },
+    {
+      "filePath": "src/security/external-content.test.ts",
+      "name": "<anonymous>",
+      "lines": 268,
+      "startLine": 11
+    },
+    {
+      "filePath": "src/security/fix.test.ts",
+      "name": "<anonymous>",
+      "lines": 249,
+      "startLine": 17
+    },
+    {
+      "filePath": "src/security/windows-acl.test.ts",
+      "name": "<anonymous>",
+      "lines": 324,
+      "startLine": 21
+    },
+    {
+      "filePath": "src/shared/text/reasoning-tags.test.ts",
+      "name": "<anonymous>",
+      "lines": 215,
+      "startLine": 4
+    },
+    {
+      "filePath": "src/signal/monitor.tool-result.sends-tool-summaries-responseprefix.test.ts",
+      "name": "<anonymous>",
+      "lines": 485,
+      "startLine": 87
+    },
+    {
+      "filePath": "src/signal/monitor/event-handler.ts",
+      "name": "createSignalEventHandler",
+      "lines": 535,
+      "startLine": 47
+    },
+    {
+      "filePath": "src/signal/monitor/event-handler.ts",
+      "name": "handleSignalInboundMessage",
+      "lines": 187,
+      "startLine": 66
+    },
+    {
+      "filePath": "src/signal/monitor/event-handler.ts",
+      "name": "<anonymous>",
+      "lines": 281,
+      "startLine": 300
+    },
+    {
+      "filePath": "src/slack/monitor.tool-result.forces-thread-replies-replytoid-is-set.test.ts",
+      "name": "<anonymous>",
+      "lines": 191,
+      "startLine": 23
+    },
+    {
+      "filePath": "src/slack/monitor.tool-result.sends-tool-summaries-responseprefix.test.ts",
+      "name": "<anonymous>",
+      "lines": 607,
+      "startLine": 25
+    },
+    {
+      "filePath": "src/slack/monitor.tool-result.threads-top-level-replies-replytomode-is-all.test.ts",
+      "name": "<anonymous>",
+      "lines": 371,
+      "startLine": 23
+    },
+    {
+      "filePath": "src/slack/monitor/context.ts",
+      "name": "createSlackMonitorContext",
+      "lines": 306,
+      "startLine": 124
+    },
+    {
+      "filePath": "src/slack/monitor/media.test.ts",
+      "name": "<anonymous>",
+      "lines": 162,
+      "startLine": 8
+    },
+    {
+      "filePath": "src/slack/monitor/message-handler/dispatch.ts",
+      "name": "dispatchPreparedSlackMessage",
+      "lines": 182,
+      "startLine": 16
+    },
+    {
+      "filePath": "src/slack/monitor/message-handler/prepare.inbound-contract.test.ts",
+      "name": "<anonymous>",
+      "lines": 228,
+      "startLine": 11
+    },
+    {
+      "filePath": "src/slack/monitor/message-handler/prepare.ts",
+      "name": "prepareSlackMessage",
+      "lines": 535,
+      "startLine": 49
+    },
+    {
+      "filePath": "src/slack/monitor/provider.ts",
+      "name": "monitorSlackProvider",
+      "lines": 339,
+      "startLine": 42
+    },
+    {
+      "filePath": "src/slack/monitor/slash.ts",
+      "name": "registerSlackMonitorSlashCommands",
+      "lines": 488,
+      "startLine": 142
+    },
+    {
+      "filePath": "src/slack/monitor/slash.ts",
+      "name": "<anonymous>",
+      "lines": 337,
+      "startLine": 157
+    },
+    {
+      "filePath": "src/telegram/bot-handlers.ts",
+      "name": "<anonymous>",
+      "lines": 884,
+      "startLine": 45
+    },
+    {
+      "filePath": "src/telegram/bot-handlers.ts",
+      "name": "<anonymous>",
+      "lines": 336,
+      "startLine": 279
+    },
+    {
+      "filePath": "src/telegram/bot-handlers.ts",
+      "name": "<anonymous>",
+      "lines": 260,
+      "startLine": 668
+    },
+    {
+      "filePath": "src/telegram/bot-message-context.dm-topic-threadid.test.ts",
+      "name": "<anonymous>",
+      "lines": 160,
+      "startLine": 10
+    },
+    {
+      "filePath": "src/telegram/bot-message-context.ts",
+      "name": "<anonymous>",
+      "lines": 570,
+      "startLine": 127
+    },
+    {
+      "filePath": "src/telegram/bot-message-dispatch.ts",
+      "name": "<anonymous>",
+      "lines": 298,
+      "startLine": 60
+    },
+    {
+      "filePath": "src/telegram/bot-native-commands.ts",
+      "name": "<anonymous>",
+      "lines": 445,
+      "startLine": 274
+    },
+    {
+      "filePath": "src/telegram/bot-native-commands.ts",
+      "name": "<anonymous>",
+      "lines": 233,
+      "startLine": 400
+    },
+    {
+      "filePath": "src/telegram/bot.create-telegram-bot.accepts-group-messages-mentionpatterns-match-without-botusername.test.ts",
+      "name": "<anonymous>",
+      "lines": 314,
+      "startLine": 138
+    },
+    {
+      "filePath": "src/telegram/bot.create-telegram-bot.applies-topic-skill-filters-system-prompts.test.ts",
+      "name": "<anonymous>",
+      "lines": 245,
+      "startLine": 136
+    },
+    {
+      "filePath": "src/telegram/bot.create-telegram-bot.blocks-all-group-messages-grouppolicy-is.test.ts",
+      "name": "<anonymous>",
+      "lines": 235,
+      "startLine": 136
+    },
+    {
+      "filePath": "src/telegram/bot.create-telegram-bot.installs-grammy-throttler.test.ts",
+      "name": "<anonymous>",
+      "lines": 297,
+      "startLine": 141
+    },
+    {
+      "filePath": "src/telegram/bot.create-telegram-bot.matches-tg-prefixed-allowfrom-entries-case-insensitively.test.ts",
+      "name": "<anonymous>",
+      "lines": 243,
+      "startLine": 136
+    },
+    {
+      "filePath": "src/telegram/bot.create-telegram-bot.matches-usernames-case-insensitively-grouppolicy-is.test.ts",
+      "name": "<anonymous>",
+      "lines": 232,
+      "startLine": 136
+    },
+    {
+      "filePath": "src/telegram/bot.create-telegram-bot.routes-dms-by-telegram-accountid-binding.test.ts",
+      "name": "<anonymous>",
+      "lines": 356,
+      "startLine": 136
+    },
+    {
+      "filePath": "src/telegram/bot.create-telegram-bot.sends-replies-without-native-reply-threading.test.ts",
+      "name": "<anonymous>",
+      "lines": 239,
+      "startLine": 141
+    },
+    {
+      "filePath": "src/telegram/bot.media.downloads-media-file-path-no-file-download.test.ts",
+      "name": "<anonymous>",
+      "lines": 165,
+      "startLine": 121
+    },
+    {
+      "filePath": "src/telegram/bot.media.downloads-media-file-path-no-file-download.test.ts",
+      "name": "<anonymous>",
+      "lines": 284,
+      "startLine": 438
+    },
+    {
+      "filePath": "src/telegram/bot.test.ts",
+      "name": "<anonymous>",
+      "lines": 2892,
+      "startLine": 176
+    },
+    {
+      "filePath": "src/telegram/bot.ts",
+      "name": "createTelegramBot",
+      "lines": 382,
+      "startLine": 112
+    },
+    {
+      "filePath": "src/telegram/bot/delivery.test.ts",
+      "name": "<anonymous>",
+      "lines": 312,
+      "startLine": 23
+    },
+    {
+      "filePath": "src/telegram/bot/delivery.ts",
+      "name": "deliverReplies",
+      "lines": 259,
+      "startLine": 34
+    },
+    {
+      "filePath": "src/telegram/send.caption-split.test.ts",
+      "name": "<anonymous>",
+      "lines": 353,
+      "startLine": 48
+    },
+    {
+      "filePath": "src/telegram/send.returns-undefined-empty-input.test.ts",
+      "name": "<anonymous>",
+      "lines": 481,
+      "startLine": 89
+    },
+    {
+      "filePath": "src/telegram/send.returns-undefined-empty-input.test.ts",
+      "name": "<anonymous>",
+      "lines": 175,
+      "startLine": 571
+    },
+    {
+      "filePath": "src/telegram/send.ts",
+      "name": "sendMessageTelegram",
+      "lines": 260,
+      "startLine": 200
+    },
+    {
+      "filePath": "src/telegram/sticker-cache.test.ts",
+      "name": "<anonymous>",
+      "lines": 238,
+      "startLine": 20
+    },
+    {
+      "filePath": "src/terminal/table.ts",
+      "name": "wrapLine",
+      "lines": 176,
+      "startLine": 47
+    },
+    {
+      "filePath": "src/terminal/table.ts",
+      "name": "renderTable",
+      "lines": 186,
+      "startLine": 234
+    },
+    {
+      "filePath": "src/tts/tts.test.ts",
+      "name": "<anonymous>",
+      "lines": 509,
+      "startLine": 53
+    },
+    {
+      "filePath": "src/tts/tts.ts",
+      "name": "parseTtsDirectives",
+      "lines": 228,
+      "startLine": 593
+    },
+    {
+      "filePath": "src/tts/tts.ts",
+      "name": "<anonymous>",
+      "lines": 196,
+      "startLine": 616
+    },
+    {
+      "filePath": "src/tts/tts.ts",
+      "name": "textToSpeech",
+      "lines": 170,
+      "startLine": 1161
+    },
+    {
+      "filePath": "src/tui/components/searchable-select-list.test.ts",
+      "name": "<anonymous>",
+      "lines": 189,
+      "startLine": 31
+    },
+    {
+      "filePath": "src/tui/tui-command-handlers.ts",
+      "name": "createCommandHandlers",
+      "lines": 455,
+      "startLine": 48
+    },
+    {
+      "filePath": "src/tui/tui-command-handlers.ts",
+      "name": "<anonymous>",
+      "lines": 224,
+      "startLine": 240
+    },
+    {
+      "filePath": "src/tui/tui-event-handlers.test.ts",
+      "name": "<anonymous>",
+      "lines": 348,
+      "startLine": 13
+    },
+    {
+      "filePath": "src/tui/tui-event-handlers.ts",
+      "name": "createEventHandlers",
+      "lines": 229,
+      "startLine": 19
+    },
+    {
+      "filePath": "src/tui/tui-input-history.test.ts",
+      "name": "<anonymous>",
+      "lines": 156,
+      "startLine": 4
+    },
+    {
+      "filePath": "src/tui/tui-session-actions.ts",
+      "name": "createSessionActions",
+      "lines": 360,
+      "startLine": 53
+    },
+    {
+      "filePath": "src/tui/tui.ts",
+      "name": "runTui",
+      "lines": 630,
+      "startLine": 80
+    },
+    {
+      "filePath": "src/web/auto-reply.broadcast-groups.broadcasts-sequentially-configured-order.test.ts",
+      "name": "<anonymous>",
+      "lines": 230,
+      "startLine": 95
+    },
+    {
+      "filePath": "src/web/auto-reply.partial-reply-gating.test.ts",
+      "name": "<anonymous>",
+      "lines": 256,
+      "startLine": 97
+    },
+    {
+      "filePath": "src/web/auto-reply.web-auto-reply.compresses-common-formats-jpeg-cap.test.ts",
+      "name": "<anonymous>",
+      "lines": 245,
+      "startLine": 100
+    },
+    {
+      "filePath": "src/web/auto-reply.web-auto-reply.falls-back-text-media-send-fails.test.ts",
+      "name": "<anonymous>",
+      "lines": 201,
+      "startLine": 99
+    },
+    {
+      "filePath": "src/web/auto-reply.web-auto-reply.prefixes-body-same-phone-marker-from.test.ts",
+      "name": "<anonymous>",
+      "lines": 333,
+      "startLine": 95
+    },
+    {
+      "filePath": "src/web/auto-reply.web-auto-reply.reconnects-after-connection-close.test.ts",
+      "name": "<anonymous>",
+      "lines": 263,
+      "startLine": 96
+    },
+    {
+      "filePath": "src/web/auto-reply.web-auto-reply.requires-mention-group-chats-injects-history-replying.test.ts",
+      "name": "<anonymous>",
+      "lines": 434,
+      "startLine": 95
+    },
+    {
+      "filePath": "src/web/auto-reply.web-auto-reply.sends-tool-summaries-immediately-responseprefix.test.ts",
+      "name": "<anonymous>",
+      "lines": 168,
+      "startLine": 95
+    },
+    {
+      "filePath": "src/web/auto-reply.web-auto-reply.supports-always-group-activation-silent-token-preserves.test.ts",
+      "name": "<anonymous>",
+      "lines": 251,
+      "startLine": 97
+    },
+    {
+      "filePath": "src/web/auto-reply.web-auto-reply.uses-per-agent-mention-patterns-group-gating.test.ts",
+      "name": "<anonymous>",
+      "lines": 245,
+      "startLine": 96
+    },
+    {
+      "filePath": "src/web/auto-reply/deliver-reply.ts",
+      "name": "deliverWebReply",
+      "lines": 175,
+      "startLine": 14
+    },
+    {
+      "filePath": "src/web/auto-reply/heartbeat-runner.ts",
+      "name": "runWebHeartbeatOnce",
+      "lines": 284,
+      "startLine": 49
+    },
+    {
+      "filePath": "src/web/auto-reply/monitor.ts",
+      "name": "monitorWebChannel",
+      "lines": 418,
+      "startLine": 34
+    },
+    {
+      "filePath": "src/web/auto-reply/monitor/on-message.ts",
+      "name": "createWebOnMessageHandler",
+      "lines": 152,
+      "startLine": 18
+    },
+    {
+      "filePath": "src/web/auto-reply/monitor/process-message.ts",
+      "name": "processMessage",
+      "lines": 317,
+      "startLine": 106
+    },
+    {
+      "filePath": "src/web/inbound.test.ts",
+      "name": "<anonymous>",
+      "lines": 234,
+      "startLine": 4
+    },
+    {
+      "filePath": "src/web/inbound/access-control.ts",
+      "name": "checkInboundAccessControl",
+      "lines": 170,
+      "startLine": 20
+    },
+    {
+      "filePath": "src/web/inbound/monitor.ts",
+      "name": "monitorWebInbox",
+      "lines": 379,
+      "startLine": 25
+    },
+    {
+      "filePath": "src/web/inbound/monitor.ts",
+      "name": "<anonymous>",
+      "lines": 188,
+      "startLine": 154
+    },
+    {
+      "filePath": "src/web/media.test.ts",
+      "name": "<anonymous>",
+      "lines": 257,
+      "startLine": 38
+    },
+    {
+      "filePath": "src/web/monitor-inbox.allows-messages-from-senders-allowfrom-list.test.ts",
+      "name": "<anonymous>",
+      "lines": 420,
+      "startLine": 80
+    },
+    {
+      "filePath": "src/web/monitor-inbox.blocks-messages-from-unauthorized-senders-not-allowfrom.test.ts",
+      "name": "<anonymous>",
+      "lines": 461,
+      "startLine": 80
+    },
+    {
+      "filePath": "src/web/monitor-inbox.captures-media-path-image-messages.test.ts",
+      "name": "<anonymous>",
+      "lines": 294,
+      "startLine": 80
+    },
+    {
+      "filePath": "src/web/monitor-inbox.streams-inbound-messages.test.ts",
+      "name": "<anonymous>",
+      "lines": 360,
+      "startLine": 79
+    },
+    {
+      "filePath": "src/web/outbound.test.ts",
+      "name": "<anonymous>",
+      "lines": 156,
+      "startLine": 12
+    },
+    {
+      "filePath": "src/web/session.test.ts",
+      "name": "<anonymous>",
+      "lines": 226,
+      "startLine": 11
+    },
+    {
+      "filePath": "src/wizard/onboarding.finalize.ts",
+      "name": "finalizeOnboardingWizard",
+      "lines": 474,
+      "startLine": 52
+    },
+    {
+      "filePath": "src/wizard/onboarding.gateway-config.ts",
+      "name": "configureGatewayForOnboarding",
+      "lines": 224,
+      "startLine": 28
+    },
+    {
+      "filePath": "src/wizard/onboarding.test.ts",
+      "name": "<anonymous>",
+      "lines": 262,
+      "startLine": 76
+    },
+    {
+      "filePath": "src/wizard/onboarding.ts",
+      "name": "runOnboardingWizard",
+      "lines": 382,
+      "startLine": 89
+    },
+    {
+      "filePath": "test/inbound-contract.providers.test.ts",
+      "name": "<anonymous>",
+      "lines": 156,
+      "startLine": 6
+    },
+    {
+      "filePath": "test/provider-timeout.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 193,
+      "startLine": 117
+    },
+    {
+      "filePath": "test/provider-timeout.e2e.test.ts",
+      "name": "<anonymous>",
+      "lines": 187,
+      "startLine": 121
+    },
+    {
+      "filePath": "ui/src/ui/app-render.helpers.ts",
+      "name": "renderChatControls",
+      "lines": 156,
+      "startLine": 55
+    },
+    {
+      "filePath": "ui/src/ui/app-render.ts",
+      "name": "renderApp",
+      "lines": 1345,
+      "startLine": 128
+    },
+    {
+      "filePath": "ui/src/ui/chat/message-normalizer.test.ts",
+      "name": "<anonymous>",
+      "lines": 199,
+      "startLine": 8
+    },
+    {
+      "filePath": "ui/src/ui/config-form.browser.test.ts",
+      "name": "<anonymous>",
+      "lines": 259,
+      "startLine": 36
+    },
+    {
+      "filePath": "ui/src/ui/navigation.browser.test.ts",
+      "name": "<anonymous>",
+      "lines": 180,
+      "startLine": 43
+    },
+    {
+      "filePath": "ui/src/ui/views/agents.ts",
+      "name": "renderAgents",
+      "lines": 196,
+      "startLine": 540
+    },
+    {
+      "filePath": "ui/src/ui/views/agents.ts",
+      "name": "renderAgentOverview",
+      "lines": 156,
+      "startLine": 817
+    },
+    {
+      "filePath": "ui/src/ui/views/agents.ts",
+      "name": "renderAgentTools",
+      "lines": 243,
+      "startLine": 1491
+    },
+    {
+      "filePath": "ui/src/ui/views/channels.nostr-profile-form.ts",
+      "name": "renderNostrProfileForm",
+      "lines": 221,
+      "startLine": 68
+    },
+    {
+      "filePath": "ui/src/ui/views/channels.nostr.ts",
+      "name": "renderNostrCard",
+      "lines": 213,
+      "startLine": 25
+    },
+    {
+      "filePath": "ui/src/ui/views/chat-list.ts",
+      "name": "renderChatList",
+      "lines": 161,
+      "startLine": 197
+    },
+    {
+      "filePath": "ui/src/ui/views/chat.ts",
+      "name": "renderChat",
+      "lines": 340,
+      "startLine": 207
+    },
+    {
+      "filePath": "ui/src/ui/views/config-form.node.ts",
+      "name": "renderNode",
+      "lines": 206,
+      "startLine": 100
+    },
+    {
+      "filePath": "ui/src/ui/views/config-form.render.ts",
+      "name": "renderConfigForm",
+      "lines": 172,
+      "startLine": 363
+    },
+    {
+      "filePath": "ui/src/ui/views/config.browser.test.ts",
+      "name": "<anonymous>",
+      "lines": 218,
+      "startLine": 5
+    },
+    {
+      "filePath": "ui/src/ui/views/config.ts",
+      "name": "renderConfig",
+      "lines": 405,
+      "startLine": 416
+    },
+    {
+      "filePath": "ui/src/ui/views/create-soulmate-modal.ts",
+      "name": "renderCreateSoulmateModal",
+      "lines": 194,
+      "startLine": 54
+    },
+    {
+      "filePath": "ui/src/ui/views/cron.ts",
+      "name": "renderCron",
+      "lines": 267,
+      "startLine": 57
+    },
+    {
+      "filePath": "ui/src/ui/views/debug.ts",
+      "name": "renderDebug",
+      "lines": 258,
+      "startLine": 49
+    },
+    {
+      "filePath": "ui/src/ui/views/logs.ts",
+      "name": "renderLogs",
+      "lines": 202,
+      "startLine": 65
+    },
+    {
+      "filePath": "ui/src/ui/views/nodes.ts",
+      "name": "renderExecApprovalsPolicy",
+      "lines": 193,
+      "startLine": 705
+    },
+    {
+      "filePath": "ui/src/ui/views/onboarding/step-login.ts",
+      "name": "renderStepLogin",
+      "lines": 204,
+      "startLine": 132
+    },
+    {
+      "filePath": "ui/src/ui/views/overview.ts",
+      "name": "renderOverview",
+      "lines": 303,
+      "startLine": 30
+    },
+    {
+      "filePath": "ui/src/ui/views/usage.ts",
+      "name": "<anonymous>",
+      "lines": 226,
+      "startLine": 2553
+    },
+    {
+      "filePath": "ui/src/ui/views/usage.ts",
+      "name": "renderUsageInsights",
+      "lines": 177,
+      "startLine": 3418
+    },
+    {
+      "filePath": "ui/src/ui/views/usage.ts",
+      "name": "renderSessionsCard",
+      "lines": 301,
+      "startLine": 3596
+    },
+    {
+      "filePath": "ui/src/ui/views/usage.ts",
+      "name": "renderTimeSeriesCompact",
+      "lines": 222,
+      "startLine": 4057
+    },
+    {
+      "filePath": "ui/src/ui/views/usage.ts",
+      "name": "renderContextPanel",
+      "lines": 160,
+      "startLine": 4280
+    },
+    {
+      "filePath": "ui/src/ui/views/usage.ts",
+      "name": "renderSessionLogsCompact",
+      "lines": 174,
+      "startLine": 4441
+    },
+    {
+      "filePath": "ui/src/ui/views/usage.ts",
+      "name": "renderUsage",
+      "lines": 795,
+      "startLine": 4616
+    }
+  ]
+}

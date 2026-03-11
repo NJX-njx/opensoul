@@ -22,7 +22,15 @@ import {
 import { loadConfig } from "../config/config.js";
 import { resolveControlUiRootSync } from "../infra/control-ui-assets.js";
 import { handleSlackHttpRequest } from "../slack/http/index.js";
-import { authorizeGatewayConnect, isLocalDirectRequest, type ResolvedGatewayAuth } from "./auth.js";
+import {
+  authorizeGatewayConnect,
+  CANVAS_AUTH_COOKIE_NAME,
+  CANVAS_AUTH_QUERY_PARAM,
+  isLocalDirectRequest,
+  mintCanvasAuthToken,
+  type ResolvedGatewayAuth,
+  verifyCanvasAuthToken,
+} from "./auth.js";
 import {
   handleControlUiAvatarRequest,
   handleControlUiHttpRequest,
@@ -42,8 +50,7 @@ import {
   resolveHookDeliver,
 } from "./hooks.js";
 import { sendUnauthorized } from "./http-common.js";
-import { getBearerToken, getHeader } from "./http-utils.js";
-import { resolveGatewayClientIp } from "./net.js";
+import { getBearerToken, getCookie } from "./http-utils.js";
 import { handleOpenAiHttpRequest } from "./openai-http.js";
 import { handleOpenResponsesHttpRequest } from "./openresponses-http.js";
 import { handleToolsInvokeHttpRequest } from "./tools-invoke-http.js";
@@ -83,13 +90,53 @@ function isCanvasPath(pathname: string): boolean {
   );
 }
 
-function hasAuthorizedWsClientForIp(clients: Set<GatewayWsClient>, clientIp: string): boolean {
+function hasActiveCanvasConn(clients: Set<GatewayWsClient>, connId: string): boolean {
   for (const client of clients) {
-    if (client.clientIp && client.clientIp === clientIp) {
+    if (client.connId === connId) {
       return true;
     }
   }
   return false;
+}
+
+function resolveCanvasAuthToken(req: IncomingMessage): string | undefined {
+  const url = new URL(req.url ?? "/", "http://localhost");
+  const queryToken = url.searchParams.get(CANVAS_AUTH_QUERY_PARAM)?.trim();
+  if (queryToken) {
+    return queryToken;
+  }
+  return getCookie(req, CANVAS_AUTH_COOKIE_NAME)?.trim() || undefined;
+}
+
+function appendSetCookie(res: ServerResponse, value: string) {
+  const existing = res.getHeader("Set-Cookie");
+  if (!existing) {
+    res.setHeader("Set-Cookie", value);
+    return;
+  }
+  if (Array.isArray(existing)) {
+    res.setHeader("Set-Cookie", [...existing, value]);
+    return;
+  }
+  res.setHeader("Set-Cookie", [String(existing), value]);
+}
+
+function setCanvasAuthCookie(req: IncomingMessage, res: ServerResponse, token: string) {
+  const forwardedProto = req.headers["x-forwarded-proto"];
+  const secure =
+    Boolean((req.socket as { encrypted?: boolean } | undefined)?.encrypted) ||
+    (Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto)?.trim() === "https";
+  const encodedToken = encodeURIComponent(token);
+  const parts = [
+    `${CANVAS_AUTH_COOKIE_NAME}=${encodedToken}`,
+    "Path=/__opensoul__",
+    "HttpOnly",
+    "SameSite=Lax",
+  ];
+  if (secure) {
+    parts.push("Secure");
+  }
+  appendSetCookie(res, parts.join("; "));
 }
 
 async function authorizeCanvasRequest(params: {
@@ -97,10 +144,20 @@ async function authorizeCanvasRequest(params: {
   auth: ResolvedGatewayAuth;
   trustedProxies: string[];
   clients: Set<GatewayWsClient>;
-}): Promise<boolean> {
+}): Promise<{ ok: boolean; cookieToken?: string }> {
   const { req, auth, trustedProxies, clients } = params;
   if (isLocalDirectRequest(req, trustedProxies)) {
-    return true;
+    return { ok: true };
+  }
+
+  const canvasAuthToken = resolveCanvasAuthToken(req);
+  if (
+    verifyCanvasAuthToken({
+      token: canvasAuthToken,
+      isConnIdActive: (connId) => hasActiveCanvasConn(clients, connId),
+    })
+  ) {
+    return { ok: true, cookieToken: canvasAuthToken };
   }
 
   const token = getBearerToken(req);
@@ -112,20 +169,10 @@ async function authorizeCanvasRequest(params: {
       trustedProxies,
     });
     if (authResult.ok) {
-      return true;
+      return { ok: true, cookieToken: mintCanvasAuthToken({ scope: "session" }) };
     }
   }
-
-  const clientIp = resolveGatewayClientIp({
-    remoteAddr: req.socket?.remoteAddress ?? "",
-    forwardedFor: getHeader(req, "x-forwarded-for"),
-    realIp: getHeader(req, "x-real-ip"),
-    trustedProxies,
-  });
-  if (!clientIp) {
-    return false;
-  }
-  return hasAuthorizedWsClientForIp(clients, clientIp);
+  return { ok: false };
 }
 
 export type HooksRequestHandler = (req: IncomingMessage, res: ServerResponse) => Promise<boolean>;
@@ -361,15 +408,18 @@ export function createGatewayHttpServer(opts: {
       if (canvasHost) {
         const url = new URL(req.url ?? "/", "http://localhost");
         if (isCanvasPath(url.pathname)) {
-          const ok = await authorizeCanvasRequest({
+          const authResult = await authorizeCanvasRequest({
             req,
             auth: resolvedAuth,
             trustedProxies,
             clients,
           });
-          if (!ok) {
+          if (!authResult.ok) {
             sendUnauthorized(res);
             return;
+          }
+          if (authResult.cookieToken) {
+            setCanvasAuthCookie(req, res, authResult.cookieToken);
           }
         }
         if (await handleA2uiHttpRequest(req, res)) {
@@ -446,13 +496,13 @@ export function attachGatewayUpgradeHandler(opts: {
         if (url.pathname === CANVAS_WS_PATH) {
           const configSnapshot = loadConfig();
           const trustedProxies = configSnapshot.gateway?.trustedProxies ?? [];
-          const ok = await authorizeCanvasRequest({
+          const authResult = await authorizeCanvasRequest({
             req,
             auth: resolvedAuth,
             trustedProxies,
             clients,
           });
-          if (!ok) {
+          if (!authResult.ok) {
             socket.write("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n");
             socket.destroy();
             return;

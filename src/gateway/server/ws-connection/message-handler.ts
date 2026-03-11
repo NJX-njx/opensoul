@@ -25,7 +25,7 @@ import { upsertPresence } from "../../../infra/system-presence.js";
 import { loadVoiceWakeConfig } from "../../../infra/voicewake.js";
 import { rawDataToString } from "../../../infra/ws.js";
 import { isGatewayCliClient, isWebchatClient } from "../../../utils/message-channel.js";
-import { authorizeGatewayConnect, isLocalDirectRequest } from "../../auth.js";
+import { authorizeGatewayConnect, isLocalDirectRequest, mintCanvasAuthToken } from "../../auth.js";
 import { buildDeviceAuthPayload } from "../../device-auth.js";
 import { isLoopbackAddress, isTrustedProxyAddress, resolveGatewayClientIp } from "../../net.js";
 import { resolveNodeCommandAllowlist } from "../../node-command-policy.js";
@@ -861,6 +861,9 @@ export function attachGatewayWsMessageHandler(params: {
           features: { methods: gatewayMethods, events },
           snapshot,
           canvasHostUrl,
+          canvasAuthToken: canvasHostUrl
+            ? mintCanvasAuthToken({ scope: "conn", connId })
+            : undefined,
           auth: deviceToken
             ? {
                 deviceToken: deviceToken.token,

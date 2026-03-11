@@ -1,5 +1,5 @@
 import type { IncomingMessage } from "node:http";
-import { timingSafeEqual } from "node:crypto";
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import type { GatewayAuthConfig, GatewayTailscaleMode } from "../config/config.js";
 import { readTailscaleWhoisIdentity, type TailscaleWhoisIdentity } from "../infra/tailscale.js";
 import { isTrustedProxyAddress, parseForwardedForClientIp, resolveGatewayClientIp } from "./net.js";
@@ -19,6 +19,12 @@ export type GatewayAuthResult = {
   reason?: string;
 };
 
+export const CANVAS_AUTH_QUERY_PARAM = "canvasAuthToken";
+export const CANVAS_AUTH_COOKIE_NAME = "opensoul_canvas_auth";
+
+const CANVAS_AUTH_TTL_MS = 12 * 60 * 60 * 1000;
+const canvasAuthSecret = randomBytes(32);
+
 type ConnectAuth = {
   token?: string;
   password?: string;
@@ -32,11 +38,123 @@ type TailscaleUser = {
 
 type TailscaleWhoisLookup = (ip: string) => Promise<TailscaleWhoisIdentity | null>;
 
+type CanvasAuthPayload = {
+  v: 1;
+  aud: "canvas";
+  scope: "conn" | "session";
+  connId?: string;
+  issuedAtMs: number;
+};
+
 function safeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) {
     return false;
   }
   return timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
+
+function encodeBase64Url(value: string): string {
+  return Buffer.from(value, "utf8").toString("base64url");
+}
+
+function decodeBase64Url(value: string): string | null {
+  try {
+    return Buffer.from(value, "base64url").toString("utf8");
+  } catch {
+    return null;
+  }
+}
+
+function signCanvasPayload(encodedPayload: string): string {
+  return createHmac("sha256", canvasAuthSecret).update(encodedPayload).digest("base64url");
+}
+
+function parseCanvasAuthPayload(token: string): CanvasAuthPayload | null {
+  const trimmed = token.trim();
+  if (!trimmed) {
+    return null;
+  }
+  const [encodedPayload, signature] = trimmed.split(".", 2);
+  if (!encodedPayload || !signature) {
+    return null;
+  }
+  const expectedSignature = signCanvasPayload(encodedPayload);
+  if (!safeEqual(signature, expectedSignature)) {
+    return null;
+  }
+  const decoded = decodeBase64Url(encodedPayload);
+  if (!decoded) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(decoded) as Partial<CanvasAuthPayload>;
+    if (
+      parsed.v !== 1 ||
+      parsed.aud !== "canvas" ||
+      (parsed.scope !== "conn" && parsed.scope !== "session") ||
+      (parsed.scope === "conn" && (typeof parsed.connId !== "string" || !parsed.connId.trim())) ||
+      typeof parsed.issuedAtMs !== "number" ||
+      !Number.isFinite(parsed.issuedAtMs)
+    ) {
+      return null;
+    }
+    return {
+      v: 1,
+      aud: "canvas",
+      scope: parsed.scope,
+      connId: typeof parsed.connId === "string" ? parsed.connId.trim() : undefined,
+      issuedAtMs: Math.floor(parsed.issuedAtMs),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function mintCanvasAuthToken(params: {
+  scope: "conn" | "session";
+  connId?: string;
+  issuedAtMs?: number;
+}): string {
+  const connId = params.connId?.trim();
+  if (params.scope === "conn" && !connId) {
+    throw new Error("canvas conn token requires connId");
+  }
+  const payload: CanvasAuthPayload = {
+    v: 1,
+    aud: "canvas",
+    scope: params.scope,
+    ...(params.scope === "conn" && connId ? { connId } : {}),
+    issuedAtMs: params.issuedAtMs ?? Date.now(),
+  };
+  const encodedPayload = encodeBase64Url(JSON.stringify(payload));
+  const signature = signCanvasPayload(encodedPayload);
+  return `${encodedPayload}.${signature}`;
+}
+
+export function verifyCanvasAuthToken(params: {
+  token?: string | null;
+  isConnIdActive: (connId: string) => boolean;
+  nowMs?: number;
+}): boolean {
+  const rawToken = params.token?.trim();
+  if (!rawToken) {
+    return false;
+  }
+  const payload = parseCanvasAuthPayload(rawToken);
+  if (!payload) {
+    return false;
+  }
+  const nowMs = params.nowMs ?? Date.now();
+  if (payload.issuedAtMs > nowMs + 5_000) {
+    return false;
+  }
+  if (nowMs - payload.issuedAtMs > CANVAS_AUTH_TTL_MS) {
+    return false;
+  }
+  if (payload.scope === "session") {
+    return true;
+  }
+  return payload.connId ? params.isConnIdActive(payload.connId) : false;
 }
 
 function normalizeLogin(login: string): string {

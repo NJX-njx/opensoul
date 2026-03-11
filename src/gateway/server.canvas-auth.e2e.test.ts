@@ -4,9 +4,14 @@ import path from "node:path";
 import { describe, expect, test } from "vitest";
 import { WebSocket, WebSocketServer } from "ws";
 import type { CanvasHostHandler } from "../canvas-host/server.js";
-import type { ResolvedGatewayAuth } from "./auth.js";
 import type { GatewayWsClient } from "./server/ws-types.js";
 import { A2UI_PATH, CANVAS_HOST_PATH, CANVAS_WS_PATH } from "../canvas-host/a2ui.js";
+import {
+  CANVAS_AUTH_COOKIE_NAME,
+  CANVAS_AUTH_QUERY_PARAM,
+  mintCanvasAuthToken,
+  type ResolvedGatewayAuth,
+} from "./auth.js";
 import { attachGatewayUpgradeHandler, createGatewayHttpServer } from "./server-http.js";
 
 async function withTempConfig(params: { cfg: unknown; run: () => Promise<void> }): Promise<void> {
@@ -75,8 +80,29 @@ async function expectWsRejected(url: string, headers: Record<string, string>): P
   });
 }
 
+async function expectWsAccepted(url: string, headers: Record<string, string>): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const ws = new WebSocket(url, { headers });
+    const timer = setTimeout(() => reject(new Error("timeout")), 10_000);
+    ws.once("open", () => {
+      clearTimeout(timer);
+      ws.terminate();
+      resolve();
+    });
+    ws.once("unexpected-response", (_req, res) => {
+      clearTimeout(timer);
+      reject(new Error(`unexpected response ${res.statusCode}`));
+    });
+    ws.once("error", reject);
+  });
+}
+
+function cookieHeaderValue(setCookieHeader: string | null): string {
+  return (setCookieHeader ?? "").split(";", 1)[0] ?? "";
+}
+
 describe("gateway canvas host auth", () => {
-  test("authorizes canvas/a2ui HTTP and canvas WS by matching an authenticated gateway ws client ip", async () => {
+  test("requires explicit canvas auth instead of trusting a shared client ip", async () => {
     const resolvedAuth: ResolvedGatewayAuth = {
       mode: "token",
       token: "test-token",
@@ -164,42 +190,80 @@ describe("gateway canvas host auth", () => {
             "x-forwarded-for": ipA,
           });
 
-          clients.add({
+          const activeClient: GatewayWsClient = {
             socket: {} as unknown as WebSocket,
             connect: {} as never,
             connId: "c1",
             clientIp: ipA,
-          });
+          };
+          clients.add(activeClient);
 
-          const authCanvas = await fetch(`http://127.0.0.1:${listener.port}${CANVAS_HOST_PATH}/`, {
-            headers: { "x-forwarded-for": ipA },
-          });
-          expect(authCanvas.status).toBe(200);
-          expect(await authCanvas.text()).toBe("ok");
-
-          const otherIpStillBlocked = await fetch(
+          const sameIpStillBlocked = await fetch(
             `http://127.0.0.1:${listener.port}${CANVAS_HOST_PATH}/`,
+            {
+              headers: { "x-forwarded-for": ipA },
+            },
+          );
+          expect(sameIpStillBlocked.status).toBe(401);
+
+          const connToken = mintCanvasAuthToken({ scope: "conn", connId: activeClient.connId });
+          const connTokenCanvas = await fetch(
+            `http://127.0.0.1:${listener.port}${CANVAS_HOST_PATH}/?${CANVAS_AUTH_QUERY_PARAM}=${encodeURIComponent(connToken)}`,
             {
               headers: { "x-forwarded-for": ipB },
             },
           );
-          expect(otherIpStillBlocked.status).toBe(401);
+          expect(connTokenCanvas.status).toBe(200);
+          expect(await connTokenCanvas.text()).toBe("ok");
+          const connCookie = connTokenCanvas.headers.get("set-cookie");
+          expect(connCookie).toContain(`${CANVAS_AUTH_COOKIE_NAME}=`);
+          const connCookieHeader = cookieHeaderValue(connCookie);
 
-          await new Promise<void>((resolve, reject) => {
-            const ws = new WebSocket(`ws://127.0.0.1:${listener.port}${CANVAS_WS_PATH}`, {
-              headers: { "x-forwarded-for": ipA },
-            });
-            const timer = setTimeout(() => reject(new Error("timeout")), 10_000);
-            ws.once("open", () => {
-              clearTimeout(timer);
-              ws.terminate();
-              resolve();
-            });
-            ws.once("unexpected-response", (_req, res) => {
-              clearTimeout(timer);
-              reject(new Error(`unexpected response ${res.statusCode}`));
-            });
-            ws.once("error", reject);
+          const cookieCanvas = await fetch(
+            `http://127.0.0.1:${listener.port}${CANVAS_HOST_PATH}/`,
+            {
+              headers: {
+                cookie: connCookieHeader,
+                "x-forwarded-for": ipB,
+              },
+            },
+          );
+          expect(cookieCanvas.status).toBe(200);
+          expect(await cookieCanvas.text()).toBe("ok");
+
+          await expectWsAccepted(`ws://127.0.0.1:${listener.port}${CANVAS_WS_PATH}`, {
+            cookie: connCookieHeader,
+            "x-forwarded-for": ipB,
+          });
+
+          clients.delete(activeClient);
+
+          const staleConnToken = await fetch(
+            `http://127.0.0.1:${listener.port}${CANVAS_HOST_PATH}/?${CANVAS_AUTH_QUERY_PARAM}=${encodeURIComponent(connToken)}`,
+            {
+              headers: { "x-forwarded-for": ipB },
+            },
+          );
+          expect(staleConnToken.status).toBe(401);
+
+          const bearerCanvas = await fetch(
+            `http://127.0.0.1:${listener.port}${CANVAS_HOST_PATH}/`,
+            {
+              headers: {
+                authorization: "Bearer test-token",
+                "x-forwarded-for": ipB,
+              },
+            },
+          );
+          expect(bearerCanvas.status).toBe(200);
+          expect(await bearerCanvas.text()).toBe("ok");
+          const bearerCookie = bearerCanvas.headers.get("set-cookie");
+          expect(bearerCookie).toContain(`${CANVAS_AUTH_COOKIE_NAME}=`);
+          const bearerCookieHeader = cookieHeaderValue(bearerCookie);
+
+          await expectWsAccepted(`ws://127.0.0.1:${listener.port}${CANVAS_WS_PATH}`, {
+            cookie: bearerCookieHeader,
+            "x-forwarded-for": ipB,
           });
         } finally {
           await listener.close();
