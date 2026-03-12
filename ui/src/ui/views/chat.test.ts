@@ -159,6 +159,8 @@ describe("chat view", () => {
   it("renders the task continuity rail with commitments and events", () => {
     const container = document.createElement("div");
     const onSelectTaskContinuityTask = vi.fn();
+    const onUpdateTaskContinuityCommitment = vi.fn();
+    const onUpdateTaskContinuityTaskStatus = vi.fn();
     render(
       renderChat(
         createProps({
@@ -200,6 +202,8 @@ describe("chat view", () => {
             },
           ],
           onSelectTaskContinuityTask,
+          onUpdateTaskContinuityCommitment,
+          onUpdateTaskContinuityTaskStatus,
         }),
       ),
       container,
@@ -214,5 +218,63 @@ describe("chat view", () => {
     expect(taskCard).not.toBeNull();
     taskCard?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onSelectTaskContinuityTask).toHaveBeenCalledWith("task-1");
+
+    const doneButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.trim() === "Done",
+    );
+    expect(doneButton).not.toBeUndefined();
+    doneButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(onUpdateTaskContinuityCommitment).toHaveBeenCalledWith("task-1", "commit-1", "done");
+
+    const closeButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.trim() === "Close",
+    );
+    expect(closeButton).not.toBeUndefined();
+    closeButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(onUpdateTaskContinuityTaskStatus).toHaveBeenCalledWith("task-1", "completed");
+  });
+
+  it("shows continuity action feedback and disables pending buttons", () => {
+    const container = document.createElement("div");
+    render(
+      renderChat(
+        createProps({
+          taskContinuityTasks: [
+            {
+              taskId: "task-1",
+              agentId: "main",
+              status: "running",
+              title: "Ship task continuity",
+              summary: "Visualize the same task across multiple surfaces",
+              currentSurface: { kind: "control-ui" },
+              createdAt: Date.now() - 3_000,
+              updatedAt: Date.now(),
+            },
+          ],
+          taskContinuitySelectedTaskId: "task-1",
+          taskContinuityCommitments: [
+            {
+              commitmentId: "commit-1",
+              taskId: "task-1",
+              agentId: "main",
+              status: "open",
+              title: "Follow up on the browser flow",
+              createdAt: Date.now() - 5_000,
+              updatedAt: Date.now(),
+            },
+          ],
+          taskContinuityActionError: "Could not update commitment",
+          taskContinuityActionBusyKey: "commitment:commit-1:done",
+        }),
+      ),
+      container,
+    );
+
+    expect(container.textContent).toContain("Could not update commitment");
+    const doneButton = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("Saving") || button.textContent?.trim() === "Done",
+    );
+    expect(doneButton).not.toBeUndefined();
+    expect(doneButton?.hasAttribute("disabled")).toBe(true);
   });
 });

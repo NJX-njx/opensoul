@@ -9,6 +9,8 @@ import {
   getTask,
   listCommitments,
   listTaskEvents,
+  patchCommitment,
+  patchTask,
   resolveOrCreateTaskForInbound,
   setSessionActiveTask,
   updateTaskStatus,
@@ -358,6 +360,158 @@ describe("continuity service", () => {
 
     expect(next.reused).toBe(false);
     expect(next.task.taskId).not.toBe(first.task.taskId);
+  });
+
+  it("patches task fields and records a task.updated event", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-task-patch-"));
+    const cfg = makeConfig(tempDir);
+    const task = resolveOrCreateTaskForInbound({
+      cfg,
+      agentId: "main",
+      sessionKey: "agent:main:main",
+      inboundText: "Original title",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    }).task;
+
+    const patched = patchTask({
+      cfg,
+      agentId: "main",
+      taskId: task.taskId,
+      status: "completed",
+      title: "Patched title",
+      summary: "Patched summary",
+      latestSessionKey: "agent:main:telegram:dm:user-2",
+    });
+
+    expect(patched?.status).toBe("completed");
+    expect(patched?.title).toBe("Patched title");
+    expect(patched?.summary).toBe("Patched summary");
+    expect(patched?.latestSessionKey).toBe("agent:main:telegram:dm:user-2");
+    expect(
+      listTaskEvents({
+        cfg,
+        agentId: "main",
+        taskId: task.taskId,
+        limit: 10,
+      }).some((event) => event.kind === "task.updated"),
+    ).toBe(true);
+  });
+
+  it("rejects illegal status transitions through task patches", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-task-patch-invalid-"));
+    const cfg = makeConfig(tempDir);
+    const task = resolveOrCreateTaskForInbound({
+      cfg,
+      agentId: "main",
+      sessionKey: "agent:main:main",
+      inboundText: "Patch the task",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    }).task;
+
+    updateTaskStatus({
+      cfg,
+      agentId: "main",
+      taskId: task.taskId,
+      status: "completed",
+    });
+
+    expect(
+      patchTask({
+        cfg,
+        agentId: "main",
+        taskId: task.taskId,
+        status: "running",
+      }),
+    ).toBeNull();
+  });
+
+  it("patches commitments idempotently and emits lifecycle events", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-commitment-patch-"));
+    const cfg = makeConfig(tempDir);
+    const task = resolveOrCreateTaskForInbound({
+      cfg,
+      agentId: "main",
+      sessionKey: "agent:main:main",
+      inboundText: "Keep tracking the follow-up",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    }).task;
+
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: task.taskId,
+      kind: "lifecycle.end",
+      stream: "lifecycle",
+      phase: "end",
+      sessionKey: "agent:main:main",
+      runId: "run-patch-1",
+      summary: "Next steps:\n- Follow up with the user",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+
+    const initialCommitment = listCommitments({
+      cfg,
+      agentId: "main",
+      taskId: task.taskId,
+    })[0];
+    expect(initialCommitment).toBeTruthy();
+
+    const cancelled = patchCommitment({
+      cfg,
+      agentId: "main",
+      taskId: task.taskId,
+      commitmentId: initialCommitment!.commitmentId,
+      status: "cancelled",
+      detail: "User asked to stop",
+      sessionKey: "agent:main:main",
+    });
+    expect(cancelled?.status).toBe("cancelled");
+    expect(cancelled?.detail).toBe("User asked to stop");
+
+    const eventCountAfterFirstPatch = listTaskEvents({
+      cfg,
+      agentId: "main",
+      taskId: task.taskId,
+      limit: 20,
+    }).filter((event) => event.kind === "commitment.cancelled").length;
+    expect(eventCountAfterFirstPatch).toBe(1);
+
+    const idempotent = patchCommitment({
+      cfg,
+      agentId: "main",
+      taskId: task.taskId,
+      commitmentId: initialCommitment!.commitmentId,
+      status: "cancelled",
+      detail: "User asked to stop",
+    });
+    expect(idempotent?.status).toBe("cancelled");
+
+    const eventCountAfterSecondPatch = listTaskEvents({
+      cfg,
+      agentId: "main",
+      taskId: task.taskId,
+      limit: 20,
+    }).filter((event) => event.kind === "commitment.cancelled").length;
+    expect(eventCountAfterSecondPatch).toBe(1);
+
+    const reopened = patchCommitment({
+      cfg,
+      agentId: "main",
+      taskId: task.taskId,
+      commitmentId: initialCommitment!.commitmentId,
+      status: "open",
+      detail: null,
+    });
+    expect(reopened?.status).toBe("open");
+    expect(reopened?.detail).toBeUndefined();
+    expect(
+      listTaskEvents({
+        cfg,
+        agentId: "main",
+        taskId: task.taskId,
+        limit: 20,
+      }).some((event) => event.kind === "commitment.reopened"),
+    ).toBe(true);
   });
 
   it("moves tasks into running when subagents or cron work starts", async () => {

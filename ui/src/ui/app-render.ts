@@ -1270,6 +1270,9 @@ export function renderApp(state: AppViewState) {
                               state.taskContinuityEventsByTaskId = {};
                               state.taskContinuityCommitmentsByTaskId = {};
                               state.taskContinuityDetailsLoadingTaskId = null;
+                              state.taskContinuityActionError = null;
+                              state.taskContinuityActionMessage = null;
+                              state.taskContinuityActionBusyKey = null;
                               state.resetToolStream();
                               state.resetChatScroll();
                               state.applySettings({
@@ -1402,9 +1405,20 @@ export function renderApp(state: AppViewState) {
                             taskContinuityDetailsLoading:
                               state.taskContinuityDetailsLoadingTaskId ===
                               state.taskContinuitySelectedTaskId,
+                            taskContinuityActionError: state.taskContinuityActionError,
+                            taskContinuityActionMessage: state.taskContinuityActionMessage,
+                            taskContinuityActionBusyKey: state.taskContinuityActionBusyKey,
                             onRefreshTaskContinuity: () => void state.loadTaskContinuity(),
                             onSelectTaskContinuityTask: (taskId) =>
                               void state.selectTaskContinuityTask(taskId),
+                            onUpdateTaskContinuityCommitment: (taskId, commitmentId, status) =>
+                              void state.updateTaskContinuityCommitment(
+                                taskId,
+                                commitmentId,
+                                status,
+                              ),
+                            onUpdateTaskContinuityTaskStatus: (taskId, status) =>
+                              void state.updateTaskContinuityTaskStatus(taskId, status),
                           })
                         : renderChatWelcome({
                             locale: state.uiLocale,

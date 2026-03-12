@@ -12,11 +12,26 @@ export const TaskSurfaceRefSchema = Type.Object(
   { additionalProperties: false },
 );
 
+export const TaskStatusValueSchema = Type.Union([
+  Type.Literal("open"),
+  Type.Literal("running"),
+  Type.Literal("waiting-user"),
+  Type.Literal("completed"),
+  Type.Literal("cancelled"),
+  Type.Literal("failed"),
+]);
+
+export const CommitmentStatusValueSchema = Type.Union([
+  Type.Literal("open"),
+  Type.Literal("done"),
+  Type.Literal("cancelled"),
+]);
+
 export const TaskRecordSchema = Type.Object(
   {
     taskId: NonEmptyString,
     agentId: NonEmptyString,
-    status: NonEmptyString,
+    status: TaskStatusValueSchema,
     title: Type.Optional(Type.String()),
     summary: Type.Optional(Type.String()),
     sourceSurface: Type.Optional(TaskSurfaceRefSchema),
@@ -53,7 +68,7 @@ export const TaskCommitmentSchema = Type.Object(
     commitmentId: NonEmptyString,
     taskId: NonEmptyString,
     agentId: NonEmptyString,
-    status: NonEmptyString,
+    status: CommitmentStatusValueSchema,
     kind: Type.Optional(Type.String()),
     title: NonEmptyString,
     detail: Type.Optional(Type.String()),
@@ -128,6 +143,45 @@ export const TasksCommitmentsParamsSchema = Type.Object(
 export const TasksCommitmentsResultSchema = Type.Object(
   {
     commitments: Type.Array(TaskCommitmentSchema),
+  },
+  { additionalProperties: false },
+);
+
+export const TasksCommitmentsUpdateParamsSchema = Type.Object(
+  {
+    taskId: NonEmptyString,
+    commitmentId: NonEmptyString,
+    agentId: Type.Optional(NonEmptyString),
+    sessionKey: Type.Optional(Type.String()),
+    status: CommitmentStatusValueSchema,
+    detail: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+  },
+  { additionalProperties: false },
+);
+
+export const TasksCommitmentsUpdateResultSchema = Type.Object(
+  {
+    commitment: Type.Union([TaskCommitmentSchema, Type.Null()]),
+  },
+  { additionalProperties: false },
+);
+
+export const TasksTaskPatchParamsSchema = Type.Object(
+  {
+    taskId: NonEmptyString,
+    agentId: Type.Optional(NonEmptyString),
+    sessionKey: Type.Optional(Type.String()),
+    status: Type.Optional(TaskStatusValueSchema),
+    title: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+    summary: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+    latestSessionKey: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+  },
+  { additionalProperties: false },
+);
+
+export const TasksTaskPatchResultSchema = Type.Object(
+  {
+    task: Type.Union([TaskRecordSchema, Type.Null()]),
   },
   { additionalProperties: false },
 );

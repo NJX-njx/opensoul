@@ -57,6 +57,8 @@ const BASE_METHODS = [
   "tasks.get",
   "tasks.events",
   "tasks.commitments",
+  "tasks.commitments.update",
+  "tasks.task.patch",
   "last-heartbeat",
   "set-heartbeats",
   "wake",

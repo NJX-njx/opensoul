@@ -432,10 +432,14 @@ export type TaskSurfaceRef = {
   nodeId?: string;
 };
 
+export type TaskStatus = "open" | "running" | "waiting-user" | "completed" | "cancelled" | "failed";
+
+export type CommitmentStatus = "open" | "done" | "cancelled";
+
 export type TaskRecord = {
   taskId: string;
   agentId: string;
-  status: string;
+  status: TaskStatus;
   title?: string;
   summary?: string;
   sourceSurface?: TaskSurfaceRef;
@@ -466,7 +470,7 @@ export type TaskCommitment = {
   commitmentId: string;
   taskId: string;
   agentId: string;
-  status: string;
+  status: CommitmentStatus;
   kind?: string;
   title: string;
   detail?: string;
@@ -487,6 +491,14 @@ export type TasksEventsResult = {
 
 export type TasksCommitmentsResult = {
   commitments: TaskCommitment[];
+};
+
+export type TasksCommitmentsUpdateResult = {
+  commitment: TaskCommitment | null;
+};
+
+export type TasksTaskPatchResult = {
+  task: TaskRecord | null;
 };
 
 export type SessionsPatchResult = {

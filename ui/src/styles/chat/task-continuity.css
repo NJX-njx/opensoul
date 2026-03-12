@@ -267,6 +267,12 @@
   line-height: 1;
 }
 
+.task-continuity-panel__summary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .task-continuity-panel__section-title {
   color: var(--text-strong);
   font-size: 13px;
@@ -310,6 +316,15 @@
   gap: 8px;
 }
 
+.task-continuity-handoff-row {
+  display: grid;
+  gap: 8px;
+}
+
+.task-continuity-handoff-row__action {
+  justify-self: start;
+}
+
 .task-continuity-handoff,
 .task-continuity-event {
   display: flex;
@@ -342,6 +357,12 @@
 
 .task-continuity-handoff span:first-of-type {
   flex: 1 1 auto;
+}
+
+.task-continuity-commitment__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .task-continuity-event__icon {

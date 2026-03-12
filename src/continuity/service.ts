@@ -141,6 +141,24 @@ function clipText(value: string | undefined, limit: number): string | undefined 
   return `${normalized.slice(0, limit - 1)}…`;
 }
 
+function normalizeOptionalPatchText(
+  value: string | null | undefined,
+  limit: number,
+): string | undefined {
+  if (value === null) {
+    return undefined;
+  }
+  return clipText(value, limit);
+}
+
+function normalizeOptionalPatchValue(value: string | null | undefined): string | undefined {
+  if (value === null) {
+    return undefined;
+  }
+  const normalized = value?.trim();
+  return normalized ? normalized : undefined;
+}
+
 function isReusableTask(task: TaskRecord | null | undefined): task is TaskRecord {
   if (!task) {
     return false;
@@ -882,6 +900,24 @@ function resolveTaskTitleAfterEvent(
   return clipText(params.summary, TITLE_MAX_CHARS);
 }
 
+function buildTaskPatchSummary(params: {
+  previousTask: TaskRecord;
+  nextTask: TaskRecord;
+  updatedFields: Array<string>;
+}): string {
+  const statusChanged = params.previousTask.status !== params.nextTask.status;
+  if (statusChanged && params.updatedFields.length === 0) {
+    return `Updated task status to ${params.nextTask.status}`;
+  }
+  if (statusChanged) {
+    return `Updated task status to ${params.nextTask.status} and fields: ${params.updatedFields.join(", ")}`;
+  }
+  if (params.updatedFields.length === 1) {
+    return `Updated task ${params.updatedFields[0]}`;
+  }
+  return `Updated task fields: ${params.updatedFields.join(", ")}`;
+}
+
 function linkTaskToSession(params: {
   cfg: OpenSoulConfig;
   agentId: string;
@@ -1179,6 +1215,112 @@ export function updateTaskStatus(params: UpdateTaskStatusParams): TaskRecord | n
   return nextTask;
 }
 
+export function patchTask(params: {
+  cfg: OpenSoulConfig;
+  agentId: string;
+  taskId: string;
+  status?: TaskStatus;
+  title?: string | null;
+  summary?: string | null;
+  latestSessionKey?: string | null;
+  surface?: SurfaceRef;
+}): TaskRecord | null {
+  const store = getContinuityStore({ cfg: params.cfg, agentId: params.agentId });
+  const originalTask = store.getTask(params.taskId);
+  if (!originalTask) {
+    return null;
+  }
+
+  let nextTask = originalTask;
+  let statusChanged = false;
+  if (params.status && params.status !== originalTask.status) {
+    const updatedTask = updateTaskStatus({
+      cfg: params.cfg,
+      agentId: params.agentId,
+      taskId: params.taskId,
+      status: params.status,
+      reason: "task-patch",
+      sourceEvent: "tasks.task.patch",
+    });
+    if (!updatedTask) {
+      return null;
+    }
+    nextTask = updatedTask;
+    statusChanged = true;
+  }
+
+  const updatedFields: Array<string> = [];
+  const titleProvided = Object.prototype.hasOwnProperty.call(params, "title");
+  const summaryProvided = Object.prototype.hasOwnProperty.call(params, "summary");
+  const latestSessionKeyProvided = Object.prototype.hasOwnProperty.call(params, "latestSessionKey");
+  const nextTitle = titleProvided
+    ? normalizeOptionalPatchText(params.title, TITLE_MAX_CHARS)
+    : nextTask.title;
+  const nextSummary = summaryProvided
+    ? normalizeOptionalPatchText(params.summary, SUMMARY_MAX_CHARS)
+    : nextTask.summary;
+  const nextLatestSessionKey = latestSessionKeyProvided
+    ? normalizeOptionalPatchValue(params.latestSessionKey)
+    : nextTask.latestSessionKey;
+
+  if (nextTitle !== nextTask.title) {
+    updatedFields.push("title");
+  }
+  if (nextSummary !== nextTask.summary) {
+    updatedFields.push("summary");
+  }
+  if (nextLatestSessionKey !== nextTask.latestSessionKey) {
+    updatedFields.push("latestSessionKey");
+  }
+
+  if (updatedFields.length > 0) {
+    const now = Date.now();
+    const patchedTask: TaskRecord = {
+      ...nextTask,
+      title: nextTitle,
+      summary: nextSummary,
+      latestSessionKey: nextLatestSessionKey,
+      updatedAt: now,
+    };
+    store.transaction(() => {
+      store.upsertTask(patchedTask);
+      if (nextLatestSessionKey) {
+        store.upsertTaskSessionLink({
+          taskId: patchedTask.taskId,
+          agentId: params.agentId,
+          sessionKey: nextLatestSessionKey,
+          relation: "linked",
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    });
+    nextTask = patchedTask;
+  }
+
+  if (statusChanged || updatedFields.length > 0) {
+    appendTaskEvent({
+      cfg: params.cfg,
+      agentId: params.agentId,
+      taskId: params.taskId,
+      kind: "task.updated",
+      summary: buildTaskPatchSummary({
+        previousTask: originalTask,
+        nextTask,
+        updatedFields,
+      }),
+      surface: params.surface,
+      payload: {
+        previousStatus: statusChanged ? originalTask.status : undefined,
+        status: nextTask.status,
+        updatedFields,
+      },
+    });
+  }
+
+  return nextTask;
+}
+
 export function upsertCommitment(params: {
   cfg: OpenSoulConfig;
   agentId: string;
@@ -1236,4 +1378,68 @@ export function updateCommitmentStatus(params: {
     closedAt: params.status === "open" ? undefined : now,
   };
   return store.upsertCommitment(nextCommitment);
+}
+
+export function patchCommitment(params: {
+  cfg: OpenSoulConfig;
+  agentId: string;
+  taskId: string;
+  commitmentId: string;
+  status: CommitmentStatus;
+  detail?: string | null;
+  sessionKey?: string;
+  surface?: SurfaceRef;
+}): CommitmentRecord | null {
+  const store = getContinuityStore({ cfg: params.cfg, agentId: params.agentId });
+  const commitment = store
+    .listCommitments({ taskId: params.taskId })
+    .find((item) => item.commitmentId === params.commitmentId);
+  if (!commitment) {
+    return null;
+  }
+
+  const detailProvided = Object.prototype.hasOwnProperty.call(params, "detail");
+  const nextDetail = detailProvided
+    ? normalizeOptionalPatchText(params.detail, SUMMARY_MAX_CHARS)
+    : commitment.detail;
+  const statusChanged = commitment.status !== params.status;
+  const detailChanged = nextDetail !== commitment.detail;
+  if (!statusChanged && !detailChanged) {
+    return commitment;
+  }
+
+  const now = Date.now();
+  const nextCommitment: CommitmentRecord = {
+    ...commitment,
+    status: params.status,
+    detail: nextDetail,
+    updatedAt: now,
+    closedAt:
+      params.status === "open" ? undefined : statusChanged ? now : (commitment.closedAt ?? now),
+  };
+  const saved = store.upsertCommitment(nextCommitment);
+  const eventKind = !statusChanged
+    ? `${COMMITMENT_EVENT_PREFIX}updated`
+    : params.status === "open"
+      ? `${COMMITMENT_EVENT_PREFIX}reopened`
+      : `${COMMITMENT_EVENT_PREFIX}${params.status}`;
+  const eventLabel = !statusChanged
+    ? "Updated commitment"
+    : params.status === "open"
+      ? "Reopened commitment"
+      : params.status === "done"
+        ? "Completed commitment"
+        : "Cancelled commitment";
+  appendCommitmentEvent({
+    cfg: params.cfg,
+    agentId: params.agentId,
+    taskId: params.taskId,
+    sessionKey: params.sessionKey,
+    surface: params.surface,
+    kind: eventKind,
+    summary: buildCommitmentSummary(eventLabel, saved),
+    commitment: saved,
+    reason: "tasks.commitments.update",
+  });
+  return saved;
 }

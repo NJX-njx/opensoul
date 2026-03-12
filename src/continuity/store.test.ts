@@ -115,4 +115,36 @@ describe("continuity store", () => {
     expect(store.readMeta("schema_version")).toBe(String(CONTINUITY_SCHEMA_VERSION));
     expect(store.listRepairs()).toEqual([]);
   });
+
+  it("does not downgrade stronger session link relations back to linked", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-links-"));
+    const dbPath = path.join(tempDir, "continuity.sqlite");
+    const store = openContinuityStore(dbPath);
+
+    store.upsertTask({
+      taskId: "task-2",
+      agentId: "main",
+      status: "open",
+      createdAt: 1,
+      updatedAt: 1,
+    });
+    store.upsertTaskSessionLink({
+      taskId: "task-2",
+      agentId: "main",
+      sessionKey: "agent:main:main",
+      relation: "active",
+      createdAt: 1,
+      updatedAt: 1,
+    });
+    store.upsertTaskSessionLink({
+      taskId: "task-2",
+      agentId: "main",
+      sessionKey: "agent:main:main",
+      relation: "linked",
+      createdAt: 1,
+      updatedAt: 2,
+    });
+
+    expect(store.getTaskSessionLinks("task-2")[0]?.relation).toBe("active");
+  });
 });

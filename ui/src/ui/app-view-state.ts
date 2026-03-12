@@ -14,6 +14,7 @@ import type {
   AgentsFilesListResult,
   AgentIdentityResult,
   ChannelsStatusSnapshot,
+  CommitmentStatus,
   ConfigSnapshot,
   ConfigUiHints,
   CronJob,
@@ -28,6 +29,7 @@ import type {
   CostUsageSummary,
   SessionUsageTimeSeries,
   SessionsListResult,
+  TaskStatus,
   TaskCommitment,
   TaskEvent,
   TaskRecord,
@@ -166,6 +168,9 @@ export type AppViewState = {
   taskContinuityEventsByTaskId: Record<string, Array<TaskEvent>>;
   taskContinuityCommitmentsByTaskId: Record<string, Array<TaskCommitment>>;
   taskContinuityDetailsLoadingTaskId: string | null;
+  taskContinuityActionError: string | null;
+  taskContinuityActionMessage: string | null;
+  taskContinuityActionBusyKey: string | null;
   viewingSessionId: string | null;
   usageLoading: boolean;
   usageResult: SessionsUsageResult | null;
@@ -295,6 +300,12 @@ export type AppViewState = {
   handleLoadLogs: () => Promise<void>;
   loadTaskContinuity: () => Promise<void>;
   selectTaskContinuityTask: (taskId: string) => Promise<void>;
+  updateTaskContinuityCommitment: (
+    taskId: string,
+    commitmentId: string,
+    status: CommitmentStatus,
+  ) => Promise<void>;
+  updateTaskContinuityTaskStatus: (taskId: string, status: TaskStatus) => Promise<void>;
   handleDebugCall: () => Promise<void>;
   handleRunUpdate: () => Promise<void>;
   setPassword: (next: string) => void;

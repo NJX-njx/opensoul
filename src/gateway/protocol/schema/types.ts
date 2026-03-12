@@ -126,12 +126,16 @@ import type {
   TaskRecordSchema,
   TasksCommitmentsParamsSchema,
   TasksCommitmentsResultSchema,
+  TasksCommitmentsUpdateParamsSchema,
+  TasksCommitmentsUpdateResultSchema,
   TasksEventsParamsSchema,
   TasksEventsResultSchema,
   TasksGetParamsSchema,
   TasksGetResultSchema,
   TasksListParamsSchema,
   TasksListResultSchema,
+  TasksTaskPatchParamsSchema,
+  TasksTaskPatchResultSchema,
 } from "./tasks.js";
 import type {
   WizardCancelParamsSchema,
@@ -191,6 +195,10 @@ export type TasksEventsParams = Static<typeof TasksEventsParamsSchema>;
 export type TasksEventsResult = Static<typeof TasksEventsResultSchema>;
 export type TasksCommitmentsParams = Static<typeof TasksCommitmentsParamsSchema>;
 export type TasksCommitmentsResult = Static<typeof TasksCommitmentsResultSchema>;
+export type TasksCommitmentsUpdateParams = Static<typeof TasksCommitmentsUpdateParamsSchema>;
+export type TasksCommitmentsUpdateResult = Static<typeof TasksCommitmentsUpdateResultSchema>;
+export type TasksTaskPatchParams = Static<typeof TasksTaskPatchParamsSchema>;
+export type TasksTaskPatchResult = Static<typeof TasksTaskPatchResultSchema>;
 export type ConfigGetParams = Static<typeof ConfigGetParamsSchema>;
 export type ConfigSetParams = Static<typeof ConfigSetParamsSchema>;
 export type ConfigApplyParams = Static<typeof ConfigApplyParamsSchema>;

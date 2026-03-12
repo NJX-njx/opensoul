@@ -23,10 +23,12 @@ import type {
   LogLevel,
   PresenceEntry,
   ChannelsStatusSnapshot,
+  CommitmentStatus,
   SessionsListResult,
   SkillStatusReport,
   StatusSummary,
   NostrProfile,
+  TaskStatus,
   TaskCommitment,
   TaskEvent,
   TaskRecord,
@@ -99,6 +101,8 @@ import { loadSessions } from "./controllers/sessions.ts";
 import {
   loadTaskContinuity as loadTaskContinuityInternal,
   selectTaskContinuityTask as selectTaskContinuityTaskInternal,
+  updateTaskContinuityCommitment as updateTaskContinuityCommitmentInternal,
+  updateTaskContinuityTaskStatus as updateTaskContinuityTaskStatusInternal,
 } from "./controllers/tasks.ts";
 import { loadUiLocale, resolveUiLocale, saveUiLocale } from "./i18n.ts";
 import { loadSettings, type UiSettings } from "./storage.ts";
@@ -270,6 +274,9 @@ export class OpenSoulApp extends LitElement {
   @state() taskContinuityEventsByTaskId: Record<string, Array<TaskEvent>> = {};
   @state() taskContinuityCommitmentsByTaskId: Record<string, Array<TaskCommitment>> = {};
   @state() taskContinuityDetailsLoadingTaskId: string | null = null;
+  @state() taskContinuityActionError: string | null = null;
+  @state() taskContinuityActionMessage: string | null = null;
+  @state() taskContinuityActionBusyKey: string | null = null;
   @state() viewingSessionId: string | null = null;
   @state() sessionsFilterActive = "";
   @state() sessionsFilterLimit = "120";
@@ -496,6 +503,18 @@ export class OpenSoulApp extends LitElement {
 
   async selectTaskContinuityTask(taskId: string) {
     await selectTaskContinuityTaskInternal(this, taskId);
+  }
+
+  async updateTaskContinuityCommitment(
+    taskId: string,
+    commitmentId: string,
+    status: CommitmentStatus,
+  ) {
+    await updateTaskContinuityCommitmentInternal(this, taskId, commitmentId, status);
+  }
+
+  async updateTaskContinuityTaskStatus(taskId: string, status: TaskStatus) {
+    await updateTaskContinuityTaskStatusInternal(this, taskId, status);
   }
 
   applySettings(next: UiSettings) {

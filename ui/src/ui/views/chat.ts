@@ -1,8 +1,15 @@
 import { html, nothing } from "lit";
 import { ref } from "lit/directives/ref.js";
 import { repeat } from "lit/directives/repeat.js";
-import type { SessionsListResult, TranscriptListEntry } from "../types.ts";
-import type { TaskCommitment, TaskEvent, TaskRecord } from "../types.ts";
+import type {
+  CommitmentStatus,
+  SessionsListResult,
+  TaskCommitment,
+  TaskEvent,
+  TaskRecord,
+  TaskStatus,
+  TranscriptListEntry,
+} from "../types.ts";
 import type { ChatItem, MessageGroup } from "../types/chat-types.ts";
 import type { ChatAttachment, ChatQueueItem } from "../ui-types.ts";
 import type { Locale } from "./onboarding/i18n.ts";
@@ -72,8 +79,17 @@ export type ChatProps = {
   taskContinuityEvents?: Array<TaskEvent>;
   taskContinuityCommitments?: Array<TaskCommitment>;
   taskContinuityDetailsLoading?: boolean;
+  taskContinuityActionError?: string | null;
+  taskContinuityActionMessage?: string | null;
+  taskContinuityActionBusyKey?: string | null;
   onRefreshTaskContinuity?: () => void;
   onSelectTaskContinuityTask?: (taskId: string) => void;
+  onUpdateTaskContinuityCommitment?: (
+    taskId: string,
+    commitmentId: string,
+    status: CommitmentStatus,
+  ) => void;
+  onUpdateTaskContinuityTaskStatus?: (taskId: string, status: TaskStatus) => void;
   // Image attachments
   attachments?: ChatAttachment[];
   onAttachmentsChange?: (attachments: ChatAttachment[]) => void;
@@ -355,8 +371,17 @@ export function renderChat(props: ChatProps) {
             events: props.taskContinuityEvents ?? [],
             commitments: props.taskContinuityCommitments ?? [],
             detailsLoading: props.taskContinuityDetailsLoading ?? false,
+            actionError: props.taskContinuityActionError ?? null,
+            actionMessage: props.taskContinuityActionMessage ?? null,
+            actionBusyKey: props.taskContinuityActionBusyKey ?? null,
             onRefresh: props.onRefreshTaskContinuity ?? props.onRefresh,
             onSelectTask: props.onSelectTaskContinuityTask ?? (() => {}),
+            onUpdateCommitment:
+              props.onUpdateTaskContinuityCommitment ??
+              ((_taskId: string, _commitmentId: string, _status: CommitmentStatus) => {}),
+            onUpdateTaskStatus:
+              props.onUpdateTaskContinuityTaskStatus ??
+              ((_taskId: string, _status: TaskStatus) => {}),
             onOpenEventDetails: (content, options) => props.onOpenSidebar?.(content, options),
           })}
           ${renderConversationNavigator({

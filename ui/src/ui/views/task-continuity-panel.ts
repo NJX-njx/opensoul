@@ -1,6 +1,13 @@
 import { html, nothing } from "lit";
 import { repeat } from "lit/directives/repeat.js";
-import type { TaskCommitment, TaskEvent, TaskRecord, TaskSurfaceRef } from "../types.ts";
+import type {
+  CommitmentStatus,
+  TaskCommitment,
+  TaskEvent,
+  TaskRecord,
+  TaskStatus,
+  TaskSurfaceRef,
+} from "../types.ts";
 import type { Locale } from "./onboarding/i18n.ts";
 import { clampText, formatMs, formatRelativeTimestamp } from "../format.ts";
 import { uiText } from "../i18n.ts";
@@ -210,6 +217,53 @@ function buildEventSidebarMarkdown(event: TaskEvent, locale: Locale): string {
   return parts.join("\n");
 }
 
+function buildCommitmentBusyKey(commitmentId: string, status: CommitmentStatus): string {
+  return `commitment:${commitmentId}:${status}`;
+}
+
+function buildTaskBusyKey(taskId: string, status: TaskStatus): string {
+  return `task:${taskId}:${status}`;
+}
+
+function resolveTaskAction(
+  task: TaskRecord,
+  locale: Locale,
+): {
+  nextStatus: TaskStatus;
+  label: string;
+  pendingLabel: string;
+} | null {
+  switch (task.status) {
+    case "open":
+    case "running":
+    case "waiting-user":
+      return {
+        nextStatus: "completed",
+        label: uiText(locale, "Close", "关闭"),
+        pendingLabel: uiText(locale, "Closing...", "正在关闭..."),
+      };
+    case "failed":
+    case "completed":
+    case "cancelled":
+      return {
+        nextStatus: "open",
+        label: uiText(locale, "Reopen", "重新打开"),
+        pendingLabel: uiText(locale, "Reopening...", "正在重新打开..."),
+      };
+    default:
+      return null;
+  }
+}
+
+function readHandoffUrl(event: TaskEvent): string | null {
+  const payload = event.payload;
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+  const urlValue = (payload as Record<string, unknown>).url;
+  return typeof urlValue === "string" && urlValue.trim() ? urlValue.trim() : null;
+}
+
 export type TaskContinuityPanelProps = {
   locale: Locale;
   sessionKey: string;
@@ -220,8 +274,13 @@ export type TaskContinuityPanelProps = {
   events: Array<TaskEvent>;
   commitments: Array<TaskCommitment>;
   detailsLoading: boolean;
+  actionError: string | null;
+  actionMessage: string | null;
+  actionBusyKey: string | null;
   onRefresh: () => void;
   onSelectTask: (taskId: string) => void;
+  onUpdateCommitment: (taskId: string, commitmentId: string, status: CommitmentStatus) => void;
+  onUpdateTaskStatus: (taskId: string, status: TaskStatus) => void;
   onOpenEventDetails: (content: string, options?: { title?: string }) => void;
 };
 
@@ -232,6 +291,7 @@ export function renderTaskContinuityPanel(props: TaskContinuityPanelProps) {
   const selectedEvents = props.events.slice(0, 12);
   const selectedCommitments = props.commitments.slice(0, 8);
   const surfaceTrail = selectedTask ? collectSurfaceTrail(selectedTask, props.events) : [];
+  const taskAction = selectedTask ? resolveTaskAction(selectedTask, props.locale) : null;
   const handoffEvents = props.events
     .filter((event) => event.kind.startsWith("handoff."))
     .slice(0, 4);
@@ -265,6 +325,12 @@ export function renderTaskContinuityPanel(props: TaskContinuityPanelProps) {
       }
 
       ${props.error ? html`<div class="callout danger">${props.error}</div>` : nothing}
+      ${props.actionError ? html`<div class="callout danger">${props.actionError}</div>` : nothing}
+      ${
+        !props.actionError && props.actionMessage
+          ? html`<div class="callout success">${props.actionMessage}</div>`
+          : nothing
+      }
 
       ${
         !props.loading && props.tasks.length === 0
@@ -358,6 +424,36 @@ export function renderTaskContinuityPanel(props: TaskContinuityPanelProps) {
                     <strong>${surfaceTrail.length}</strong>
                   </div>
                 </div>
+                ${
+                  taskAction
+                    ? html`
+                        <div class="task-continuity-panel__summary-actions">
+                          <button
+                            class="btn btn--sm"
+                            type="button"
+                            ?disabled=${Boolean(props.actionBusyKey)}
+                            @click=${() =>
+                              props.onUpdateTaskStatus(selectedTask.taskId, taskAction.nextStatus)}
+                          >
+                            ${
+                              props.actionBusyKey ===
+                              buildTaskBusyKey(selectedTask.taskId, taskAction.nextStatus)
+                                ? icons.loader
+                                : nothing
+                            }
+                            <span>
+                              ${
+                                props.actionBusyKey ===
+                                buildTaskBusyKey(selectedTask.taskId, taskAction.nextStatus)
+                                  ? taskAction.pendingLabel
+                                  : taskAction.label
+                              }
+                            </span>
+                          </button>
+                        </div>
+                      `
+                    : nothing
+                }
               </div>
 
               <div class="task-continuity-panel__section">
@@ -392,25 +488,45 @@ export function renderTaskContinuityPanel(props: TaskContinuityPanelProps) {
                           ${repeat(
                             handoffEvents,
                             (event) => event.eventId,
-                            (event) => html`
-                              <button
-                                type="button"
-                                class="task-continuity-handoff"
-                                @click=${() =>
-                                  props.onOpenEventDetails(
-                                    buildEventSidebarMarkdown(event, props.locale),
-                                    {
-                                      title: t("Surface handoff", "表面切换"),
-                                    },
-                                  )}
-                              >
-                                ${icons.link}
-                                <span>${event.summary?.trim() || formatEventHeadline(event, props.locale)}</span>
-                                <span class="task-continuity-handoff__time">
-                                  ${formatRelativeTimestamp(event.createdAt)}
-                                </span>
-                              </button>
-                            `,
+                            (event) => {
+                              const handoffUrl = readHandoffUrl(event);
+                              return html`
+                                <div class="task-continuity-handoff-row">
+                                  <button
+                                    type="button"
+                                    class="task-continuity-handoff"
+                                    @click=${() =>
+                                      props.onOpenEventDetails(
+                                        buildEventSidebarMarkdown(event, props.locale),
+                                        {
+                                          title: t("Surface handoff", "表面切换"),
+                                        },
+                                      )}
+                                  >
+                                    ${icons.link}
+                                    <span>
+                                      ${event.summary?.trim() || formatEventHeadline(event, props.locale)}
+                                    </span>
+                                    <span class="task-continuity-handoff__time">
+                                      ${formatRelativeTimestamp(event.createdAt)}
+                                    </span>
+                                  </button>
+                                  ${
+                                    handoffUrl
+                                      ? html`
+                                          <button
+                                            type="button"
+                                            class="btn btn--sm task-continuity-handoff-row__action"
+                                            @click=${() => window.open(handoffUrl, "_blank", "noopener,noreferrer")}
+                                          >
+                                            <span>${t("Open in Control UI", "在控制台中打开")}</span>
+                                          </button>
+                                        `
+                                      : nothing
+                                  }
+                                </div>
+                              `;
+                            },
                           )}
                         </div>
                       `
@@ -454,6 +570,111 @@ export function renderTaskContinuityPanel(props: TaskContinuityPanelProps) {
                                       commitment.dueAt
                                         ? html`<span>${t("Due", "截止")} ${formatRelativeTimestamp(commitment.dueAt)}</span>`
                                         : nothing
+                                    }
+                                  </div>
+                                  <div class="task-continuity-commitment__actions">
+                                    ${
+                                      commitment.status === "open"
+                                        ? html`
+                                            <button
+                                              class="btn btn--sm"
+                                              type="button"
+                                              ?disabled=${Boolean(props.actionBusyKey)}
+                                              @click=${() =>
+                                                props.onUpdateCommitment(
+                                                  commitment.taskId,
+                                                  commitment.commitmentId,
+                                                  "done",
+                                                )}
+                                            >
+                                              ${
+                                                props.actionBusyKey ===
+                                                buildCommitmentBusyKey(
+                                                  commitment.commitmentId,
+                                                  "done",
+                                                )
+                                                  ? icons.loader
+                                                  : nothing
+                                              }
+                                              <span>
+                                                ${
+                                                  props.actionBusyKey ===
+                                                  buildCommitmentBusyKey(
+                                                    commitment.commitmentId,
+                                                    "done",
+                                                  )
+                                                    ? t("Saving...", "保存中...")
+                                                    : t("Done", "完成")
+                                                }
+                                              </span>
+                                            </button>
+                                            <button
+                                              class="btn btn--sm"
+                                              type="button"
+                                              ?disabled=${Boolean(props.actionBusyKey)}
+                                              @click=${() =>
+                                                props.onUpdateCommitment(
+                                                  commitment.taskId,
+                                                  commitment.commitmentId,
+                                                  "cancelled",
+                                                )}
+                                            >
+                                              ${
+                                                props.actionBusyKey ===
+                                                buildCommitmentBusyKey(
+                                                  commitment.commitmentId,
+                                                  "cancelled",
+                                                )
+                                                  ? icons.loader
+                                                  : nothing
+                                              }
+                                              <span>
+                                                ${
+                                                  props.actionBusyKey ===
+                                                  buildCommitmentBusyKey(
+                                                    commitment.commitmentId,
+                                                    "cancelled",
+                                                  )
+                                                    ? t("Saving...", "保存中...")
+                                                    : t("Cancel", "取消")
+                                                }
+                                              </span>
+                                            </button>
+                                          `
+                                        : html`
+                                            <button
+                                              class="btn btn--sm"
+                                              type="button"
+                                              ?disabled=${Boolean(props.actionBusyKey)}
+                                              @click=${() =>
+                                                props.onUpdateCommitment(
+                                                  commitment.taskId,
+                                                  commitment.commitmentId,
+                                                  "open",
+                                                )}
+                                            >
+                                              ${
+                                                props.actionBusyKey ===
+                                                buildCommitmentBusyKey(
+                                                  commitment.commitmentId,
+                                                  "open",
+                                                )
+                                                  ? icons.loader
+                                                  : nothing
+                                              }
+                                              <span>
+                                                ${
+                                                  props.actionBusyKey ===
+                                                  buildCommitmentBusyKey(
+                                                    commitment.commitmentId,
+                                                    "open",
+                                                  )
+                                                    ? t("Saving...", "保存中...")
+                                                    : t("Reopen", "重新打开")
+                                                }
+                                              </span>
+                                            </button>
+                                          `
                                     }
                                   </div>
                                 </div>

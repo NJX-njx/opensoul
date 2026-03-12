@@ -1,15 +1,24 @@
 import type { GatewayRequestHandlers } from "./types.js";
 import { resolveDefaultAgentId, resolveSessionAgentId } from "../../agents/agent-scope.js";
 import { loadConfig } from "../../config/config.js";
-import { getTask, listCommitments, listTaskEvents, listTasks } from "../../continuity/service.js";
+import {
+  getTask,
+  listCommitments,
+  listTaskEvents,
+  listTasks,
+  patchCommitment,
+  patchTask,
+} from "../../continuity/service.js";
 import {
   ErrorCodes,
   errorShape,
   formatValidationErrors,
   validateTasksCommitmentsParams,
+  validateTasksCommitmentsUpdateParams,
   validateTasksEventsParams,
   validateTasksGetParams,
   validateTasksListParams,
+  validateTasksTaskPatchParams,
 } from "../protocol/index.js";
 
 function resolveTaskAgentId(params: {
@@ -29,6 +38,20 @@ function resolveTaskAgentId(params: {
     });
   }
   return resolveDefaultAgentId(params.cfg);
+}
+
+function hasTaskPatchFields(params: {
+  status?: string;
+  title?: string | null;
+  summary?: string | null;
+  latestSessionKey?: string | null;
+}): boolean {
+  return (
+    Object.prototype.hasOwnProperty.call(params, "status") ||
+    Object.prototype.hasOwnProperty.call(params, "title") ||
+    Object.prototype.hasOwnProperty.call(params, "summary") ||
+    Object.prototype.hasOwnProperty.call(params, "latestSessionKey")
+  );
 }
 
 export const tasksHandlers: GatewayRequestHandlers = {
@@ -143,5 +166,122 @@ export const tasksHandlers: GatewayRequestHandlers = {
       status: p.status,
     });
     respond(true, { commitments }, undefined);
+  },
+  "tasks.commitments.update": ({ params, respond }) => {
+    if (!validateTasksCommitmentsUpdateParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid tasks.commitments.update params: ${formatValidationErrors(validateTasksCommitmentsUpdateParams.errors)}`,
+        ),
+      );
+      return;
+    }
+    const cfg = loadConfig();
+    const p = params as {
+      taskId: string;
+      commitmentId: string;
+      agentId?: string;
+      sessionKey?: string;
+      status: "open" | "done" | "cancelled";
+      detail?: string | null;
+    };
+    const agentId = resolveTaskAgentId({
+      cfg,
+      agentId: p.agentId,
+      sessionKey: p.sessionKey,
+    });
+    const commitment = patchCommitment({
+      cfg,
+      agentId,
+      taskId: p.taskId,
+      commitmentId: p.commitmentId,
+      status: p.status,
+      detail: p.detail,
+    });
+    if (!commitment) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `unknown task or commitment: ${p.taskId}/${p.commitmentId}`,
+        ),
+      );
+      return;
+    }
+    respond(true, { commitment }, undefined);
+  },
+  "tasks.task.patch": ({ params, respond }) => {
+    if (!validateTasksTaskPatchParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid tasks.task.patch params: ${formatValidationErrors(validateTasksTaskPatchParams.errors)}`,
+        ),
+      );
+      return;
+    }
+    const p = params as {
+      taskId: string;
+      agentId?: string;
+      sessionKey?: string;
+      status?: "open" | "running" | "waiting-user" | "completed" | "cancelled" | "failed";
+      title?: string | null;
+      summary?: string | null;
+      latestSessionKey?: string | null;
+    };
+    if (!hasTaskPatchFields(p)) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, "invalid tasks.task.patch params: no patch fields"),
+      );
+      return;
+    }
+    const cfg = loadConfig();
+    const agentId = resolveTaskAgentId({
+      cfg,
+      agentId: p.agentId,
+      sessionKey: p.sessionKey,
+    });
+    const existingTask = getTask({
+      cfg,
+      agentId,
+      taskId: p.taskId,
+    });
+    if (!existingTask) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, `unknown task: ${p.taskId}`),
+      );
+      return;
+    }
+    const task = patchTask({
+      cfg,
+      agentId,
+      taskId: p.taskId,
+      status: p.status,
+      title: p.title,
+      summary: p.summary,
+      latestSessionKey: p.latestSessionKey,
+    });
+    if (!task) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `illegal task status transition: ${existingTask.status} -> ${p.status ?? existingTask.status}`,
+        ),
+      );
+      return;
+    }
+    respond(true, { task }, undefined);
   },
 };

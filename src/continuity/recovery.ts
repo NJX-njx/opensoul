@@ -16,6 +16,7 @@ import {
 } from "../config/sessions.js";
 import { parseAgentSessionKey } from "../routing/session-key.js";
 import { resolveContinuityDbPath } from "./paths.js";
+import { CONTINUITY_SCHEMA_VERSION } from "./schema.js";
 import {
   appendTaskEvent,
   listOpenCommitments,
@@ -268,9 +269,16 @@ export async function recoverContinuityForAgent(params: {
   report.migratedSchemaFrom = store.schemaState.migratedFrom;
   report.aheadOfRuntimeSchema = store.schemaState.aheadOfRuntime;
   if (store.schemaState.aheadOfRuntime) {
+    recordRepair({
+      report,
+      agentId: params.agentId,
+      kind: "continuity-schema-ahead-of-runtime",
+      detail: `db=${store.schemaState.version} runtime=${CONTINUITY_SCHEMA_VERSION}`,
+    });
     params.logger?.warn?.(
-      `continuity recovery: agent ${params.agentId} uses schema v${store.schemaState.version}, ahead of runtime v${store.readMeta("schema_version") ?? "unknown"}`,
+      `continuity recovery: agent ${params.agentId} uses schema v${store.schemaState.version}, ahead of runtime v${CONTINUITY_SCHEMA_VERSION}; skipping repair`,
     );
+    return report;
   }
 
   const integrityIssues = store

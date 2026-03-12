@@ -183,6 +183,9 @@ import {
   type TasksCommitmentsParams,
   TasksCommitmentsParamsSchema,
   type TasksCommitmentsResult,
+  type TasksCommitmentsUpdateParams,
+  TasksCommitmentsUpdateParamsSchema,
+  type TasksCommitmentsUpdateResult,
   type TasksEventsParams,
   TasksEventsParamsSchema,
   type TasksEventsResult,
@@ -192,6 +195,9 @@ import {
   type TasksListParams,
   TasksListParamsSchema,
   type TasksListResult,
+  type TasksTaskPatchParams,
+  TasksTaskPatchParamsSchema,
+  type TasksTaskPatchResult,
   type ShutdownEvent,
   ShutdownEventSchema,
   type SkillsBinsParams,
@@ -315,6 +321,12 @@ export const validateTasksGetParams = ajv.compile<TasksGetParams>(TasksGetParams
 export const validateTasksEventsParams = ajv.compile<TasksEventsParams>(TasksEventsParamsSchema);
 export const validateTasksCommitmentsParams = ajv.compile<TasksCommitmentsParams>(
   TasksCommitmentsParamsSchema,
+);
+export const validateTasksCommitmentsUpdateParams = ajv.compile<TasksCommitmentsUpdateParams>(
+  TasksCommitmentsUpdateParamsSchema,
+);
+export const validateTasksTaskPatchParams = ajv.compile<TasksTaskPatchParams>(
+  TasksTaskPatchParamsSchema,
 );
 export const validateConfigGetParams = ajv.compile<ConfigGetParams>(ConfigGetParamsSchema);
 export const validateConfigSetParams = ajv.compile<ConfigSetParams>(ConfigSetParamsSchema);
@@ -611,6 +623,10 @@ export type {
   TasksEventsResult,
   TasksCommitmentsParams,
   TasksCommitmentsResult,
+  TasksCommitmentsUpdateParams,
+  TasksCommitmentsUpdateResult,
+  TasksTaskPatchParams,
+  TasksTaskPatchResult,
   CronJob,
   CronListParams,
   CronStatusParams,

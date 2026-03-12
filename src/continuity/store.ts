@@ -433,7 +433,11 @@ export class ContinuityStore {
          ) VALUES (?, ?, ?, ?, ?, ?)
          ON CONFLICT(task_id, session_key) DO UPDATE SET
            agent_id = excluded.agent_id,
-           relation = excluded.relation,
+           relation = CASE
+             WHEN excluded.relation = 'linked' AND task_session_links.relation <> 'linked'
+               THEN task_session_links.relation
+             ELSE excluded.relation
+           END,
            updated_at = excluded.updated_at`,
       )
       .run(
