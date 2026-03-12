@@ -104,6 +104,11 @@ type ListTasksOptions = {
   sessionKey?: string;
 };
 
+type ListTasksBySessionOptions = {
+  sessionKey: string;
+  status?: TaskStatus;
+};
+
 type ListTaskEventsOptions = {
   taskId: string;
   limit?: number;
@@ -343,6 +348,39 @@ export class ContinuityStore {
          LIMIT ?`,
       )
       .all(limit) as Array<TaskRow>;
+    return rows.map((row) => readTaskRow(row)).filter((row): row is TaskRecord => row != null);
+  }
+
+  listTasksBySession(options: ListTasksBySessionOptions): Array<TaskRecord> {
+    const values: Array<string> = [options.sessionKey];
+    let whereClause = "WHERE l.session_key = ?";
+    if (options.status) {
+      whereClause += " AND t.status = ?";
+      values.push(options.status);
+    }
+    const rows = this.db
+      .prepare(
+        `SELECT
+           t.task_id,
+           t.agent_id,
+           t.status,
+           t.title,
+           t.summary,
+           t.source_surface_json,
+           t.current_surface_json,
+           t.latest_session_key,
+           t.latest_run_id,
+           t.metadata_json,
+           t.created_at,
+           t.updated_at,
+           t.closed_at
+         FROM tasks t
+         INNER JOIN task_session_links l
+           ON l.task_id = t.task_id
+         ${whereClause}
+         ORDER BY t.updated_at DESC`,
+      )
+      .all(...values) as Array<TaskRow>;
     return rows.map((row) => readTaskRow(row)).filter((row): row is TaskRecord => row != null);
   }
 

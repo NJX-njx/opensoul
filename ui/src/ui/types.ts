@@ -483,6 +483,8 @@ export type TaskCommitment = {
 
 export type TasksListResult = {
   tasks: TaskRecord[];
+  total?: number;
+  nextOffset?: number | null;
 };
 
 export type TasksEventsResult = {

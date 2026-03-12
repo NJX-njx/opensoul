@@ -227,13 +227,7 @@ function logToFile(
 }
 
 export function createSubsystemLogger(subsystem: string): SubsystemLogger {
-  let fileLogger: TsLogger<LogObj> | null = null;
-  const getFileLogger = () => {
-    if (!fileLogger) {
-      fileLogger = getChildLogger({ subsystem });
-    }
-    return fileLogger;
-  };
+  const getFileLogger = () => getChildLogger({ subsystem });
   const emit = (level: LogLevel, message: string, meta?: Record<string, unknown>) => {
     const consoleSettings = getConsoleSettings();
     let consoleMessageOverride: string | undefined;

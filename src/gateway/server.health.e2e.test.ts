@@ -3,6 +3,8 @@ import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { WebSocket } from "ws";
+import { loadConfig } from "../config/config.js";
+import { appendTaskEvent, resolveOrCreateTaskForInbound } from "../continuity/service.js";
 import { emitAgentEvent } from "../infra/agent-events.js";
 import {
   loadOrCreateDeviceIdentity,
@@ -19,6 +21,7 @@ import {
   onceMessage,
   startGatewayServer,
   startServerWithClient,
+  testState,
 } from "./test-helpers.js";
 
 installGatewayTestHooks({ scope: "suite" });
@@ -53,6 +56,37 @@ const openClient = async (opts?: Parameters<typeof connectOk>[1]) => {
 describe("gateway server health/presence", () => {
   test("connect + health + presence + status succeed", { timeout: 60_000 }, async () => {
     const ws = await openClient();
+    const cfg = loadConfig();
+    const continuityTask = resolveOrCreateTaskForInbound({
+      cfg,
+      agentId: "main",
+      sessionKey: "agent:main:main",
+      inboundText: "Check continuity health",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    }).task;
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: continuityTask.taskId,
+      kind: "lifecycle.end",
+      stream: "lifecycle",
+      phase: "end",
+      sessionKey: "agent:main:main",
+      runId: "run-health-continuity",
+      summary: "Next steps:\n- Check the health payload",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: continuityTask.taskId,
+      kind: "handoff.control-ui",
+      sessionKey: "agent:main:main",
+      runId: "run-health-continuity",
+      summary: "Delivered Control UI handoff",
+      surface: { kind: "control-ui" },
+      payload: { url: "https://control-ui.example.test/app" },
+    });
 
     const healthP = onceMessage(ws, (o) => o.type === "res" && o.id === "health1");
     const statusP = onceMessage(ws, (o) => o.type === "res" && o.id === "status1");
@@ -75,6 +109,11 @@ describe("gateway server health/presence", () => {
     expect(presence.ok).toBe(true);
     expect(channels.ok).toBe(true);
     expect(Array.isArray(presence.payload)).toBe(true);
+    expect(health.payload?.continuity?.totals?.tasks?.total).toBeGreaterThanOrEqual(1);
+    expect(health.payload?.continuity?.totals?.handoffs?.succeeded).toBeGreaterThanOrEqual(1);
+    expect(health.payload?.continuity?.totals?.commitments?.events?.opened).toBeGreaterThanOrEqual(
+      1,
+    );
 
     ws.close();
   });
@@ -224,6 +263,10 @@ describe("gateway server health/presence", () => {
     const role = "operator";
     const scopes: string[] = [];
     const signedAtMs = Date.now();
+    const token =
+      typeof (testState.gatewayAuth as { token?: unknown } | undefined)?.token === "string"
+        ? ((testState.gatewayAuth as { token?: string }).token ?? null)
+        : null;
     const payload = buildDeviceAuthPayload({
       deviceId: identity.deviceId,
       clientId: GATEWAY_CLIENT_NAMES.FINGERPRINT,
@@ -231,7 +274,7 @@ describe("gateway server health/presence", () => {
       role,
       scopes,
       signedAtMs,
-      token: null,
+      token,
     });
     const ws = await openClient({
       role,

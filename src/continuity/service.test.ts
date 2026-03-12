@@ -1,16 +1,21 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { OpenSoulConfig } from "../config/config.js";
 import { saveSessionStore } from "../config/sessions.js";
+import { registerLogTransport } from "../logging/logger.js";
 import {
   appendTaskEvent,
+  buildContinuitySummary,
   getTask,
   listCommitments,
   listTaskEvents,
+  logStaleContinuityTasks,
   patchCommitment,
   patchTask,
+  queryTasks,
+  resetContinuityObservabilityForTest,
   resolveOrCreateTaskForInbound,
   setSessionActiveTask,
   updateTaskStatus,
@@ -38,6 +43,7 @@ describe("continuity service", () => {
 
   afterEach(async () => {
     resetContinuityStoreCacheForTest();
+    resetContinuityObservabilityForTest();
     if (tempDir) {
       await fs.rm(tempDir, { recursive: true, force: true });
       tempDir = null;
@@ -558,5 +564,253 @@ describe("continuity service", () => {
         taskId: task.taskId,
       })?.status,
     ).toBe("running");
+  });
+
+  it("queries tasks with workbench filters and pagination", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-workbench-"));
+    const cfg = makeConfig(tempDir);
+
+    const workbenchTask = resolveOrCreateTaskForInbound({
+      cfg,
+      agentId: "main",
+      sessionKey: "agent:main:telegram:dm:alpha",
+      inboundText: "Ship the continuity workbench",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    }).task;
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: workbenchTask.taskId,
+      kind: "lifecycle.end",
+      stream: "lifecycle",
+      phase: "end",
+      sessionKey: "agent:main:telegram:dm:alpha",
+      summary: "Wait for UI review",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: workbenchTask.taskId,
+      kind: "handoff.control-ui",
+      sessionKey: "agent:main:telegram:dm:alpha",
+      summary: "Opened the task in Control UI",
+      surface: { kind: "control-ui" },
+      payload: { url: "https://control-ui.example.test/tasks" },
+    });
+
+    const discordTask = resolveOrCreateTaskForInbound({
+      cfg,
+      agentId: "main",
+      sessionKey: "agent:main:discord:dm:beta",
+      inboundText: "Investigate the discord route",
+      surface: { kind: "direct-chat", channel: "discord" },
+    }).task;
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: discordTask.taskId,
+      kind: "lifecycle.start",
+      stream: "lifecycle",
+      phase: "start",
+      sessionKey: "agent:main:discord:dm:beta",
+      summary: "Worker started",
+      surface: { kind: "subagent", label: "relay-worker" },
+    });
+
+    const filtered = queryTasks({
+      cfg,
+      agentId: "main",
+      status: "waiting-user",
+      surfaceKind: "control-ui",
+      channel: "telegram",
+      query: "workbench",
+    });
+    expect(filtered.total).toBe(1);
+    expect(filtered.tasks.map((task) => task.taskId)).toEqual([workbenchTask.taskId]);
+
+    const paged = queryTasks({
+      cfg,
+      agentId: "main",
+      sort: "created-asc",
+      offset: 1,
+      limit: 1,
+    });
+    expect(paged.total).toBe(2);
+    expect(paged.tasks).toHaveLength(1);
+    expect(paged.tasks[0]?.taskId).toBe(discordTask.taskId);
+  });
+
+  it("builds continuity summaries and emits structured lifecycle logs", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-observability-"));
+    const cfg = makeConfig(tempDir);
+    const logs: Array<Record<string, unknown>> = [];
+    const unregister = registerLogTransport((record) => logs.push(record));
+    const hasEvent = (event: string) =>
+      logs.some((record) => (record["1"] as { event?: unknown } | undefined)?.event === event);
+
+    try {
+      const created = resolveOrCreateTaskForInbound({
+        cfg,
+        agentId: "main",
+        sessionKey: "agent:main:main",
+        inboundText: "Ship the continuity rail",
+        surface: { kind: "direct-chat", channel: "telegram" },
+      });
+      resolveOrCreateTaskForInbound({
+        cfg,
+        agentId: "main",
+        sessionKey: "agent:main:main",
+        sessionEntry: {
+          sessionId: "session-1",
+          updatedAt: Date.now(),
+          activeTaskId: created.task.taskId,
+        },
+        inboundText: "Keep the same task alive",
+        surface: { kind: "direct-chat", channel: "telegram" },
+      });
+
+      appendTaskEvent({
+        cfg,
+        agentId: "main",
+        taskId: created.task.taskId,
+        kind: "lifecycle.end",
+        stream: "lifecycle",
+        phase: "end",
+        sessionKey: "agent:main:main",
+        runId: "run-observe-1",
+        summary: "Next steps:\n- Follow up on the browser flow",
+        surface: { kind: "direct-chat", channel: "telegram" },
+      });
+      appendTaskEvent({
+        cfg,
+        agentId: "main",
+        taskId: created.task.taskId,
+        kind: "handoff.control-ui",
+        sessionKey: "agent:main:main",
+        runId: "run-observe-1",
+        summary: "Delivered Control UI handoff",
+        surface: { kind: "control-ui" },
+        payload: { url: "https://control-ui.example.test/app" },
+      });
+
+      const commitment = listCommitments({
+        cfg,
+        agentId: "main",
+        taskId: created.task.taskId,
+      })[0];
+      if (!commitment) {
+        throw new Error("Expected commitment to exist");
+      }
+      patchCommitment({
+        cfg,
+        agentId: "main",
+        taskId: created.task.taskId,
+        commitmentId: commitment.commitmentId,
+        status: "done",
+        sessionKey: "agent:main:main",
+        surface: { kind: "control-ui" },
+      });
+      patchTask({
+        cfg,
+        agentId: "main",
+        taskId: created.task.taskId,
+        status: "completed",
+        surface: { kind: "control-ui" },
+      });
+
+      const summary = buildContinuitySummary({
+        cfg,
+        agentIds: ["main"],
+      });
+      expect(summary.totals.taskLifecycle.createdSinceStart).toBe(1);
+      expect(summary.totals.taskLifecycle.reusedSinceStart).toBe(1);
+      expect(summary.totals.taskLifecycle.closedSinceStart).toBe(1);
+      expect(summary.totals.commitments.byStatus.done).toBe(1);
+      expect(summary.totals.commitments.events.opened).toBe(1);
+      expect(summary.totals.commitments.events.done).toBe(1);
+      expect(summary.totals.handoffs.succeeded).toBe(1);
+
+      expect(hasEvent("task.created")).toBe(true);
+      expect(hasEvent("task.reused")).toBe(true);
+      expect(hasEvent("commitment.done")).toBe(true);
+      expect(hasEvent("task.closed")).toBe(true);
+    } finally {
+      unregister();
+    }
+  });
+
+  it("detects stale running and waiting-user tasks", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-stale-"));
+    const cfg = makeConfig(tempDir);
+    const nowSpy = vi.spyOn(Date, "now");
+    const logs: Array<Record<string, unknown>> = [];
+    const unregister = registerLogTransport((record) => logs.push(record));
+    const staleEvents = () =>
+      logs.filter(
+        (record) =>
+          (record["1"] as { event?: unknown } | undefined)?.event === "continuity.stale-detected",
+      );
+
+    try {
+      nowSpy.mockReturnValue(1_000);
+      const runningTask = resolveOrCreateTaskForInbound({
+        cfg,
+        agentId: "main",
+        sessionKey: "agent:main:main",
+        inboundText: "Watch the worker",
+        surface: { kind: "direct-chat", channel: "telegram" },
+      }).task;
+      appendTaskEvent({
+        cfg,
+        agentId: "main",
+        taskId: runningTask.taskId,
+        kind: "lifecycle.start",
+        stream: "lifecycle",
+        phase: "start",
+        sessionKey: "agent:main:main",
+        summary: "worker started",
+        surface: { kind: "subagent", label: "worker" },
+      });
+
+      nowSpy.mockReturnValue(2_000);
+      const waitingTask = resolveOrCreateTaskForInbound({
+        cfg,
+        agentId: "main",
+        sessionKey: "agent:main:telegram:dm:user-2",
+        inboundText: "Wait for the next reply",
+        surface: { kind: "direct-chat", channel: "telegram" },
+      }).task;
+      appendTaskEvent({
+        cfg,
+        agentId: "main",
+        taskId: waitingTask.taskId,
+        kind: "lifecycle.end",
+        stream: "lifecycle",
+        phase: "end",
+        sessionKey: "agent:main:telegram:dm:user-2",
+        summary: "Waiting for user input",
+        surface: { kind: "direct-chat", channel: "telegram" },
+      });
+
+      const summary = buildContinuitySummary({
+        cfg,
+        agentIds: ["main"],
+        nowMs: 10_000,
+        staleRunningMs: 5_000,
+        staleWaitingUserMs: 5_000,
+      });
+      expect(summary.totals.tasks.staleRunning).toBe(1);
+      expect(summary.totals.tasks.staleWaitingUser).toBe(1);
+      expect(summary.byAgent[0]?.staleTasks.running[0]?.taskId).toBe(runningTask.taskId);
+      expect(summary.byAgent[0]?.staleTasks.waitingUser[0]?.taskId).toBe(waitingTask.taskId);
+
+      logStaleContinuityTasks(summary);
+      logStaleContinuityTasks(summary);
+      expect(staleEvents()).toHaveLength(1);
+    } finally {
+      nowSpy.mockRestore();
+      unregister();
+    }
   });
 });

@@ -4,6 +4,10 @@ import type { SessionEntry } from "../config/sessions.js";
 import type {
   CommitmentRecord,
   CommitmentStatus,
+  ContinuityAgentSummary,
+  ContinuityAggregateCounts,
+  ContinuityStaleTask,
+  ContinuitySummary,
   ResolvedTaskLink,
   SurfaceRef,
   TaskEvent,
@@ -12,6 +16,7 @@ import type {
   TaskStatus,
 } from "./types.js";
 import { updateSessionStore } from "../config/sessions.js";
+import { createSubsystemLogger } from "../logging/subsystem.js";
 import { getContinuityStore } from "./store.js";
 
 const REUSABLE_TASK_STATUSES = new Set<TaskStatus>(["open", "running", "waiting-user"]);
@@ -25,6 +30,22 @@ const COMMITMENT_SOURCE_METADATA_FIELD = "continuitySource";
 const TASK_STATUS_REASON_METADATA_FIELD = "continuityStatusReason";
 const TASK_STATUS_SOURCE_EVENT_METADATA_FIELD = "continuityStatusEvent";
 const TASK_STATUS_CHANGED_AT_METADATA_FIELD = "continuityStatusChangedAt";
+const DEFAULT_STALE_RUNNING_MS = 30 * 60_000;
+const DEFAULT_STALE_WAITING_USER_MS = 24 * 60 * 60_000;
+const DEFAULT_STALE_TASK_SAMPLE_LIMIT = 5;
+const TASK_STATUS_VALUES: Array<TaskStatus> = [
+  "open",
+  "running",
+  "waiting-user",
+  "completed",
+  "cancelled",
+  "failed",
+];
+const COMMITMENT_STATUS_VALUES: Array<CommitmentStatus> = ["open", "done", "cancelled"];
+
+const continuityLogger = createSubsystemLogger("continuity");
+const taskLifecycleCountsByAgent = new Map<string, ContinuityAggregateCounts["taskLifecycle"]>();
+const staleTaskLogSignatureByAgent = new Map<string, string>();
 
 const OPEN_COMMITMENT_LINE_PATTERNS: Array<{ regex: RegExp; kind: string }> = [
   {
@@ -119,6 +140,220 @@ type AppendTaskEventParams = {
   surface?: SurfaceRef;
   payload?: Record<string, unknown>;
 };
+
+function createEmptyTaskLifecycleCounts(): ContinuityAggregateCounts["taskLifecycle"] {
+  return {
+    createdSinceStart: 0,
+    reusedSinceStart: 0,
+    reopenedSinceStart: 0,
+    closedSinceStart: 0,
+  };
+}
+
+function createEmptyTaskStatusCounts(): ContinuityAggregateCounts["tasks"]["byStatus"] {
+  return {
+    open: 0,
+    running: 0,
+    "waiting-user": 0,
+    completed: 0,
+    cancelled: 0,
+    failed: 0,
+  };
+}
+
+function createEmptyCommitmentStatusCounts(): ContinuityAggregateCounts["commitments"]["byStatus"] {
+  return {
+    open: 0,
+    done: 0,
+    cancelled: 0,
+  };
+}
+
+function createEmptyAggregateCounts(): ContinuityAggregateCounts {
+  return {
+    taskLifecycle: createEmptyTaskLifecycleCounts(),
+    tasks: {
+      total: 0,
+      byStatus: createEmptyTaskStatusCounts(),
+      staleRunning: 0,
+      staleWaitingUser: 0,
+    },
+    commitments: {
+      byStatus: createEmptyCommitmentStatusCounts(),
+      events: {
+        opened: 0,
+        done: 0,
+        cancelled: 0,
+        reopened: 0,
+      },
+    },
+    handoffs: {
+      succeeded: 0,
+      failed: 0,
+      degraded: 0,
+      canvasOpened: 0,
+      canvasFailed: 0,
+    },
+  };
+}
+
+function getTaskLifecycleCounts(agentId: string): ContinuityAggregateCounts["taskLifecycle"] {
+  const existing = taskLifecycleCountsByAgent.get(agentId);
+  if (existing) {
+    return existing;
+  }
+  const created = createEmptyTaskLifecycleCounts();
+  taskLifecycleCountsByAgent.set(agentId, created);
+  return created;
+}
+
+function buildContinuityTaskLogMeta(params: {
+  event: string;
+  agentId: string;
+  task: TaskRecord;
+  sessionKey?: string;
+  runId?: string;
+  reason?: string;
+  sourceEvent?: string;
+  surface?: SurfaceRef;
+}): Record<string, unknown> {
+  return {
+    event: params.event,
+    agentId: params.agentId,
+    taskId: params.task.taskId,
+    taskStatus: params.task.status,
+    sessionKey: params.sessionKey ?? params.task.latestSessionKey,
+    runId: params.runId ?? params.task.latestRunId,
+    reason: params.reason,
+    sourceEvent: params.sourceEvent,
+    surface: params.surface ?? params.task.currentSurface ?? params.task.sourceSurface,
+  };
+}
+
+function logContinuityTaskLifecycle(params: {
+  level?: "info" | "warn";
+  message: string;
+  event: string;
+  agentId: string;
+  task: TaskRecord;
+  sessionKey?: string;
+  runId?: string;
+  reason?: string;
+  sourceEvent?: string;
+  surface?: SurfaceRef;
+}): void {
+  const logger = params.level === "warn" ? continuityLogger.warn : continuityLogger.info;
+  logger(
+    params.message,
+    buildContinuityTaskLogMeta({
+      event: params.event,
+      agentId: params.agentId,
+      task: params.task,
+      sessionKey: params.sessionKey,
+      runId: params.runId,
+      reason: params.reason,
+      sourceEvent: params.sourceEvent,
+      surface: params.surface,
+    }),
+  );
+}
+
+function didEnterClosedStatus(previous: TaskStatus, next: TaskStatus): boolean {
+  return !CLOSED_TASK_STATUSES.has(previous) && CLOSED_TASK_STATUSES.has(next);
+}
+
+function didReopenTask(previous: TaskStatus, next: TaskStatus): boolean {
+  return (
+    next === "open" &&
+    (previous === "failed" || previous === "completed" || previous === "cancelled")
+  );
+}
+
+function recordTaskTransitionObservation(params: {
+  agentId: string;
+  previousStatus: TaskStatus;
+  task: TaskRecord;
+  sessionKey?: string;
+  runId?: string;
+  reason?: string;
+  sourceEvent?: string;
+  surface?: SurfaceRef;
+}): void {
+  const counts = getTaskLifecycleCounts(params.agentId);
+  if (didReopenTask(params.previousStatus, params.task.status)) {
+    counts.reopenedSinceStart += 1;
+    logContinuityTaskLifecycle({
+      message: "task reopened",
+      event: "task.reopened",
+      agentId: params.agentId,
+      task: params.task,
+      sessionKey: params.sessionKey,
+      runId: params.runId,
+      reason: params.reason,
+      sourceEvent: params.sourceEvent,
+      surface: params.surface,
+    });
+  }
+  if (didEnterClosedStatus(params.previousStatus, params.task.status)) {
+    counts.closedSinceStart += 1;
+    logContinuityTaskLifecycle({
+      message: "task closed",
+      event: "task.closed",
+      agentId: params.agentId,
+      task: params.task,
+      sessionKey: params.sessionKey,
+      runId: params.runId,
+      reason: params.reason,
+      sourceEvent: params.sourceEvent,
+      surface: params.surface,
+    });
+  }
+}
+
+function logContinuityCommitmentEvent(params: {
+  event: string;
+  agentId: string;
+  taskId: string;
+  sessionKey?: string;
+  runId?: string;
+  surface?: SurfaceRef;
+  commitment: CommitmentRecord;
+  reason?: string;
+}): void {
+  if (
+    params.event !== "commitment.opened" &&
+    params.event !== "commitment.done" &&
+    params.event !== "commitment.cancelled" &&
+    params.event !== "commitment.reopened"
+  ) {
+    return;
+  }
+  continuityLogger.info("commitment event", {
+    event: params.event,
+    agentId: params.agentId,
+    taskId: params.taskId,
+    sessionKey: params.sessionKey,
+    runId: params.runId,
+    surface: params.surface,
+    commitmentId: params.commitment.commitmentId,
+    commitmentStatus: params.commitment.status,
+    commitmentTitle: params.commitment.title,
+    reason: params.reason,
+  });
+}
+
+function buildStaleTask(task: TaskRecord, nowMs: number): ContinuityStaleTask {
+  return {
+    taskId: task.taskId,
+    status: task.status,
+    title: task.title,
+    summary: task.summary,
+    latestSessionKey: task.latestSessionKey,
+    updatedAt: task.updatedAt,
+    currentSurface: task.currentSurface,
+    ageMs: Math.max(0, nowMs - task.updatedAt),
+  };
+}
 
 type UpdateTaskStatusParams = {
   cfg: OpenSoulConfig;
@@ -543,6 +778,16 @@ function appendCommitmentEvent(params: {
       kind: params.commitment.kind,
       reason: params.reason,
     },
+  });
+  logContinuityCommitmentEvent({
+    event: params.kind,
+    agentId: params.agentId,
+    taskId: params.taskId,
+    sessionKey: params.sessionKey,
+    runId: params.runId,
+    surface: params.surface,
+    commitment: params.commitment,
+    reason: params.reason,
   });
 }
 
@@ -1008,16 +1253,16 @@ export function resolveOrCreateTaskForInbound(params: ResolveTaskParams): Resolv
   const relation = params.relation ?? "active";
   const candidate = resolveCandidateTask(params);
   if (candidate) {
-    const candidateTask =
-      candidate.task.status === "failed"
-        ? applyTaskStatusUpdate({
-            task: candidate.task,
-            nextStatus: "open",
-            now,
-            reason: "reopen-on-inbound",
-            sourceEvent: "user-message",
-          })
-        : candidate.task;
+    const reopened = candidate.task.status === "failed";
+    const candidateTask = reopened
+      ? applyTaskStatusUpdate({
+          task: candidate.task,
+          nextStatus: "open",
+          now,
+          reason: "reopen-on-inbound",
+          sourceEvent: "user-message",
+        })
+      : candidate.task;
     const linkedTask = linkTaskToSession({
       cfg: params.cfg,
       agentId: params.agentId,
@@ -1027,6 +1272,31 @@ export function resolveOrCreateTaskForInbound(params: ResolveTaskParams): Resolv
       surface: params.surface,
       now,
     });
+    const lifecycleCounts = getTaskLifecycleCounts(params.agentId);
+    if (reopened) {
+      lifecycleCounts.reopenedSinceStart += 1;
+      logContinuityTaskLifecycle({
+        message: "task reopened",
+        event: "task.reopened",
+        agentId: params.agentId,
+        task: linkedTask,
+        sessionKey: params.sessionKey,
+        reason: candidate.reason,
+        sourceEvent: "user-message",
+        surface: params.surface,
+      });
+    } else {
+      lifecycleCounts.reusedSinceStart += 1;
+      logContinuityTaskLifecycle({
+        message: "task reused",
+        event: "task.reused",
+        agentId: params.agentId,
+        task: linkedTask,
+        sessionKey: params.sessionKey,
+        reason: candidate.reason,
+        surface: params.surface,
+      });
+    }
     return {
       task: linkedTask,
       reason: candidate.reason,
@@ -1055,6 +1325,16 @@ export function resolveOrCreateTaskForInbound(params: ResolveTaskParams): Resolv
     surface: params.surface,
     now,
   });
+  getTaskLifecycleCounts(params.agentId).createdSinceStart += 1;
+  logContinuityTaskLifecycle({
+    message: "task created",
+    event: "task.created",
+    agentId: params.agentId,
+    task: linkedTask,
+    sessionKey: params.sessionKey,
+    reason: "new-task",
+    surface: params.surface,
+  });
   return {
     task: linkedTask,
     reason: "new-task",
@@ -1071,17 +1351,134 @@ export function getTask(params: {
   return store.getTask(params.taskId);
 }
 
+export type TasksListSort = "updated-desc" | "updated-asc" | "created-desc" | "created-asc";
+
+function normalizeTaskFilterValue(value?: string): string | undefined {
+  const trimmed = value?.trim().toLowerCase();
+  return trimmed ? trimmed : undefined;
+}
+
+function taskMatchesSurfaceKind(task: TaskRecord, surfaceKind?: string): boolean {
+  const normalized = normalizeTaskFilterValue(surfaceKind);
+  if (!normalized) {
+    return true;
+  }
+  return (
+    task.sourceSurface?.kind?.trim().toLowerCase() === normalized ||
+    task.currentSurface?.kind?.trim().toLowerCase() === normalized
+  );
+}
+
+function taskMatchesChannel(task: TaskRecord, channel?: string): boolean {
+  const normalized = normalizeTaskFilterValue(channel);
+  if (!normalized) {
+    return true;
+  }
+  return (
+    task.sourceSurface?.channel?.trim().toLowerCase() === normalized ||
+    task.currentSurface?.channel?.trim().toLowerCase() === normalized
+  );
+}
+
+function taskMatchesQuery(task: TaskRecord, query?: string): boolean {
+  const normalized = normalizeTaskFilterValue(query);
+  if (!normalized) {
+    return true;
+  }
+  const haystack = [
+    task.taskId,
+    task.title,
+    task.summary,
+    task.latestSessionKey,
+    task.sourceSurface?.kind,
+    task.sourceSurface?.channel,
+    task.sourceSurface?.label,
+    task.currentSurface?.kind,
+    task.currentSurface?.channel,
+    task.currentSurface?.label,
+  ]
+    .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+    .join("\n")
+    .toLowerCase();
+  return haystack.includes(normalized);
+}
+
+function compareTaskRecords(a: TaskRecord, b: TaskRecord, sort: TasksListSort): number {
+  switch (sort) {
+    case "updated-asc":
+      return a.updatedAt - b.updatedAt || a.createdAt - b.createdAt;
+    case "created-desc":
+      return b.createdAt - a.createdAt || b.updatedAt - a.updatedAt;
+    case "created-asc":
+      return a.createdAt - b.createdAt || a.updatedAt - b.updatedAt;
+    case "updated-desc":
+    default:
+      return b.updatedAt - a.updatedAt || b.createdAt - a.createdAt;
+  }
+}
+
+export function queryTasks(params: {
+  cfg: OpenSoulConfig;
+  agentId: string;
+  limit?: number;
+  offset?: number;
+  sessionKey?: string;
+  status?: TaskStatus;
+  surfaceKind?: string;
+  channel?: string;
+  query?: string;
+  updatedAfter?: number;
+  sort?: TasksListSort;
+}): { tasks: Array<TaskRecord>; total: number } {
+  const store = getContinuityStore({ cfg: params.cfg, agentId: params.agentId });
+  const baseTasks = params.sessionKey
+    ? store.listTasksBySession({
+        sessionKey: params.sessionKey,
+        status: params.status,
+      })
+    : store.listAllTasks();
+  const filteredTasks = baseTasks
+    .filter((task) => !params.status || task.status === params.status)
+    .filter((task) => taskMatchesSurfaceKind(task, params.surfaceKind))
+    .filter((task) => taskMatchesChannel(task, params.channel))
+    .filter((task) => taskMatchesQuery(task, params.query))
+    .filter(
+      (task) =>
+        typeof params.updatedAfter !== "number" ||
+        !Number.isFinite(params.updatedAfter) ||
+        task.updatedAt >= params.updatedAfter,
+    )
+    .toSorted((left, right) => compareTaskRecords(left, right, params.sort ?? "updated-desc"));
+  const total = filteredTasks.length;
+  const offset =
+    typeof params.offset === "number" && Number.isFinite(params.offset)
+      ? Math.max(0, Math.floor(params.offset))
+      : 0;
+  const limit =
+    typeof params.limit === "number" && Number.isFinite(params.limit)
+      ? Math.max(1, Math.floor(params.limit))
+      : undefined;
+  const tasks =
+    typeof limit === "number"
+      ? filteredTasks.slice(offset, offset + limit)
+      : filteredTasks.slice(offset);
+  return { tasks, total };
+}
+
 export function listTasks(params: {
   cfg: OpenSoulConfig;
   agentId: string;
   limit?: number;
+  offset?: number;
   sessionKey?: string;
+  status?: TaskStatus;
+  surfaceKind?: string;
+  channel?: string;
+  query?: string;
+  updatedAfter?: number;
+  sort?: TasksListSort;
 }): Array<TaskRecord> {
-  const store = getContinuityStore({ cfg: params.cfg, agentId: params.agentId });
-  return store.listTasks({
-    limit: params.limit,
-    sessionKey: params.sessionKey,
-  });
+  return queryTasks(params).tasks;
 }
 
 export function listTaskEvents(params: {
@@ -1171,6 +1568,16 @@ export function appendTaskEvent(params: AppendTaskEventParams): TaskEvent | null
       });
     }
   });
+  recordTaskTransitionObservation({
+    agentId: params.agentId,
+    previousStatus: task.status,
+    task: nextTask,
+    sessionKey: params.sessionKey,
+    runId: params.runId,
+    reason: statusResolution.reason,
+    sourceEvent: params.kind,
+    surface: params.surface,
+  });
   reconcileCommitmentsForEvent(params);
   return event;
 }
@@ -1212,6 +1619,13 @@ export function updateTaskStatus(params: UpdateTaskStatusParams): TaskRecord | n
     nextTask.closedAt = params.closedAt;
   }
   store.upsertTask(nextTask);
+  recordTaskTransitionObservation({
+    agentId: params.agentId,
+    previousStatus: task.status,
+    task: nextTask,
+    reason: params.reason,
+    sourceEvent: params.sourceEvent,
+  });
   return nextTask;
 }
 
@@ -1442,4 +1856,208 @@ export function patchCommitment(params: {
     reason: "tasks.commitments.update",
   });
   return saved;
+}
+
+function countCommitmentEvent(
+  counts: ContinuityAggregateCounts["commitments"]["events"],
+  event: TaskEvent,
+): void {
+  switch (event.kind) {
+    case "commitment.opened":
+      counts.opened += 1;
+      break;
+    case "commitment.done":
+      counts.done += 1;
+      break;
+    case "commitment.cancelled":
+      counts.cancelled += 1;
+      break;
+    case "commitment.reopened":
+      counts.reopened += 1;
+      break;
+    default:
+      break;
+  }
+}
+
+function countHandoffEvent(counts: ContinuityAggregateCounts["handoffs"], event: TaskEvent): void {
+  switch (event.kind) {
+    case "handoff.control-ui":
+      counts.succeeded += 1;
+      break;
+    case "handoff.control-ui-failed":
+      counts.failed += 1;
+      break;
+    case "handoff.canvas":
+      counts.canvasOpened += 1;
+      break;
+    case "handoff.canvas-failed":
+      counts.canvasFailed += 1;
+      if (typeof event.payload?.degradedTo === "string" && event.payload.degradedTo.trim()) {
+        counts.degraded += 1;
+      }
+      break;
+    default:
+      break;
+  }
+}
+
+function addAggregateCounts(
+  target: ContinuityAggregateCounts,
+  source: ContinuityAggregateCounts,
+): ContinuityAggregateCounts {
+  for (const status of TASK_STATUS_VALUES) {
+    target.tasks.byStatus[status] += source.tasks.byStatus[status];
+  }
+  for (const status of COMMITMENT_STATUS_VALUES) {
+    target.commitments.byStatus[status] += source.commitments.byStatus[status];
+  }
+  target.taskLifecycle.createdSinceStart += source.taskLifecycle.createdSinceStart;
+  target.taskLifecycle.reusedSinceStart += source.taskLifecycle.reusedSinceStart;
+  target.taskLifecycle.reopenedSinceStart += source.taskLifecycle.reopenedSinceStart;
+  target.taskLifecycle.closedSinceStart += source.taskLifecycle.closedSinceStart;
+  target.tasks.total += source.tasks.total;
+  target.tasks.staleRunning += source.tasks.staleRunning;
+  target.tasks.staleWaitingUser += source.tasks.staleWaitingUser;
+  target.commitments.events.opened += source.commitments.events.opened;
+  target.commitments.events.done += source.commitments.events.done;
+  target.commitments.events.cancelled += source.commitments.events.cancelled;
+  target.commitments.events.reopened += source.commitments.events.reopened;
+  target.handoffs.succeeded += source.handoffs.succeeded;
+  target.handoffs.failed += source.handoffs.failed;
+  target.handoffs.degraded += source.handoffs.degraded;
+  target.handoffs.canvasOpened += source.handoffs.canvasOpened;
+  target.handoffs.canvasFailed += source.handoffs.canvasFailed;
+  return target;
+}
+
+export function buildContinuitySummary(params: {
+  cfg: OpenSoulConfig;
+  agentIds?: Array<string>;
+  nowMs?: number;
+  staleRunningMs?: number;
+  staleWaitingUserMs?: number;
+  staleTaskLimit?: number;
+}): ContinuitySummary {
+  const generatedAt = params.nowMs ?? Date.now();
+  const staleRunningMs = params.staleRunningMs ?? DEFAULT_STALE_RUNNING_MS;
+  const staleWaitingUserMs = params.staleWaitingUserMs ?? DEFAULT_STALE_WAITING_USER_MS;
+  const staleTaskLimit = params.staleTaskLimit ?? DEFAULT_STALE_TASK_SAMPLE_LIMIT;
+  const agentIds = params.agentIds?.filter(Boolean) ?? [];
+  const byAgent: Array<ContinuityAgentSummary> = [];
+  const totals = createEmptyAggregateCounts();
+
+  for (const agentId of agentIds) {
+    const aggregate = createEmptyAggregateCounts();
+    const staleRunning: Array<ContinuityStaleTask> = [];
+    const staleWaitingUser: Array<ContinuityStaleTask> = [];
+    const tasks = listTasks({ cfg: params.cfg, agentId });
+    aggregate.tasks.total = tasks.length;
+    const runtimeCounts = getTaskLifecycleCounts(agentId);
+    aggregate.taskLifecycle = {
+      createdSinceStart: runtimeCounts.createdSinceStart,
+      reusedSinceStart: runtimeCounts.reusedSinceStart,
+      reopenedSinceStart: runtimeCounts.reopenedSinceStart,
+      closedSinceStart: runtimeCounts.closedSinceStart,
+    };
+
+    for (const task of tasks) {
+      aggregate.tasks.byStatus[task.status] += 1;
+      const ageMs = Math.max(0, generatedAt - task.updatedAt);
+      if (task.status === "running" && ageMs >= staleRunningMs) {
+        aggregate.tasks.staleRunning += 1;
+        if (staleRunning.length < staleTaskLimit) {
+          staleRunning.push(buildStaleTask(task, generatedAt));
+        }
+      }
+      if (task.status === "waiting-user" && ageMs >= staleWaitingUserMs) {
+        aggregate.tasks.staleWaitingUser += 1;
+        if (staleWaitingUser.length < staleTaskLimit) {
+          staleWaitingUser.push(buildStaleTask(task, generatedAt));
+        }
+      }
+
+      for (const commitment of listCommitments({
+        cfg: params.cfg,
+        agentId,
+        taskId: task.taskId,
+      })) {
+        aggregate.commitments.byStatus[commitment.status] += 1;
+      }
+      for (const event of listTaskEvents({
+        cfg: params.cfg,
+        agentId,
+        taskId: task.taskId,
+      })) {
+        countCommitmentEvent(aggregate.commitments.events, event);
+        countHandoffEvent(aggregate.handoffs, event);
+      }
+    }
+
+    const agentSummary: ContinuityAgentSummary = {
+      agentId,
+      ...aggregate,
+      staleTasks: {
+        running: staleRunning,
+        waitingUser: staleWaitingUser,
+      },
+    };
+    byAgent.push(agentSummary);
+    addAggregateCounts(totals, aggregate);
+  }
+
+  return {
+    generatedAt,
+    staleThresholdsMs: {
+      running: staleRunningMs,
+      waitingUser: staleWaitingUserMs,
+    },
+    totals,
+    byAgent,
+  };
+}
+
+export function logStaleContinuityTasks(summary: ContinuitySummary): void {
+  for (const agentSummary of summary.byAgent) {
+    const staleTasks = [
+      ...agentSummary.staleTasks.running.map((task) => `${task.taskId}:running`),
+      ...agentSummary.staleTasks.waitingUser.map((task) => `${task.taskId}:waiting-user`),
+    ];
+    const signature = staleTasks.join("|");
+    const previous = staleTaskLogSignatureByAgent.get(agentSummary.agentId) ?? "";
+    if (!signature) {
+      if (previous) {
+        staleTaskLogSignatureByAgent.delete(agentSummary.agentId);
+        continuityLogger.info("stale continuity tasks cleared", {
+          event: "continuity.stale-cleared",
+          agentId: agentSummary.agentId,
+        });
+      }
+      continue;
+    }
+    if (signature === previous) {
+      continue;
+    }
+    staleTaskLogSignatureByAgent.set(agentSummary.agentId, signature);
+    continuityLogger.warn("stale continuity tasks detected", {
+      event: "continuity.stale-detected",
+      agentId: agentSummary.agentId,
+      staleRunning: agentSummary.tasks.staleRunning,
+      staleWaitingUser: agentSummary.tasks.staleWaitingUser,
+      tasks: [...agentSummary.staleTasks.running, ...agentSummary.staleTasks.waitingUser].map(
+        (task) => ({
+          taskId: task.taskId,
+          status: task.status,
+          ageMs: task.ageMs,
+          sessionKey: task.latestSessionKey,
+          surface: task.currentSurface,
+        }),
+      ),
+    });
+  }
+}
+
+export function resetContinuityObservabilityForTest(): void {
+  taskLifecycleCountsByAgent.clear();
+  staleTaskLogSignatureByAgent.clear();
 }

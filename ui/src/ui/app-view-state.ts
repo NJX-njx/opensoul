@@ -4,6 +4,7 @@ import type { DevicePairingList } from "./controllers/devices.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { ExecApprovalsFile, ExecApprovalsSnapshot } from "./controllers/exec-approvals.ts";
 import type { SkillMessage } from "./controllers/skills.ts";
+import type { TasksWorkbenchFilters } from "./controllers/tasks.ts";
 import type { GatewayBrowserClient, GatewayHelloOk } from "./gateway.ts";
 import type { SettingsTab, Tab } from "./navigation.ts";
 import type { UiSettings } from "./storage.ts";
@@ -171,6 +172,19 @@ export type AppViewState = {
   taskContinuityActionError: string | null;
   taskContinuityActionMessage: string | null;
   taskContinuityActionBusyKey: string | null;
+  tasksWorkbenchLoading: boolean;
+  tasksWorkbenchError: string | null;
+  tasksWorkbenchTasks: Array<TaskRecord>;
+  tasksWorkbenchSelectedTaskId: string | null;
+  tasksWorkbenchEventsByTaskId: Record<string, Array<TaskEvent>>;
+  tasksWorkbenchCommitmentsByTaskId: Record<string, Array<TaskCommitment>>;
+  tasksWorkbenchDetailsLoadingTaskId: string | null;
+  tasksWorkbenchActionError: string | null;
+  tasksWorkbenchActionMessage: string | null;
+  tasksWorkbenchActionBusyKey: string | null;
+  tasksWorkbenchNextOffset: number | null;
+  tasksWorkbenchTotal: number;
+  tasksWorkbenchFilters: TasksWorkbenchFilters;
   viewingSessionId: string | null;
   usageLoading: boolean;
   usageResult: SessionsUsageResult | null;
@@ -306,6 +320,16 @@ export type AppViewState = {
     status: CommitmentStatus,
   ) => Promise<void>;
   updateTaskContinuityTaskStatus: (taskId: string, status: TaskStatus) => Promise<void>;
+  loadTasksWorkbench: () => Promise<void>;
+  loadMoreTasksWorkbench: () => Promise<void>;
+  selectTasksWorkbenchTask: (taskId: string) => Promise<void>;
+  updateTasksWorkbenchFilters: (patch: Partial<TasksWorkbenchFilters>) => Promise<void>;
+  updateTasksWorkbenchCommitment: (
+    taskId: string,
+    commitmentId: string,
+    status: CommitmentStatus,
+  ) => Promise<void>;
+  updateTasksWorkbenchTaskStatus: (taskId: string, status: TaskStatus) => Promise<void>;
   handleDebugCall: () => Promise<void>;
   handleRunUpdate: () => Promise<void>;
   setPassword: (next: string) => void;

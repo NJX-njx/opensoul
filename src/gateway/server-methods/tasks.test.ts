@@ -5,9 +5,10 @@ const mocks = vi.hoisted(() => ({
   loadConfig: vi.fn(() => ({})),
   resolveDefaultAgentId: vi.fn(() => "main"),
   resolveSessionAgentId: vi.fn(() => "main-from-session"),
-  listTasks: vi.fn(() => [
-    { taskId: "task-1", agentId: "main", status: "open", createdAt: 1, updatedAt: 1 },
-  ]),
+  queryTasks: vi.fn(() => ({
+    tasks: [{ taskId: "task-1", agentId: "main", status: "open", createdAt: 1, updatedAt: 1 }],
+    total: 1,
+  })),
   getTask: vi.fn(() => ({
     taskId: "task-1",
     agentId: "main",
@@ -63,7 +64,7 @@ vi.mock("../../agents/agent-scope.js", () => ({
 }));
 
 vi.mock("../../continuity/service.js", () => ({
-  listTasks: mocks.listTasks,
+  queryTasks: mocks.queryTasks,
   getTask: mocks.getTask,
   listTaskEvents: mocks.listTaskEvents,
   listCommitments: mocks.listCommitments,
@@ -87,14 +88,68 @@ describe("tasks handlers", () => {
     } as never);
 
     expect(mocks.resolveSessionAgentId).toHaveBeenCalled();
-    expect(mocks.listTasks).toHaveBeenCalledWith(
+    expect(mocks.queryTasks).toHaveBeenCalledWith(
       expect.objectContaining({
         agentId: "main-from-session",
         sessionKey: "agent:main:telegram:dm:user-1",
-        limit: 10,
       }),
     );
-    expect(respond).toHaveBeenCalledWith(true, { tasks: expect.any(Array) }, undefined);
+    expect(respond).toHaveBeenCalledWith(
+      true,
+      expect.objectContaining({
+        tasks: expect.any(Array),
+        total: 1,
+        nextOffset: null,
+      }),
+      undefined,
+    );
+  });
+
+  it("aggregates tasks across agents when allAgents is enabled", () => {
+    mocks.loadConfig.mockReturnValueOnce({
+      agents: { list: [{ id: "main" }, { id: "ops" }] },
+    });
+    mocks.queryTasks
+      .mockReturnValueOnce({
+        tasks: [{ taskId: "task-1", agentId: "main", status: "open", createdAt: 1, updatedAt: 1 }],
+        total: 1,
+      })
+      .mockReturnValueOnce({
+        tasks: [
+          { taskId: "task-2", agentId: "ops", status: "running", createdAt: 2, updatedAt: 2 },
+        ],
+        total: 1,
+      });
+    const respond = vi.fn();
+    void tasksHandlers["tasks.list"]({
+      params: {
+        allAgents: true,
+        limit: 1,
+      },
+      respond,
+    } as never);
+
+    expect(mocks.queryTasks).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        agentId: "main",
+      }),
+    );
+    expect(mocks.queryTasks).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        agentId: "ops",
+      }),
+    );
+    expect(respond).toHaveBeenCalledWith(
+      true,
+      expect.objectContaining({
+        tasks: [expect.objectContaining({ taskId: "task-2", agentId: "ops" })],
+        total: 2,
+        nextOffset: 1,
+      }),
+      undefined,
+    );
   });
 
   it("returns a single task with an explicit agent id", () => {

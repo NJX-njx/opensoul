@@ -1,0 +1,112 @@
+.tasks-workbench {
+  display: grid;
+  gap: 16px;
+}
+
+.tasks-workbench__header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.tasks-workbench__filters {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.tasks-workbench__filters .field:first-child {
+  grid-column: span 2;
+}
+
+.tasks-workbench__jump-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+}
+
+.tasks-workbench__jump-meta {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.tasks-workbench__jump-title {
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tasks-workbench__jump-sub {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.tasks-workbench__jump-sub code {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tasks-workbench__panel {
+  display: grid;
+}
+
+.tasks-workbench__empty {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  border: 1px dashed color-mix(in srgb, var(--border) 74%, transparent);
+  background: color-mix(in srgb, var(--secondary) 40%, transparent);
+}
+
+.tasks-workbench__empty-icon {
+  color: var(--accent);
+}
+
+.tasks-workbench__empty-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tasks-workbench__empty-title {
+  color: var(--text-strong);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.tasks-workbench__empty-sub {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.tasks-workbench__footer {
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 900px) {
+  .tasks-workbench__filters .field:first-child {
+    grid-column: span 1;
+  }
+
+  .tasks-workbench__jump-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

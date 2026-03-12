@@ -5,10 +5,12 @@ import { routeReply } from "../auto-reply/reply/route-reply.js";
 import { callGateway } from "../gateway/call.js";
 import { buildControlUiSessionUrl } from "../gateway/control-ui-shared.js";
 import { loadSessionEntry } from "../gateway/session-utils.js";
+import { createSubsystemLogger } from "../logging/subsystem.js";
 import { normalizeSessionDeliveryFields } from "../utils/delivery-context.js";
 import { appendTaskEvent, listTaskEvents } from "./service.js";
 
 const HANDOFF_MAX_ATTEMPTS = 2;
+const continuityLogger = createSubsystemLogger("continuity");
 
 type NodeListResponse = {
   nodes?: Array<{
@@ -316,6 +318,19 @@ export async function executeHandoffDecision(params: {
       error: delivered.error,
       attempts: delivered.attempts,
     },
+  });
+  continuityLogger[delivered.ok ? "info" : "warn"]("handoff result", {
+    event: delivered.ok ? "handoff.control-ui" : "handoff.control-ui-failed",
+    agentId: params.agentId,
+    taskId: params.taskId,
+    sessionKey: params.sessionKey,
+    runId: params.runId,
+    mode: finalDecision.mode,
+    degradedFrom: finalDecision.degradedFrom,
+    url: params.decision.controlUiUrl,
+    canvasOpened,
+    attempts: delivered.attempts,
+    error: delivered.error,
   });
 
   return finalDecision;

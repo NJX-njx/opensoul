@@ -99,8 +99,15 @@ import { loadDebug as loadDebugInternal } from "./controllers/debug.ts";
 import { loadLogs as loadLogsInternal } from "./controllers/logs.ts";
 import { loadSessions } from "./controllers/sessions.ts";
 import {
+  DEFAULT_TASKS_WORKBENCH_FILTERS,
   loadTaskContinuity as loadTaskContinuityInternal,
+  loadTasksWorkbench as loadTasksWorkbenchInternal,
+  loadMoreTasksWorkbench as loadMoreTasksWorkbenchInternal,
+  selectTasksWorkbenchTask as selectTasksWorkbenchTaskInternal,
   selectTaskContinuityTask as selectTaskContinuityTaskInternal,
+  updateTasksWorkbenchCommitment as updateTasksWorkbenchCommitmentInternal,
+  updateTasksWorkbenchFilters as updateTasksWorkbenchFiltersInternal,
+  updateTasksWorkbenchTaskStatus as updateTasksWorkbenchTaskStatusInternal,
   updateTaskContinuityCommitment as updateTaskContinuityCommitmentInternal,
   updateTaskContinuityTaskStatus as updateTaskContinuityTaskStatusInternal,
 } from "./controllers/tasks.ts";
@@ -277,6 +284,19 @@ export class OpenSoulApp extends LitElement {
   @state() taskContinuityActionError: string | null = null;
   @state() taskContinuityActionMessage: string | null = null;
   @state() taskContinuityActionBusyKey: string | null = null;
+  @state() tasksWorkbenchLoading = false;
+  @state() tasksWorkbenchError: string | null = null;
+  @state() tasksWorkbenchTasks: Array<TaskRecord> = [];
+  @state() tasksWorkbenchSelectedTaskId: string | null = null;
+  @state() tasksWorkbenchEventsByTaskId: Record<string, Array<TaskEvent>> = {};
+  @state() tasksWorkbenchCommitmentsByTaskId: Record<string, Array<TaskCommitment>> = {};
+  @state() tasksWorkbenchDetailsLoadingTaskId: string | null = null;
+  @state() tasksWorkbenchActionError: string | null = null;
+  @state() tasksWorkbenchActionMessage: string | null = null;
+  @state() tasksWorkbenchActionBusyKey: string | null = null;
+  @state() tasksWorkbenchNextOffset: number | null = null;
+  @state() tasksWorkbenchTotal = 0;
+  @state() tasksWorkbenchFilters = { ...DEFAULT_TASKS_WORKBENCH_FILTERS };
   @state() viewingSessionId: string | null = null;
   @state() sessionsFilterActive = "";
   @state() sessionsFilterLimit = "120";
@@ -515,6 +535,36 @@ export class OpenSoulApp extends LitElement {
 
   async updateTaskContinuityTaskStatus(taskId: string, status: TaskStatus) {
     await updateTaskContinuityTaskStatusInternal(this, taskId, status);
+  }
+
+  async loadTasksWorkbench() {
+    await loadTasksWorkbenchInternal(this);
+  }
+
+  async loadMoreTasksWorkbench() {
+    await loadMoreTasksWorkbenchInternal(this);
+  }
+
+  async selectTasksWorkbenchTask(taskId: string) {
+    await selectTasksWorkbenchTaskInternal(this, taskId);
+  }
+
+  async updateTasksWorkbenchFilters(
+    patch: Partial<import("./controllers/tasks.ts").TasksWorkbenchFilters>,
+  ) {
+    await updateTasksWorkbenchFiltersInternal(this, patch);
+  }
+
+  async updateTasksWorkbenchCommitment(
+    taskId: string,
+    commitmentId: string,
+    status: CommitmentStatus,
+  ) {
+    await updateTasksWorkbenchCommitmentInternal(this, taskId, commitmentId, status);
+  }
+
+  async updateTasksWorkbenchTaskStatus(taskId: string, status: TaskStatus) {
+    await updateTasksWorkbenchTaskStatusInternal(this, taskId, status);
   }
 
   applySettings(next: UiSettings) {

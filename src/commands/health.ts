@@ -1,5 +1,6 @@
 import type { ChannelAccountSnapshot } from "../channels/plugins/types.js";
 import type { OpenSoulConfig } from "../config/config.js";
+import type { ContinuitySummary } from "../continuity/types.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { resolveChannelDefaultAccountId } from "../channels/plugins/helpers.js";
@@ -68,6 +69,7 @@ export type HealthSummary = {
       age: number | null;
     }>;
   };
+  continuity?: ContinuitySummary;
 };
 
 const DEFAULT_TIMEOUT_MS = 10_000;

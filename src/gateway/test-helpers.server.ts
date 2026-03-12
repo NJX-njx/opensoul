@@ -5,7 +5,9 @@ import path from "node:path";
 import { afterAll, afterEach, beforeAll, beforeEach, expect, vi } from "vitest";
 import { WebSocket } from "ws";
 import type { GatewayServerOptions } from "./server.js";
+import { loadConfig } from "../config/config.js";
 import { resolveMainSessionKeyFromConfig, type SessionEntry } from "../config/sessions.js";
+import { resetContinuityObservabilityForTest } from "../continuity/service.js";
 import { resetAgentRunContextForTest } from "../infra/agent-events.js";
 import {
   loadOrCreateDeviceIdentity,
@@ -143,6 +145,7 @@ async function resetGatewayTestState(options: { uniqueConfigRoot: boolean }) {
   embeddedRunMock.waitResults.clear();
   drainSystemEvents(resolveMainSessionKeyFromConfig());
   resetAgentRunContextForTest();
+  resetContinuityObservabilityForTest();
   const mod = await serverModulePromise;
   mod.__resetModelCatalogCacheForTest();
   piSdkMock.enabled = false;
@@ -527,12 +530,22 @@ export async function rpcReq<T = unknown>(
 }
 
 export async function waitForSystemEvent(timeoutMs = 2000) {
+  const cfg = loadConfig();
   const sessionKey = resolveMainSessionKeyFromConfig();
+  const rawMainKey =
+    typeof cfg.session?.mainKey === "string" && cfg.session.mainKey.trim()
+      ? cfg.session.mainKey.trim().toLowerCase()
+      : "main";
+  const candidateKeys = Array.from(
+    new Set([sessionKey, `agent:main:${rawMainKey}`, rawMainKey, "agent:main:main", "main"]),
+  );
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    const events = peekSystemEvents(sessionKey);
-    if (events.length > 0) {
-      return events;
+    for (const key of candidateKeys) {
+      const events = peekSystemEvents(key);
+      if (events.length > 0) {
+        return events;
+      }
     }
     await new Promise((resolve) => setTimeout(resolve, 10));
   }

@@ -2,7 +2,11 @@ import { describe, expect, it, vi } from "vitest";
 import type { GatewayBrowserClient } from "../gateway.ts";
 import type { TaskCommitment, TaskEvent, TaskRecord } from "../types.ts";
 import {
+  DEFAULT_TASKS_WORKBENCH_FILTERS,
+  loadTasksWorkbench,
+  type TasksWorkbenchState,
   updateTaskContinuityCommitment,
+  updateTasksWorkbenchTaskStatus,
   updateTaskContinuityTaskStatus,
   type TaskContinuityState,
 } from "./tasks.ts";
@@ -46,8 +50,8 @@ function createEvent(overrides: Partial<TaskEvent> = {}): TaskEvent {
 
 function createState(
   request: GatewayBrowserClient["request"],
-  overrides: Partial<TaskContinuityState> = {},
-): TaskContinuityState {
+  overrides: Partial<TaskContinuityState & TasksWorkbenchState> = {},
+): TaskContinuityState & TasksWorkbenchState {
   const task = createTask();
   const commitment = createCommitment();
   return {
@@ -70,6 +74,23 @@ function createState(
     taskContinuityActionError: null,
     taskContinuityActionMessage: null,
     taskContinuityActionBusyKey: null,
+    tasksWorkbenchLoading: false,
+    tasksWorkbenchError: null,
+    tasksWorkbenchTasks: [task],
+    tasksWorkbenchSelectedTaskId: task.taskId,
+    tasksWorkbenchEventsByTaskId: {
+      [task.taskId]: [createEvent()],
+    },
+    tasksWorkbenchCommitmentsByTaskId: {
+      [task.taskId]: [commitment],
+    },
+    tasksWorkbenchDetailsLoadingTaskId: null,
+    tasksWorkbenchActionError: null,
+    tasksWorkbenchActionMessage: null,
+    tasksWorkbenchActionBusyKey: null,
+    tasksWorkbenchNextOffset: null,
+    tasksWorkbenchTotal: 1,
+    tasksWorkbenchFilters: { ...DEFAULT_TASKS_WORKBENCH_FILTERS },
     ...overrides,
   };
 }
@@ -154,5 +175,113 @@ describe("task continuity controller actions", () => {
     expect(state.taskContinuityTasks[0]?.status).toBe("running");
     expect(state.taskContinuityActionError).toBe("request failed");
     expect(state.taskContinuityActionBusyKey).toBeNull();
+  });
+
+  it("loads workbench tasks with filters and fetches selected task details", async () => {
+    const workbenchTask = createTask({
+      taskId: "task-2",
+      agentId: "ops",
+      title: "Review the global task workbench",
+      updatedAt: 5,
+    });
+    const requestMock = vi.fn((method: string): Promise<unknown> => {
+      if (method === "tasks.list") {
+        return Promise.resolve({
+          tasks: [workbenchTask],
+          total: 2,
+          nextOffset: 24,
+        });
+      }
+      if (method === "tasks.events") {
+        return Promise.resolve({
+          events: [createEvent({ taskId: "task-2", agentId: "ops" })],
+        });
+      }
+      if (method === "tasks.commitments") {
+        return Promise.resolve({
+          commitments: [createCommitment({ taskId: "task-2", agentId: "ops" })],
+        });
+      }
+      return Promise.reject(new Error(`unexpected method: ${method}`));
+    });
+    const request = requestMock as unknown as GatewayBrowserClient["request"];
+    const state = createState(request, {
+      tasksWorkbenchTasks: [],
+      tasksWorkbenchSelectedTaskId: null,
+      tasksWorkbenchEventsByTaskId: {},
+      tasksWorkbenchCommitmentsByTaskId: {},
+    });
+
+    await loadTasksWorkbench(state);
+
+    expect(requestMock).toHaveBeenNthCalledWith(
+      1,
+      "tasks.list",
+      expect.objectContaining({
+        allAgents: true,
+        limit: 24,
+        sort: "updated-desc",
+      }),
+    );
+    expect(requestMock).toHaveBeenNthCalledWith(
+      2,
+      "tasks.events",
+      expect.objectContaining({
+        taskId: "task-2",
+        agentId: "ops",
+      }),
+    );
+    expect(state.tasksWorkbenchSelectedTaskId).toBe("task-2");
+    expect(state.tasksWorkbenchTotal).toBe(2);
+    expect(state.tasksWorkbenchNextOffset).toBe(24);
+    expect(state.tasksWorkbenchEventsByTaskId["task-2"]?.[0]?.agentId).toBe("ops");
+  });
+
+  it("updates workbench tasks through agent-scoped patch requests", async () => {
+    let resolvePatch: (value: { task: TaskRecord }) => void = () => undefined;
+    const updatedTask = createTask({
+      status: "completed",
+      updatedAt: 2,
+      closedAt: 2,
+    });
+    const requestMock = vi.fn((method: string): Promise<unknown> => {
+      if (method === "tasks.task.patch") {
+        return new Promise((resolve) => {
+          resolvePatch = resolve as (value: { task: TaskRecord }) => void;
+        });
+      }
+      if (method === "tasks.list") {
+        return Promise.resolve({ tasks: [updatedTask], total: 1, nextOffset: null });
+      }
+      if (method === "tasks.events") {
+        return Promise.resolve({ events: [createEvent()] });
+      }
+      if (method === "tasks.commitments") {
+        return Promise.resolve({ commitments: [createCommitment()] });
+      }
+      return Promise.reject(new Error(`unexpected method: ${method}`));
+    });
+    const request = requestMock as unknown as GatewayBrowserClient["request"];
+    const state = createState(request);
+
+    const updatePromise = updateTasksWorkbenchTaskStatus(state, "task-1", "completed");
+    expect(state.tasksWorkbenchTasks[0]?.status).toBe("completed");
+    expect(state.tasksWorkbenchActionBusyKey).toBe("task:task-1:completed");
+
+    resolvePatch({ task: updatedTask });
+    await updatePromise;
+
+    expect(requestMock).toHaveBeenNthCalledWith(
+      1,
+      "tasks.task.patch",
+      expect.objectContaining({
+        taskId: "task-1",
+        agentId: "main",
+        status: "completed",
+      }),
+    );
+    expect(state.tasksWorkbenchTasks[0]?.status).toBe("completed");
+    expect(state.tasksWorkbenchActionMessage).toBe("Task closed.");
+    expect(state.tasksWorkbenchActionBusyKey).toBeNull();
   });
 });

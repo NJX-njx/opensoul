@@ -32,6 +32,51 @@ export type TaskContinuityState = {
   taskContinuityActionBusyKey: string | null;
 };
 
+export type TasksWorkbenchSort = "updated-desc" | "updated-asc" | "created-desc" | "created-asc";
+
+export type TasksWorkbenchUpdatedWindow = "all" | "24h" | "7d" | "30d";
+
+export type TasksWorkbenchFilters = {
+  agentScope: string;
+  status: string;
+  surfaceKind: string;
+  channel: string;
+  query: string;
+  updatedWindow: TasksWorkbenchUpdatedWindow;
+  sort: TasksWorkbenchSort;
+};
+
+export const DEFAULT_TASKS_WORKBENCH_FILTERS: TasksWorkbenchFilters = {
+  agentScope: "all",
+  status: "",
+  surfaceKind: "",
+  channel: "",
+  query: "",
+  updatedWindow: "all",
+  sort: "updated-desc",
+};
+
+export type TasksWorkbenchState = {
+  client: GatewayBrowserClient | null;
+  connected: boolean;
+  uiLocale: Locale;
+  tasksWorkbenchLoading: boolean;
+  tasksWorkbenchError: string | null;
+  tasksWorkbenchTasks: Array<TaskRecord>;
+  tasksWorkbenchSelectedTaskId: string | null;
+  tasksWorkbenchEventsByTaskId: Record<string, Array<TaskEvent>>;
+  tasksWorkbenchCommitmentsByTaskId: Record<string, Array<TaskCommitment>>;
+  tasksWorkbenchDetailsLoadingTaskId: string | null;
+  tasksWorkbenchActionError: string | null;
+  tasksWorkbenchActionMessage: string | null;
+  tasksWorkbenchActionBusyKey: string | null;
+  tasksWorkbenchNextOffset: number | null;
+  tasksWorkbenchTotal: number;
+  tasksWorkbenchFilters: TasksWorkbenchFilters;
+};
+
+const TASKS_WORKBENCH_PAGE_SIZE = 24;
+
 function normalizeSessionKey(value: string): string {
   return value.trim();
 }
@@ -139,6 +184,60 @@ function formatTaskActionMessage(locale: Locale, status: TaskStatus, pending: bo
   return status === "open"
     ? uiText(locale, "Task reopened.", "任务已重新打开。")
     : uiText(locale, "Task closed.", "任务已关闭。");
+}
+
+function mergeTasks(
+  existing: Array<TaskRecord>,
+  incoming: Array<TaskRecord>,
+  sort: TasksWorkbenchSort,
+): Array<TaskRecord> {
+  const byId = new Map(existing.map((task) => [task.taskId, task]));
+  for (const task of incoming) {
+    byId.set(task.taskId, task);
+  }
+  const compare = (left: TaskRecord, right: TaskRecord) => {
+    switch (sort) {
+      case "updated-asc":
+        return left.updatedAt - right.updatedAt || left.createdAt - right.createdAt;
+      case "created-desc":
+        return right.createdAt - left.createdAt || right.updatedAt - left.updatedAt;
+      case "created-asc":
+        return left.createdAt - right.createdAt || left.updatedAt - right.updatedAt;
+      case "updated-desc":
+      default:
+        return right.updatedAt - left.updatedAt || right.createdAt - left.createdAt;
+    }
+  };
+  return Array.from(byId.values()).toSorted(compare);
+}
+
+function normalizeTasksWorkbenchFilters(filters: TasksWorkbenchFilters): TasksWorkbenchFilters {
+  return {
+    agentScope: filters.agentScope.trim() || "all",
+    status: filters.status.trim(),
+    surfaceKind: filters.surfaceKind.trim(),
+    channel: filters.channel.trim(),
+    query: filters.query.trim(),
+    updatedWindow: filters.updatedWindow,
+    sort: filters.sort,
+  };
+}
+
+function resolveTasksWorkbenchUpdatedAfter(
+  windowKey: TasksWorkbenchUpdatedWindow,
+): number | undefined {
+  const now = Date.now();
+  switch (windowKey) {
+    case "24h":
+      return now - 24 * 60 * 60 * 1000;
+    case "7d":
+      return now - 7 * 24 * 60 * 60 * 1000;
+    case "30d":
+      return now - 30 * 24 * 60 * 60 * 1000;
+    case "all":
+    default:
+      return undefined;
+  }
 }
 
 export function clearTaskContinuity(state: TaskContinuityState): void {
@@ -467,6 +566,358 @@ export async function updateTaskContinuityTaskStatus(
       state.taskContinuityActionBusyKey === busyKey
     ) {
       state.taskContinuityActionBusyKey = null;
+    }
+  }
+}
+
+export function clearTasksWorkbench(state: TasksWorkbenchState): void {
+  state.tasksWorkbenchLoading = false;
+  state.tasksWorkbenchError = null;
+  state.tasksWorkbenchTasks = [];
+  state.tasksWorkbenchSelectedTaskId = null;
+  state.tasksWorkbenchEventsByTaskId = {};
+  state.tasksWorkbenchCommitmentsByTaskId = {};
+  state.tasksWorkbenchDetailsLoadingTaskId = null;
+  state.tasksWorkbenchActionError = null;
+  state.tasksWorkbenchActionMessage = null;
+  state.tasksWorkbenchActionBusyKey = null;
+  state.tasksWorkbenchNextOffset = null;
+  state.tasksWorkbenchTotal = 0;
+}
+
+export async function loadTasksWorkbench(
+  state: TasksWorkbenchState,
+  opts?: {
+    force?: boolean;
+    append?: boolean;
+    selectTaskId?: string | null;
+  },
+): Promise<void> {
+  if (!state.client || !state.connected) {
+    clearTasksWorkbench(state);
+    return;
+  }
+  if (state.tasksWorkbenchLoading && !opts?.force) {
+    return;
+  }
+
+  const filtersAtStart = normalizeTasksWorkbenchFilters(state.tasksWorkbenchFilters);
+  const requestSignature = JSON.stringify(filtersAtStart);
+  const offset = opts?.append
+    ? (state.tasksWorkbenchNextOffset ?? state.tasksWorkbenchTasks.length)
+    : 0;
+
+  state.tasksWorkbenchLoading = true;
+  state.tasksWorkbenchError = null;
+
+  try {
+    const result = await state.client.request<TasksListResult | undefined>("tasks.list", {
+      allAgents: filtersAtStart.agentScope === "all",
+      agentId: filtersAtStart.agentScope !== "all" ? filtersAtStart.agentScope : undefined,
+      status: filtersAtStart.status || undefined,
+      surfaceKind: filtersAtStart.surfaceKind || undefined,
+      channel: filtersAtStart.channel || undefined,
+      query: filtersAtStart.query || undefined,
+      updatedAfter: resolveTasksWorkbenchUpdatedAfter(filtersAtStart.updatedWindow),
+      sort: filtersAtStart.sort,
+      offset,
+      limit: TASKS_WORKBENCH_PAGE_SIZE,
+    });
+    if (
+      JSON.stringify(normalizeTasksWorkbenchFilters(state.tasksWorkbenchFilters)) !==
+      requestSignature
+    ) {
+      return;
+    }
+
+    const incomingTasks = result?.tasks ?? [];
+    const nextTasks = opts?.append
+      ? mergeTasks(state.tasksWorkbenchTasks, incomingTasks, filtersAtStart.sort)
+      : incomingTasks;
+    state.tasksWorkbenchTasks = nextTasks;
+    state.tasksWorkbenchTotal = result?.total ?? nextTasks.length;
+    state.tasksWorkbenchNextOffset =
+      typeof result?.nextOffset === "number" ? result.nextOffset : null;
+    const requestedTaskId = opts?.selectTaskId?.trim() || state.tasksWorkbenchSelectedTaskId;
+    const nextSelectedTaskId = nextTasks.some((task) => task.taskId === requestedTaskId)
+      ? (requestedTaskId ?? null)
+      : (nextTasks[0]?.taskId ?? null);
+    state.tasksWorkbenchSelectedTaskId = nextSelectedTaskId;
+
+    if (nextSelectedTaskId) {
+      await loadTasksWorkbenchDetails(state, nextSelectedTaskId, {
+        force: opts?.force,
+      });
+    } else {
+      state.tasksWorkbenchDetailsLoadingTaskId = null;
+    }
+  } catch (error) {
+    if (
+      JSON.stringify(normalizeTasksWorkbenchFilters(state.tasksWorkbenchFilters)) ===
+      requestSignature
+    ) {
+      state.tasksWorkbenchError = String(error);
+    }
+  } finally {
+    if (
+      JSON.stringify(normalizeTasksWorkbenchFilters(state.tasksWorkbenchFilters)) ===
+      requestSignature
+    ) {
+      state.tasksWorkbenchLoading = false;
+    }
+  }
+}
+
+export async function loadTasksWorkbenchDetails(
+  state: TasksWorkbenchState,
+  taskId: string,
+  opts?: {
+    force?: boolean;
+  },
+): Promise<void> {
+  const normalizedTaskId = taskId.trim();
+  if (!state.client || !state.connected || !normalizedTaskId) {
+    return;
+  }
+  if (
+    !opts?.force &&
+    state.tasksWorkbenchEventsByTaskId[normalizedTaskId] &&
+    state.tasksWorkbenchCommitmentsByTaskId[normalizedTaskId]
+  ) {
+    return;
+  }
+
+  const task = state.tasksWorkbenchTasks.find((entry) => entry.taskId === normalizedTaskId);
+  if (!task) {
+    return;
+  }
+
+  state.tasksWorkbenchDetailsLoadingTaskId = normalizedTaskId;
+  try {
+    const [eventsResult, commitmentsResult] = await Promise.all([
+      state.client.request<TasksEventsResult | undefined>("tasks.events", {
+        taskId: normalizedTaskId,
+        agentId: task.agentId,
+        limit: 40,
+      }),
+      state.client.request<TasksCommitmentsResult | undefined>("tasks.commitments", {
+        taskId: normalizedTaskId,
+        agentId: task.agentId,
+      }),
+    ]);
+    state.tasksWorkbenchEventsByTaskId = {
+      ...state.tasksWorkbenchEventsByTaskId,
+      [normalizedTaskId]: eventsResult?.events ?? [],
+    };
+    state.tasksWorkbenchCommitmentsByTaskId = {
+      ...state.tasksWorkbenchCommitmentsByTaskId,
+      [normalizedTaskId]: commitmentsResult?.commitments ?? [],
+    };
+  } catch (error) {
+    state.tasksWorkbenchError = String(error);
+  } finally {
+    if (state.tasksWorkbenchDetailsLoadingTaskId === normalizedTaskId) {
+      state.tasksWorkbenchDetailsLoadingTaskId = null;
+    }
+  }
+}
+
+export async function selectTasksWorkbenchTask(
+  state: TasksWorkbenchState,
+  taskId: string,
+): Promise<void> {
+  const normalizedTaskId = taskId.trim();
+  if (!normalizedTaskId) {
+    return;
+  }
+  state.tasksWorkbenchSelectedTaskId = normalizedTaskId;
+  state.tasksWorkbenchActionError = null;
+  state.tasksWorkbenchActionMessage = null;
+  await loadTasksWorkbenchDetails(state, normalizedTaskId);
+}
+
+export async function updateTasksWorkbenchFilters(
+  state: TasksWorkbenchState,
+  patch: Partial<TasksWorkbenchFilters>,
+): Promise<void> {
+  state.tasksWorkbenchFilters = normalizeTasksWorkbenchFilters({
+    ...state.tasksWorkbenchFilters,
+    ...patch,
+  });
+  await loadTasksWorkbench(state, {
+    force: true,
+  });
+}
+
+export async function loadMoreTasksWorkbench(state: TasksWorkbenchState): Promise<void> {
+  if (state.tasksWorkbenchNextOffset == null) {
+    return;
+  }
+  await loadTasksWorkbench(state, {
+    append: true,
+    force: true,
+  });
+}
+
+export async function updateTasksWorkbenchCommitment(
+  state: TasksWorkbenchState,
+  taskId: string,
+  commitmentId: string,
+  status: CommitmentStatus,
+): Promise<void> {
+  const normalizedTaskId = taskId.trim();
+  const normalizedCommitmentId = commitmentId.trim();
+  if (!state.client || !state.connected || !normalizedTaskId || !normalizedCommitmentId) {
+    return;
+  }
+  if (state.tasksWorkbenchActionBusyKey) {
+    return;
+  }
+
+  const task = state.tasksWorkbenchTasks.find((entry) => entry.taskId === normalizedTaskId);
+  const commitments = state.tasksWorkbenchCommitmentsByTaskId[normalizedTaskId] ?? [];
+  const currentCommitment = commitments.find(
+    (commitment) => commitment.commitmentId === normalizedCommitmentId,
+  );
+  if (!task || !currentCommitment) {
+    state.tasksWorkbenchActionError = uiText(
+      state.uiLocale,
+      "Commitment not found.",
+      "未找到承诺。",
+    );
+    return;
+  }
+
+  const busyKey = buildCommitmentBusyKey(normalizedCommitmentId, status);
+  const previousCommitments = commitments;
+  state.tasksWorkbenchActionBusyKey = busyKey;
+  state.tasksWorkbenchActionError = null;
+  state.tasksWorkbenchActionMessage = formatCommitmentActionMessage(state.uiLocale, status, true);
+  state.tasksWorkbenchCommitmentsByTaskId = {
+    ...state.tasksWorkbenchCommitmentsByTaskId,
+    [normalizedTaskId]: replaceCommitment(
+      previousCommitments,
+      applyOptimisticCommitmentStatus(currentCommitment, status),
+    ),
+  };
+
+  try {
+    const result = await state.client.request<TasksCommitmentsUpdateResult | undefined>(
+      "tasks.commitments.update",
+      {
+        taskId: normalizedTaskId,
+        agentId: task.agentId,
+        commitmentId: normalizedCommitmentId,
+        status,
+      },
+    );
+    const nextCommitment = result?.commitment;
+    if (!nextCommitment) {
+      throw new Error(
+        uiText(
+          state.uiLocale,
+          "Gateway did not return the updated commitment.",
+          "网关没有返回更新后的承诺。",
+        ),
+      );
+    }
+    state.tasksWorkbenchCommitmentsByTaskId = {
+      ...state.tasksWorkbenchCommitmentsByTaskId,
+      [normalizedTaskId]: replaceCommitment(
+        state.tasksWorkbenchCommitmentsByTaskId[normalizedTaskId] ?? previousCommitments,
+        nextCommitment,
+      ),
+    };
+    state.tasksWorkbenchActionMessage = formatCommitmentActionMessage(
+      state.uiLocale,
+      status,
+      false,
+    );
+    await loadTasksWorkbench(state, {
+      force: true,
+      selectTaskId: normalizedTaskId,
+    });
+  } catch (error) {
+    state.tasksWorkbenchCommitmentsByTaskId = {
+      ...state.tasksWorkbenchCommitmentsByTaskId,
+      [normalizedTaskId]: previousCommitments,
+    };
+    state.tasksWorkbenchActionMessage = null;
+    state.tasksWorkbenchActionError =
+      error instanceof Error
+        ? error.message
+        : uiText(state.uiLocale, "Request failed.", "请求失败。");
+  } finally {
+    if (state.tasksWorkbenchActionBusyKey === busyKey) {
+      state.tasksWorkbenchActionBusyKey = null;
+    }
+  }
+}
+
+export async function updateTasksWorkbenchTaskStatus(
+  state: TasksWorkbenchState,
+  taskId: string,
+  status: TaskStatus,
+): Promise<void> {
+  const normalizedTaskId = taskId.trim();
+  if (!state.client || !state.connected || !normalizedTaskId) {
+    return;
+  }
+  if (state.tasksWorkbenchActionBusyKey) {
+    return;
+  }
+
+  const currentTask = state.tasksWorkbenchTasks.find((task) => task.taskId === normalizedTaskId);
+  if (!currentTask) {
+    state.tasksWorkbenchActionError = uiText(state.uiLocale, "Task not found.", "未找到任务。");
+    return;
+  }
+
+  const busyKey = buildTaskBusyKey(normalizedTaskId, status);
+  const previousTasks = state.tasksWorkbenchTasks;
+  state.tasksWorkbenchActionBusyKey = busyKey;
+  state.tasksWorkbenchActionError = null;
+  state.tasksWorkbenchActionMessage = formatTaskActionMessage(state.uiLocale, status, true);
+  state.tasksWorkbenchTasks = replaceTask(
+    previousTasks,
+    applyOptimisticTaskStatus(currentTask, status),
+  );
+
+  try {
+    const result = await state.client.request<TasksTaskPatchResult | undefined>(
+      "tasks.task.patch",
+      {
+        taskId: normalizedTaskId,
+        agentId: currentTask.agentId,
+        status,
+      },
+    );
+    const nextTask = result?.task;
+    if (!nextTask) {
+      throw new Error(
+        uiText(
+          state.uiLocale,
+          "Gateway did not return the updated task.",
+          "网关没有返回更新后的任务。",
+        ),
+      );
+    }
+    state.tasksWorkbenchTasks = replaceTask(state.tasksWorkbenchTasks, nextTask);
+    state.tasksWorkbenchActionMessage = formatTaskActionMessage(state.uiLocale, status, false);
+    await loadTasksWorkbench(state, {
+      force: true,
+      selectTaskId: normalizedTaskId,
+    });
+  } catch (error) {
+    state.tasksWorkbenchTasks = previousTasks;
+    state.tasksWorkbenchActionMessage = null;
+    state.tasksWorkbenchActionError =
+      error instanceof Error
+        ? error.message
+        : uiText(state.uiLocale, "Request failed.", "请求失败。");
+  } finally {
+    if (state.tasksWorkbenchActionBusyKey === busyKey) {
+      state.tasksWorkbenchActionBusyKey = null;
     }
   }
 }

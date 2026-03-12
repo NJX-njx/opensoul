@@ -3,6 +3,7 @@ import { resolveDefaultAgentId } from "../../agents/agent-scope.js";
 import { getHealthSnapshot, type HealthSummary } from "../../commands/health.js";
 import { CONFIG_PATH, STATE_DIR, loadConfig } from "../../config/config.js";
 import { resolveMainSessionKey } from "../../config/sessions.js";
+import { buildContinuitySummary, logStaleContinuityTasks } from "../../continuity/service.js";
 import { listSystemPresence } from "../../infra/system-presence.js";
 import { normalizeMainKey } from "../../routing/session-key.js";
 
@@ -11,6 +12,27 @@ let healthVersion = 1;
 let healthCache: HealthSummary | null = null;
 let healthRefresh: Promise<HealthSummary> | null = null;
 let broadcastHealthUpdate: ((snap: HealthSummary) => void) | null = null;
+
+function resolveContinuityAgentIds(cfg: ReturnType<typeof loadConfig>): Array<string> {
+  const seen = new Set<string>();
+  const ids: Array<string> = [];
+  const push = (value: string | undefined) => {
+    const normalized = value?.trim().toLowerCase();
+    if (!normalized || seen.has(normalized)) {
+      return;
+    }
+    seen.add(normalized);
+    ids.push(normalized);
+  };
+  push(resolveDefaultAgentId(cfg));
+  for (const entry of cfg.agents?.list ?? []) {
+    if (!entry || typeof entry !== "object" || typeof entry.id !== "string") {
+      continue;
+    }
+    push(entry.id);
+  }
+  return ids;
+}
 
 export function buildGatewaySnapshot(): Snapshot {
   const cfg = loadConfig();
@@ -63,13 +85,23 @@ export function setBroadcastHealthUpdate(fn: ((snap: HealthSummary) => void) | n
 export async function refreshGatewayHealthSnapshot(opts?: { probe?: boolean }) {
   if (!healthRefresh) {
     healthRefresh = (async () => {
+      const cfg = loadConfig();
       const snap = await getHealthSnapshot({ probe: opts?.probe });
-      healthCache = snap;
+      const continuity = buildContinuitySummary({
+        cfg,
+        agentIds: resolveContinuityAgentIds(cfg),
+      });
+      logStaleContinuityTasks(continuity);
+      const enriched = {
+        ...snap,
+        continuity,
+      } satisfies HealthSummary;
+      healthCache = enriched;
       healthVersion += 1;
       if (broadcastHealthUpdate) {
-        broadcastHealthUpdate(snap);
+        broadcastHealthUpdate(enriched);
       }
-      return snap;
+      return enriched;
     })().finally(() => {
       healthRefresh = null;
     });

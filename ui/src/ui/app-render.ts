@@ -103,6 +103,7 @@ import { renderOverview } from "./views/overview.ts";
 import { renderSessions } from "./views/sessions.ts";
 import { renderSettingsPanel } from "./views/settings-panel.ts";
 import { renderSkills } from "./views/skills.ts";
+import { renderTasksWorkbench } from "./views/tasks-workbench.ts";
 import { renderUsage } from "./views/usage.ts";
 
 const AVATAR_DATA_RE = /^data:/i;
@@ -216,6 +217,53 @@ export function renderApp(state: AppViewState) {
     state.agentsList?.defaultId ??
     state.agentsList?.agents?.[0]?.id ??
     null;
+  const workbenchAgentOptions =
+    state.agentsList?.agents?.map((agent) => ({
+      id: agent.id,
+      label: agent.identity?.name?.trim() || agent.id,
+    })) ?? [];
+  const openChatSessionFromWorkbench = (next: string) => {
+    if (!next.trim()) {
+      return;
+    }
+    state.sessionKey = next;
+    state.viewingSessionId = null;
+    state.transcriptsResult = null;
+    state.chatMessage = "";
+    state.chatAttachments = [];
+    state.chatStream = null;
+    state.chatStreamStartedAt = null;
+    state.chatRunId = null;
+    state.chatQueue = [];
+    state.taskContinuityError = null;
+    state.taskContinuitySessionKey = null;
+    state.taskContinuityTasks = [];
+    state.taskContinuitySelectedTaskId = null;
+    state.taskContinuityEventsByTaskId = {};
+    state.taskContinuityCommitmentsByTaskId = {};
+    state.taskContinuityDetailsLoadingTaskId = null;
+    state.taskContinuityActionError = null;
+    state.taskContinuityActionMessage = null;
+    state.taskContinuityActionBusyKey = null;
+    state.resetToolStream();
+    state.resetChatScroll();
+    state.applySettings({
+      ...state.settings,
+      sessionKey: next,
+      lastActiveSessionKey: next,
+    });
+    void state.loadAssistantIdentity();
+    void loadChatHistory(state);
+    void loadTranscripts(state);
+    void state.loadTaskContinuity();
+    void refreshChatAvatar(state);
+    syncUrlWithSessionKey(
+      state as unknown as Parameters<typeof syncUrlWithSessionKey>[0],
+      next,
+      true,
+    );
+    state.setTab("chat");
+  };
   const pageTitle = titleForTab(state.tab, state.uiLocale);
   const pageSubtitle = subtitleForTab(state.tab, state.uiLocale);
   const pageIcon = icons[iconForTab(state.tab)];
@@ -701,6 +749,43 @@ export function renderApp(state: AppViewState) {
                   state.usageTimeSeries = null;
                   state.usageSessionLogs = null;
                 },
+              })
+            : nothing
+        }
+
+        ${
+          state.tab === "tasks"
+            ? renderTasksWorkbench({
+                locale: state.uiLocale,
+                loading: state.tasksWorkbenchLoading,
+                error: state.tasksWorkbenchError,
+                tasks: state.tasksWorkbenchTasks,
+                total: state.tasksWorkbenchTotal,
+                nextOffset: state.tasksWorkbenchNextOffset,
+                filters: state.tasksWorkbenchFilters,
+                selectedTaskId: state.tasksWorkbenchSelectedTaskId,
+                events: state.tasksWorkbenchSelectedTaskId
+                  ? (state.tasksWorkbenchEventsByTaskId[state.tasksWorkbenchSelectedTaskId] ?? [])
+                  : [],
+                commitments: state.tasksWorkbenchSelectedTaskId
+                  ? (state.tasksWorkbenchCommitmentsByTaskId[state.tasksWorkbenchSelectedTaskId] ??
+                    [])
+                  : [],
+                detailsLoading: state.tasksWorkbenchDetailsLoadingTaskId != null,
+                actionError: state.tasksWorkbenchActionError,
+                actionMessage: state.tasksWorkbenchActionMessage,
+                actionBusyKey: state.tasksWorkbenchActionBusyKey,
+                agentOptions: workbenchAgentOptions,
+                onRefresh: () => state.loadTasksWorkbench(),
+                onLoadMore: () => state.loadMoreTasksWorkbench(),
+                onFiltersChange: (patch) => state.updateTasksWorkbenchFilters(patch),
+                onSelectTask: (taskId) => void state.selectTasksWorkbenchTask(taskId),
+                onUpdateCommitment: (taskId, commitmentId, status) =>
+                  void state.updateTasksWorkbenchCommitment(taskId, commitmentId, status),
+                onUpdateTaskStatus: (taskId, status) =>
+                  void state.updateTasksWorkbenchTaskStatus(taskId, status),
+                onOpenEventDetails: (content, options) => state.handleOpenSidebar(content, options),
+                onOpenSession: (sessionKey) => openChatSessionFromWorkbench(sessionKey),
               })
             : nothing
         }

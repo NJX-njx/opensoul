@@ -113,6 +113,68 @@ export type ResolvedTaskLink = {
   reused: boolean;
 };
 
+export type ContinuityTaskLifecycleCounts = {
+  createdSinceStart: number;
+  reusedSinceStart: number;
+  reopenedSinceStart: number;
+  closedSinceStart: number;
+};
+
+export type ContinuityCommitmentEventCounts = {
+  opened: number;
+  done: number;
+  cancelled: number;
+  reopened: number;
+};
+
+export type ContinuityHandoffCounts = {
+  succeeded: number;
+  failed: number;
+  degraded: number;
+  canvasOpened: number;
+  canvasFailed: number;
+};
+
+export type ContinuityStaleTask = Pick<
+  TaskRecord,
+  "taskId" | "status" | "title" | "summary" | "latestSessionKey" | "updatedAt" | "currentSurface"
+> & {
+  ageMs: number;
+};
+
+export type ContinuityAggregateCounts = {
+  taskLifecycle: ContinuityTaskLifecycleCounts;
+  tasks: {
+    total: number;
+    byStatus: Record<TaskStatus, number>;
+    staleRunning: number;
+    staleWaitingUser: number;
+  };
+  commitments: {
+    byStatus: Record<CommitmentStatus, number>;
+    events: ContinuityCommitmentEventCounts;
+  };
+  handoffs: ContinuityHandoffCounts;
+};
+
+export type ContinuityAgentSummary = ContinuityAggregateCounts & {
+  agentId: string;
+  staleTasks: {
+    running: Array<ContinuityStaleTask>;
+    waitingUser: Array<ContinuityStaleTask>;
+  };
+};
+
+export type ContinuitySummary = {
+  generatedAt: number;
+  staleThresholdsMs: {
+    running: number;
+    waitingUser: number;
+  };
+  totals: ContinuityAggregateCounts;
+  byAgent: Array<ContinuityAgentSummary>;
+};
+
 export type RunContinuityStats = {
   taskId: string;
   runId: string;

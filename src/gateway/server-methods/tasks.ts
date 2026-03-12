@@ -5,9 +5,10 @@ import {
   getTask,
   listCommitments,
   listTaskEvents,
-  listTasks,
   patchCommitment,
   patchTask,
+  queryTasks,
+  type TasksListSort,
 } from "../../continuity/service.js";
 import {
   ErrorCodes,
@@ -40,6 +41,56 @@ function resolveTaskAgentId(params: {
   return resolveDefaultAgentId(params.cfg);
 }
 
+function resolveTaskAgentIds(params: {
+  cfg: ReturnType<typeof loadConfig>;
+  agentId?: string;
+  sessionKey?: string;
+  allAgents?: boolean;
+}): Array<string> {
+  const explicitAgentId = params.agentId?.trim();
+  if (explicitAgentId) {
+    return [explicitAgentId];
+  }
+  const sessionKey = params.sessionKey?.trim();
+  if (sessionKey) {
+    return [
+      resolveTaskAgentId({
+        cfg: params.cfg,
+        sessionKey,
+      }),
+    ];
+  }
+  if (!params.allAgents) {
+    return [resolveTaskAgentId({ cfg: params.cfg })];
+  }
+  const agentIds = Array.from(
+    new Set(
+      (params.cfg.agents?.list ?? [])
+        .map((entry) => entry?.id?.trim())
+        .filter((value): value is string => Boolean(value)),
+    ),
+  );
+  return agentIds.length > 0 ? agentIds : [resolveDefaultAgentId(params.cfg)];
+}
+
+function compareTaskRecords(
+  left: { updatedAt: number; createdAt: number },
+  right: { updatedAt: number; createdAt: number },
+  sort: TasksListSort,
+): number {
+  switch (sort) {
+    case "updated-asc":
+      return left.updatedAt - right.updatedAt || left.createdAt - right.createdAt;
+    case "created-desc":
+      return right.createdAt - left.createdAt || right.updatedAt - left.updatedAt;
+    case "created-asc":
+      return left.createdAt - right.createdAt || left.updatedAt - right.updatedAt;
+    case "updated-desc":
+    default:
+      return right.updatedAt - left.updatedAt || right.createdAt - left.createdAt;
+  }
+}
+
 function hasTaskPatchFields(params: {
   status?: string;
   title?: string | null;
@@ -68,19 +119,54 @@ export const tasksHandlers: GatewayRequestHandlers = {
       return;
     }
     const cfg = loadConfig();
-    const p = params as { agentId?: string; sessionKey?: string; limit?: number };
-    const agentId = resolveTaskAgentId({
+    const p = params as {
+      allAgents?: boolean;
+      agentId?: string;
+      sessionKey?: string;
+      status?: "open" | "running" | "waiting-user" | "completed" | "cancelled" | "failed";
+      surfaceKind?: string;
+      channel?: string;
+      query?: string;
+      updatedAfter?: number;
+      offset?: number;
+      limit?: number;
+      sort?: TasksListSort;
+    };
+    const sort = p.sort ?? "updated-desc";
+    const agentIds = resolveTaskAgentIds({
       cfg,
       agentId: p.agentId,
       sessionKey: p.sessionKey,
+      allAgents: p.allAgents,
     });
-    const tasks = listTasks({
-      cfg,
-      agentId,
-      sessionKey: p.sessionKey,
-      limit: p.limit,
-    });
-    respond(true, { tasks }, undefined);
+    const allTasks = agentIds
+      .flatMap(
+        (agentId) =>
+          queryTasks({
+            cfg,
+            agentId,
+            sessionKey: agentIds.length === 1 ? p.sessionKey : undefined,
+            status: p.status,
+            surfaceKind: p.surfaceKind,
+            channel: p.channel,
+            query: p.query,
+            updatedAfter: p.updatedAfter,
+            sort,
+          }).tasks,
+      )
+      .toSorted((left, right) => compareTaskRecords(left, right, sort));
+    const total = allTasks.length;
+    const offset =
+      typeof p.offset === "number" && Number.isFinite(p.offset)
+        ? Math.max(0, Math.floor(p.offset))
+        : 0;
+    const limit =
+      typeof p.limit === "number" && Number.isFinite(p.limit)
+        ? Math.max(1, Math.floor(p.limit))
+        : 50;
+    const tasks = allTasks.slice(offset, offset + limit);
+    const nextOffset = offset + tasks.length < total ? offset + tasks.length : null;
+    respond(true, { tasks, total, nextOffset }, undefined);
   },
   "tasks.get": ({ params, respond }) => {
     if (!validateTasksGetParams(params)) {

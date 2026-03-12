@@ -23,6 +23,7 @@ import { loadNodes } from "./controllers/nodes.ts";
 import { loadPresence } from "./controllers/presence.ts";
 import { loadSessions } from "./controllers/sessions.ts";
 import { loadSkills } from "./controllers/skills.ts";
+import { loadTasksWorkbench } from "./controllers/tasks.ts";
 import { sendTabChanged, sendThemeChanged } from "./desktop-bridge.ts";
 import {
   inferBasePathFromPathname,
@@ -212,6 +213,10 @@ export async function refreshActiveTab(host: SettingsHost) {
   }
   if (host.tab === "sessions") {
     await loadSessions(host as unknown as OpenSoulApp);
+  }
+  if (host.tab === "tasks") {
+    await loadAgents(host as unknown as OpenSoulApp);
+    await loadTasksWorkbench(host as unknown as OpenSoulApp);
   }
   if (host.tab === "cron") {
     await loadCron(host);

@@ -6,7 +6,7 @@ export const TAB_GROUPS = [
   { label: "Assist", tabs: ["chat"] },
   {
     label: "Operate",
-    tabs: ["channels", "instances", "sessions", "usage", "cron"],
+    tabs: ["channels", "instances", "sessions", "tasks", "usage", "cron"],
   },
   { label: "Build", tabs: ["agents", "skills", "nodes"] },
   { label: "System", tabs: ["overview"] },
@@ -22,6 +22,7 @@ export type Tab =
   | "channels"
   | "instances"
   | "sessions"
+  | "tasks"
   | "usage"
   | "cron"
   | "skills"
@@ -37,6 +38,7 @@ const TAB_PATHS: Record<Tab, string> = {
   channels: "/channels",
   instances: "/instances",
   sessions: "/sessions",
+  tasks: "/tasks",
   usage: "/usage",
   cron: "/cron",
   skills: "/skills",
@@ -142,6 +144,8 @@ export function iconForTab(tab: Tab): IconName {
       return "radio";
     case "sessions":
       return "fileText";
+    case "tasks":
+      return "link";
     case "usage":
       return "barChart";
     case "cron":
@@ -188,6 +192,8 @@ export function titleForTab(tab: Tab, locale?: Locale) {
       return uiText(locale, "Instances", "实例");
     case "sessions":
       return uiText(locale, "Sessions", "会话");
+    case "tasks":
+      return uiText(locale, "Tasks", "任务");
     case "usage":
       return uiText(locale, "Usage", "用量");
     case "cron":
@@ -240,6 +246,12 @@ export function subtitleForTab(tab: Tab, locale?: Locale) {
         locale,
         "Browse active conversations and fine-tune each session.",
         "浏览活跃对话并微调每个会话。",
+      );
+    case "tasks":
+      return uiText(
+        locale,
+        "Search and manage task continuity across sessions and agents.",
+        "跨会话与智能体搜索、筛选并管理连续任务。",
       );
     case "usage":
       return uiText(
@@ -300,6 +312,8 @@ export function navHintForTab(tab: Tab, locale?: Locale) {
       return uiText(locale, "Live clients", "在线客户端");
     case "sessions":
       return uiText(locale, "Per-session control", "会话管控");
+    case "tasks":
+      return uiText(locale, "Cross-surface workbench", "跨表面工作台");
     case "usage":
       return uiText(locale, "Cost and tokens", "费用与 Token");
     case "cron":

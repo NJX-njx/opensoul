@@ -27,6 +27,13 @@ export const CommitmentStatusValueSchema = Type.Union([
   Type.Literal("cancelled"),
 ]);
 
+export const TasksListSortValueSchema = Type.Union([
+  Type.Literal("updated-desc"),
+  Type.Literal("updated-asc"),
+  Type.Literal("created-desc"),
+  Type.Literal("created-asc"),
+]);
+
 export const TaskRecordSchema = Type.Object(
   {
     taskId: NonEmptyString,
@@ -83,9 +90,17 @@ export const TaskCommitmentSchema = Type.Object(
 
 export const TasksListParamsSchema = Type.Object(
   {
+    allAgents: Type.Optional(Type.Boolean()),
     agentId: Type.Optional(NonEmptyString),
     sessionKey: Type.Optional(Type.String()),
+    status: Type.Optional(TaskStatusValueSchema),
+    surfaceKind: Type.Optional(NonEmptyString),
+    channel: Type.Optional(NonEmptyString),
+    query: Type.Optional(Type.String()),
+    updatedAfter: Type.Optional(Type.Integer({ minimum: 0 })),
+    offset: Type.Optional(Type.Integer({ minimum: 0, maximum: 10_000 })),
     limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 200 })),
+    sort: Type.Optional(TasksListSortValueSchema),
   },
   { additionalProperties: false },
 );
@@ -93,6 +108,8 @@ export const TasksListParamsSchema = Type.Object(
 export const TasksListResultSchema = Type.Object(
   {
     tasks: Type.Array(TaskRecordSchema),
+    total: Type.Optional(Type.Integer({ minimum: 0 })),
+    nextOffset: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.Null()])),
   },
   { additionalProperties: false },
 );
