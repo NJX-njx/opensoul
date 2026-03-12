@@ -7,7 +7,7 @@ title: "Gateway Architecture"
 
 # Gateway architecture
 
-Last updated: 2026-01-22
+Last updated: 2026-03-11
 
 ## Overview
 
@@ -20,6 +20,7 @@ Last updated: 2026-01-22
   declare `role: node` with explicit caps/commands.
 - One Gateway per host; it is the only place that opens a WhatsApp session.
 - A **canvas host** (default `18793`) serves agent‑editable HTML and A2UI.
+- Long-running work can now be tracked as task continuity state (`tasks`, task events, commitments) so one agent can keep the same task alive across direct chat, Control UI, cron, subagents, and canvas handoff.
 
 ## Components and flows
 
@@ -35,6 +36,7 @@ Last updated: 2026-01-22
 - One WS connection per client.
 - Send requests (`health`, `status`, `send`, `agent`, `system-presence`).
 - Subscribe to events (`tick`, `agent`, `presence`, `shutdown`).
+- Read task continuity state through `tasks.list`, `tasks.get`, and `tasks.events`.
 
 ### Nodes (macOS / iOS / Android / headless)
 

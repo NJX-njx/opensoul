@@ -13,6 +13,9 @@ export type AgentEventPayload = {
 
 export type AgentRunContext = {
   sessionKey?: string;
+  taskId?: string;
+  sourceSurface?: string;
+  handoffEligible?: boolean;
   verboseLevel?: VerboseLevel;
   isHeartbeat?: boolean;
 };
@@ -33,6 +36,18 @@ export function registerAgentRunContext(runId: string, context: AgentRunContext)
   }
   if (context.sessionKey && existing.sessionKey !== context.sessionKey) {
     existing.sessionKey = context.sessionKey;
+  }
+  if (context.taskId && existing.taskId !== context.taskId) {
+    existing.taskId = context.taskId;
+  }
+  if (context.sourceSurface && existing.sourceSurface !== context.sourceSurface) {
+    existing.sourceSurface = context.sourceSurface;
+  }
+  if (
+    context.handoffEligible !== undefined &&
+    existing.handoffEligible !== context.handoffEligible
+  ) {
+    existing.handoffEligible = context.handoffEligible;
   }
   if (context.verboseLevel && existing.verboseLevel !== context.verboseLevel) {
     existing.verboseLevel = context.verboseLevel;

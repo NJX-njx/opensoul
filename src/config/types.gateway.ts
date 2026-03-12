@@ -64,6 +64,8 @@ export type TalkConfig = {
 export type GatewayControlUiConfig = {
   /** If false, the Gateway will not serve the Control UI (default /). */
   enabled?: boolean;
+  /** Publicly reachable Control UI origin used for deep-links and canvas handoff. */
+  publicUrl?: string;
   /** Optional base path prefix for the Control UI (e.g. "/opensoul"). */
   basePath?: string;
   /** Optional filesystem root for Control UI assets (defaults to dist/control-ui). */

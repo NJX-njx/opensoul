@@ -7,6 +7,7 @@ import { html, nothing } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 import type { TranscriptListEntry } from "../types.ts";
 import type { Locale } from "./onboarding/i18n.ts";
+import { formatRelativeTimestamp } from "../format.ts";
 import { uiText } from "../i18n.ts";
 
 const NAV_MAX_TRANSCRIPTS = 50;
@@ -38,6 +39,7 @@ export type ConversationNavigatorProps = {
   viewingSessionId: string | null;
   assistantName: string;
   onSelect: (sessionId: string) => void;
+  variant?: "strip" | "panel";
 };
 
 export function renderConversationNavigator(props: ConversationNavigatorProps) {
@@ -47,6 +49,43 @@ export function renderConversationNavigator(props: ConversationNavigatorProps) {
 
   if (transcripts.length <= 1) {
     return nothing;
+  }
+
+  if (props.variant === "panel") {
+    return html`
+      <div class="conversation-navigator conversation-navigator--panel">
+        <div class="conversation-navigator__panel-header">
+          <div class="conversation-navigator__panel-title">${t("Conversation branches", "对话分支")}</div>
+          <div class="conversation-navigator__panel-sub">
+            ${t("Jump between transcripts in this session.", "在当前会话的不同 transcript 之间切换。")}
+          </div>
+        </div>
+        <div class="conversation-navigator__panel-list">
+          ${repeat(
+            transcripts,
+            (row) => row.sessionId,
+            (row) => {
+              const isActive = row.sessionId === effectiveViewing;
+              const fullLabel = resolveTranscriptLabel(row, props.assistantName);
+              const truncated = truncateTitle(fullLabel, TITLE_TRUNCATE_LEN + 16);
+              return html`
+                <button
+                  type="button"
+                  class="conversation-navigator__panel-item ${isActive ? "conversation-navigator__panel-item--active" : ""}"
+                  title=${fullLabel}
+                  @click=${() => props.onSelect(row.sessionId)}
+                >
+                  <span class="conversation-navigator__panel-item-title">${truncated}</span>
+                  <span class="conversation-navigator__panel-item-meta">
+                    ${row.mtime ? formatRelativeTimestamp(row.mtime) : t("No timestamp", "无时间戳")}
+                  </span>
+                </button>
+              `;
+            },
+          )}
+        </div>
+      </div>
+    `;
   }
 
   return html`

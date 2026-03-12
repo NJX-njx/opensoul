@@ -27,6 +27,9 @@ import type {
   SkillStatusReport,
   StatusSummary,
   NostrProfile,
+  TaskCommitment,
+  TaskEvent,
+  TaskRecord,
 } from "./types.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
 import type { Locale } from "./views/onboarding/i18n.ts";
@@ -93,6 +96,10 @@ import {
 import { loadDebug as loadDebugInternal } from "./controllers/debug.ts";
 import { loadLogs as loadLogsInternal } from "./controllers/logs.ts";
 import { loadSessions } from "./controllers/sessions.ts";
+import {
+  loadTaskContinuity as loadTaskContinuityInternal,
+  selectTaskContinuityTask as selectTaskContinuityTaskInternal,
+} from "./controllers/tasks.ts";
 import { loadUiLocale, resolveUiLocale, saveUiLocale } from "./i18n.ts";
 import { loadSettings, type UiSettings } from "./storage.ts";
 import { type ChatAttachment, type ChatQueueItem, type CronFormState } from "./ui-types.ts";
@@ -164,6 +171,7 @@ export class OpenSoulApp extends LitElement {
   @state() chatManualRefreshInFlight = false;
   // Sidebar state for tool output viewing
   @state() sidebarOpen = false;
+  @state() sidebarTitle: string | null = null;
   @state() sidebarContent: string | null = null;
   @state() sidebarError: string | null = null;
   @state() splitRatio = this.settings.splitRatio;
@@ -254,6 +262,14 @@ export class OpenSoulApp extends LitElement {
   @state() sessionsResult: SessionsListResult | null = null;
   @state() sessionsError: string | null = null;
   @state() transcriptsResult: import("./types.js").SessionsListTranscriptsResult | null = null;
+  @state() taskContinuityLoading = false;
+  @state() taskContinuityError: string | null = null;
+  @state() taskContinuitySessionKey: string | null = null;
+  @state() taskContinuityTasks: Array<TaskRecord> = [];
+  @state() taskContinuitySelectedTaskId: string | null = null;
+  @state() taskContinuityEventsByTaskId: Record<string, Array<TaskEvent>> = {};
+  @state() taskContinuityCommitmentsByTaskId: Record<string, Array<TaskCommitment>> = {};
+  @state() taskContinuityDetailsLoadingTaskId: string | null = null;
   @state() viewingSessionId: string | null = null;
   @state() sessionsFilterActive = "";
   @state() sessionsFilterLimit = "120";
@@ -472,6 +488,14 @@ export class OpenSoulApp extends LitElement {
 
   async loadAssistantIdentity() {
     await loadAssistantIdentityInternal(this);
+  }
+
+  async loadTaskContinuity() {
+    await loadTaskContinuityInternal(this);
+  }
+
+  async selectTaskContinuityTask(taskId: string) {
+    await selectTaskContinuityTaskInternal(this, taskId);
   }
 
   applySettings(next: UiSettings) {
@@ -727,11 +751,12 @@ export class OpenSoulApp extends LitElement {
   }
 
   // Sidebar handlers for tool output viewing
-  handleOpenSidebar(content: string) {
+  handleOpenSidebar(content: string, options?: { title?: string }) {
     if (this.sidebarCloseTimer != null) {
       window.clearTimeout(this.sidebarCloseTimer);
       this.sidebarCloseTimer = null;
     }
+    this.sidebarTitle = options?.title?.trim() || null;
     this.sidebarContent = content;
     this.sidebarError = null;
     this.sidebarOpen = true;
@@ -747,6 +772,7 @@ export class OpenSoulApp extends LitElement {
       if (this.sidebarOpen) {
         return;
       }
+      this.sidebarTitle = null;
       this.sidebarContent = null;
       this.sidebarError = null;
       this.sidebarCloseTimer = null;

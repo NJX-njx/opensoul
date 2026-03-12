@@ -1263,6 +1263,13 @@ export function renderApp(state: AppViewState) {
                               state.chatStreamStartedAt = null;
                               state.chatRunId = null;
                               state.chatQueue = [];
+                              state.taskContinuityError = null;
+                              state.taskContinuitySessionKey = null;
+                              state.taskContinuityTasks = [];
+                              state.taskContinuitySelectedTaskId = null;
+                              state.taskContinuityEventsByTaskId = {};
+                              state.taskContinuityCommitmentsByTaskId = {};
+                              state.taskContinuityDetailsLoadingTaskId = null;
                               state.resetToolStream();
                               state.resetChatScroll();
                               state.applySettings({
@@ -1273,6 +1280,7 @@ export function renderApp(state: AppViewState) {
                               void state.loadAssistantIdentity();
                               void loadChatHistory(state);
                               void loadTranscripts(state);
+                              void state.loadTaskContinuity();
                               void refreshChatAvatar(state);
                               syncUrlWithSessionKey(
                                 state as unknown as Parameters<typeof syncUrlWithSessionKey>[0],
@@ -1324,6 +1332,7 @@ export function renderApp(state: AppViewState) {
                               state.resetToolStream();
                               return Promise.all([
                                 loadChatHistory(state),
+                                state.loadTaskContinuity(),
                                 refreshChatAvatar(state),
                               ]);
                             },
@@ -1360,15 +1369,42 @@ export function renderApp(state: AppViewState) {
                               state.chatNewMessagesBelow && !state.chatManualRefreshInFlight,
                             onScrollToBottom: () => state.scrollToBottom(),
                             sidebarOpen: state.sidebarOpen,
+                            sidebarTitle: state.sidebarTitle,
                             sidebarContent: state.sidebarContent,
                             sidebarError: state.sidebarError,
                             splitRatio: state.splitRatio,
-                            onOpenSidebar: (content: string) => state.handleOpenSidebar(content),
+                            onOpenSidebar: (content: string, options?: { title?: string }) =>
+                              state.handleOpenSidebar(content, options),
                             onCloseSidebar: () => state.handleCloseSidebar(),
                             onSplitRatioChange: (ratio: number) =>
                               state.handleSplitRatioChange(ratio),
                             assistantName: state.assistantName,
                             assistantAvatar: state.assistantAvatar,
+                            taskContinuityLoading: state.taskContinuityLoading,
+                            taskContinuityError: state.taskContinuityError,
+                            taskContinuityTasks:
+                              state.taskContinuitySessionKey === state.sessionKey
+                                ? state.taskContinuityTasks
+                                : [],
+                            taskContinuitySelectedTaskId: state.taskContinuitySelectedTaskId,
+                            taskContinuityEvents:
+                              state.taskContinuitySelectedTaskId != null
+                                ? (state.taskContinuityEventsByTaskId[
+                                    state.taskContinuitySelectedTaskId
+                                  ] ?? [])
+                                : [],
+                            taskContinuityCommitments:
+                              state.taskContinuitySelectedTaskId != null
+                                ? (state.taskContinuityCommitmentsByTaskId[
+                                    state.taskContinuitySelectedTaskId
+                                  ] ?? [])
+                                : [],
+                            taskContinuityDetailsLoading:
+                              state.taskContinuityDetailsLoadingTaskId ===
+                              state.taskContinuitySelectedTaskId,
+                            onRefreshTaskContinuity: () => void state.loadTaskContinuity(),
+                            onSelectTaskContinuityTask: (taskId) =>
+                              void state.selectTaskContinuityTask(taskId),
                           })
                         : renderChatWelcome({
                             locale: state.uiLocale,

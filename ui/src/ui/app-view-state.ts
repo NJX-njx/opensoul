@@ -28,6 +28,9 @@ import type {
   CostUsageSummary,
   SessionUsageTimeSeries,
   SessionsListResult,
+  TaskCommitment,
+  TaskEvent,
+  TaskRecord,
   SkillStatusReport,
   StatusSummary,
 } from "./types.ts";
@@ -71,6 +74,7 @@ export type AppViewState = {
   nodes: Array<Record<string, unknown>>;
   chatNewMessagesBelow: boolean;
   sidebarOpen: boolean;
+  sidebarTitle: string | null;
   sidebarContent: string | null;
   sidebarError: string | null;
   splitRatio: number;
@@ -154,6 +158,14 @@ export type AppViewState = {
   sessionsIncludeGlobal: boolean;
   sessionsIncludeUnknown: boolean;
   transcriptsResult: import("./types.js").SessionsListTranscriptsResult | null;
+  taskContinuityLoading: boolean;
+  taskContinuityError: string | null;
+  taskContinuitySessionKey: string | null;
+  taskContinuityTasks: Array<TaskRecord>;
+  taskContinuitySelectedTaskId: string | null;
+  taskContinuityEventsByTaskId: Record<string, Array<TaskEvent>>;
+  taskContinuityCommitmentsByTaskId: Record<string, Array<TaskCommitment>>;
+  taskContinuityDetailsLoadingTaskId: string | null;
   viewingSessionId: string | null;
   usageLoading: boolean;
   usageResult: SessionsUsageResult | null;
@@ -281,6 +293,8 @@ export type AppViewState = {
   handleLoadSkills: () => Promise<void>;
   handleLoadDebug: () => Promise<void>;
   handleLoadLogs: () => Promise<void>;
+  loadTaskContinuity: () => Promise<void>;
+  selectTaskContinuityTask: (taskId: string) => Promise<void>;
   handleDebugCall: () => Promise<void>;
   handleRunUpdate: () => Promise<void>;
   setPassword: (next: string) => void;
@@ -297,7 +311,7 @@ export type AppViewState = {
   openSettings: (section?: SettingsTab | "general") => void;
   closeSettings: () => void;
   setSettingsSection: (section: SettingsTab | "general") => void;
-  handleOpenSidebar: (content: string) => void;
+  handleOpenSidebar: (content: string, options?: { title?: string }) => void;
   handleCloseSidebar: () => void;
   handleSplitRatioChange: (ratio: number) => void;
   setUiLocale: (locale: Locale) => void;

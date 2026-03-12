@@ -177,6 +177,28 @@ import {
   SessionsResolveParamsSchema,
   type SessionsUsageParams,
   SessionsUsageParamsSchema,
+  type TaskCommitment,
+  TaskCommitmentSchema,
+  type TaskEvent,
+  TaskEventSchema,
+  type TaskRecord,
+  TaskRecordSchema,
+  type TasksCommitmentsParams,
+  TasksCommitmentsParamsSchema,
+  type TasksCommitmentsResult,
+  TasksCommitmentsResultSchema,
+  type TasksEventsParams,
+  TasksEventsParamsSchema,
+  type TasksEventsResult,
+  TasksEventsResultSchema,
+  type TasksGetParams,
+  TasksGetParamsSchema,
+  type TasksGetResult,
+  TasksGetResultSchema,
+  type TasksListParams,
+  TasksListParamsSchema,
+  type TasksListResult,
+  TasksListResultSchema,
   type ShutdownEvent,
   ShutdownEventSchema,
   type SkillsBinsParams,
@@ -295,6 +317,12 @@ export const validateSessionsCompactParams = ajv.compile<SessionsCompactParams>(
 );
 export const validateSessionsUsageParams =
   ajv.compile<SessionsUsageParams>(SessionsUsageParamsSchema);
+export const validateTasksListParams = ajv.compile<TasksListParams>(TasksListParamsSchema);
+export const validateTasksGetParams = ajv.compile<TasksGetParams>(TasksGetParamsSchema);
+export const validateTasksEventsParams = ajv.compile<TasksEventsParams>(TasksEventsParamsSchema);
+export const validateTasksCommitmentsParams = ajv.compile<TasksCommitmentsParams>(
+  TasksCommitmentsParamsSchema,
+);
 export const validateConfigGetParams = ajv.compile<ConfigGetParams>(ConfigGetParamsSchema);
 export const validateConfigSetParams = ajv.compile<ConfigSetParams>(ConfigSetParamsSchema);
 export const validateConfigApplyParams = ajv.compile<ConfigApplyParams>(ConfigApplyParamsSchema);
@@ -579,6 +607,17 @@ export type {
   SessionsDeleteParams,
   SessionsCompactParams,
   SessionsUsageParams,
+  TaskCommitment,
+  TaskRecord,
+  TaskEvent,
+  TasksListParams,
+  TasksListResult,
+  TasksGetParams,
+  TasksGetResult,
+  TasksEventsParams,
+  TasksEventsResult,
+  TasksCommitmentsParams,
+  TasksCommitmentsResult,
   CronJob,
   CronListParams,
   CronStatusParams,

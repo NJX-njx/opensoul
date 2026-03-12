@@ -424,6 +424,71 @@ export type SessionsListTranscriptsResult = {
   transcripts: TranscriptListEntry[];
 };
 
+export type TaskSurfaceRef = {
+  kind: string;
+  channel?: string;
+  chatType?: string;
+  label?: string;
+  nodeId?: string;
+};
+
+export type TaskRecord = {
+  taskId: string;
+  agentId: string;
+  status: string;
+  title?: string;
+  summary?: string;
+  sourceSurface?: TaskSurfaceRef;
+  currentSurface?: TaskSurfaceRef;
+  latestSessionKey?: string;
+  latestRunId?: string;
+  createdAt: number;
+  updatedAt: number;
+  closedAt?: number;
+};
+
+export type TaskEvent = {
+  eventId: string;
+  taskId: string;
+  agentId: string;
+  kind: string;
+  stream?: string;
+  phase?: string;
+  sessionKey?: string;
+  runId?: string;
+  summary?: string;
+  surface?: TaskSurfaceRef;
+  createdAt: number;
+  payload?: Record<string, unknown>;
+};
+
+export type TaskCommitment = {
+  commitmentId: string;
+  taskId: string;
+  agentId: string;
+  status: string;
+  kind?: string;
+  title: string;
+  detail?: string;
+  dueAt?: number;
+  cronJobId?: string;
+  createdAt: number;
+  updatedAt: number;
+  closedAt?: number;
+};
+
+export type TasksListResult = {
+  tasks: TaskRecord[];
+};
+
+export type TasksEventsResult = {
+  events: TaskEvent[];
+};
+
+export type TasksCommitmentsResult = {
+  commitments: TaskCommitment[];
+};
+
 export type SessionsPatchResult = {
   ok: true;
   path: string;

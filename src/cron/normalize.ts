@@ -338,6 +338,20 @@ export function normalizeCronJobInput(
     }
   }
 
+  if ("taskId" in base) {
+    const taskId = base.taskId;
+    if (taskId === null) {
+      next.taskId = null;
+    } else if (typeof taskId === "string") {
+      const trimmed = taskId.trim();
+      if (trimmed) {
+        next.taskId = trimmed;
+      } else {
+        delete next.taskId;
+      }
+    }
+  }
+
   if ("enabled" in base) {
     const enabled = base.enabled;
     if (typeof enabled === "boolean") {

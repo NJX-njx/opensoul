@@ -10,6 +10,11 @@ import {
   type SessionEntry,
   updateSessionStore,
 } from "../../config/sessions.js";
+import {
+  buildTaskContextEnvelope,
+  ensureContinuityEventSinkStarted,
+  resolveOrCreateTaskForInbound,
+} from "../../continuity/index.js";
 import { registerAgentRunContext } from "../../infra/agent-events.js";
 import { resolveControlUiRootSync } from "../../infra/control-ui-assets.js";
 import {
@@ -65,6 +70,7 @@ export const agentHandlers: GatewayRequestHandlers = {
       replyTo?: string;
       sessionId?: string;
       sessionKey?: string;
+      taskId?: string;
       thinking?: string;
       deliver?: boolean;
       attachments?: Array<{
@@ -212,6 +218,9 @@ export const agentHandlers: GatewayRequestHandlers = {
     let sessionEntry: SessionEntry | undefined;
     let bestEffortDeliver = false;
     let cfgForAgent: ReturnType<typeof loadConfig> | undefined;
+    let resolvedTaskId: string | undefined;
+    let continuityPrompt: string | undefined;
+    let sourceSurfaceKind: string | undefined;
 
     if (requestedSessionKey) {
       const { cfg, storePath, entry, canonicalKey } = loadSessionEntry(requestedSessionKey);
@@ -281,8 +290,39 @@ export const agentHandlers: GatewayRequestHandlers = {
       }
       resolvedSessionId = sessionId;
       const canonicalSessionKey = canonicalKey;
-      const agentId = resolveAgentIdFromSessionKey(canonicalSessionKey);
-      const mainSessionKey = resolveAgentMainSessionKey({ cfg, agentId });
+      const sessionAgentId = resolveAgentIdFromSessionKey(canonicalSessionKey);
+      const mainSessionKey = resolveAgentMainSessionKey({ cfg, agentId: sessionAgentId });
+      ensureContinuityEventSinkStarted();
+      sourceSurfaceKind =
+        request.deliver === true
+          ? nextEntry.chatType === "group" || nextEntry.chatType === "channel"
+            ? "group-chat"
+            : "direct-chat"
+          : "control-ui";
+      const resolvedTask = resolveOrCreateTaskForInbound({
+        cfg,
+        agentId: sessionAgentId,
+        sessionKey: canonicalSessionKey,
+        sessionEntry: entry,
+        explicitTaskId: request.taskId,
+        inboundText: message,
+        surface: {
+          kind: sourceSurfaceKind as "control-ui" | "direct-chat" | "group-chat",
+          channel:
+            (typeof request.channel === "string" && request.channel.trim()) ||
+            nextEntry.lastChannel ||
+            nextEntry.channel,
+          chatType: nextEntry.chatType,
+        },
+      });
+      resolvedTaskId = resolvedTask.task.taskId;
+      continuityPrompt = buildTaskContextEnvelope({
+        cfg,
+        agentId: sessionAgentId,
+        taskId: resolvedTaskId,
+      })?.prompt;
+      nextEntry.activeTaskId = resolvedTaskId;
+      nextEntry.lastTaskId = resolvedTaskId;
       if (storePath) {
         await updateSessionStore(storePath, (store) => {
           store[canonicalSessionKey] = nextEntry;
@@ -290,12 +330,17 @@ export const agentHandlers: GatewayRequestHandlers = {
       }
       if (canonicalSessionKey === mainSessionKey || canonicalSessionKey === "global") {
         context.addChatRun(idem, {
-          sessionKey: requestedSessionKey,
+          sessionKey: canonicalSessionKey,
           clientRunId: idem,
         });
         bestEffortDeliver = true;
       }
-      registerAgentRunContext(idem, { sessionKey: requestedSessionKey });
+      registerAgentRunContext(idem, {
+        sessionKey: canonicalSessionKey,
+        taskId: resolvedTaskId,
+        sourceSurface: sourceSurfaceKind,
+        handoffEligible: false,
+      });
     }
 
     const runId = idem;
@@ -393,7 +438,8 @@ export const agentHandlers: GatewayRequestHandlers = {
         messageChannel: resolvedChannel,
         runId,
         lane: request.lane,
-        extraSystemPrompt: request.extraSystemPrompt,
+        extraSystemPrompt:
+          [request.extraSystemPrompt, continuityPrompt].filter(Boolean).join("\n\n") || undefined,
       },
       defaultRuntime,
       context.deps,

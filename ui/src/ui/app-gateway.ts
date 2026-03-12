@@ -30,6 +30,7 @@ import {
 } from "./controllers/exec-approval.ts";
 import { loadNodes } from "./controllers/nodes.ts";
 import { loadSessions, loadTranscripts } from "./controllers/sessions.ts";
+import { loadTaskContinuity } from "./controllers/tasks.ts";
 import { sendConnectionStateChanged } from "./desktop-bridge.ts";
 import { GatewayBrowserClient } from "./gateway.ts";
 
@@ -244,6 +245,7 @@ function handleGatewayEventUnsafe(host: GatewayHost, evt: GatewayEventFrame) {
 
   if (evt.event === "chat") {
     const payload = evt.payload as ChatEventPayload | undefined;
+    const payloadSessionKey = payload?.sessionKey?.trim() || null;
     if (payload?.sessionKey) {
       setLastActiveSessionKey(
         host as unknown as Parameters<typeof setLastActiveSessionKey>[0],
@@ -264,6 +266,15 @@ function handleGatewayEventUnsafe(host: GatewayHost, evt: GatewayEventFrame) {
           });
           void loadTranscripts(host as unknown as OpenSoulApp);
         }
+      }
+      if (payloadSessionKey && payloadSessionKey === host.sessionKey.trim()) {
+        void loadTaskContinuity(host as unknown as OpenSoulApp);
+        window.setTimeout(() => {
+          if (!host.connected || host.sessionKey.trim() !== payloadSessionKey) {
+            return;
+          }
+          void loadTaskContinuity(host as unknown as OpenSoulApp, { force: true });
+        }, 1200);
       }
     }
     if (state === "final") {

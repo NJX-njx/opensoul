@@ -169,6 +169,8 @@ export function createJob(state: CronServiceState, input: CronJobCreate): CronJo
   const job: CronJob = {
     id,
     agentId: normalizeOptionalAgentId(input.agentId),
+    taskId:
+      typeof input.taskId === "string" && input.taskId.trim() ? input.taskId.trim() : undefined,
     name: normalizeRequiredName(input.name),
     description: normalizeOptionalText(input.description),
     enabled,
@@ -237,6 +239,10 @@ export function applyJobPatch(job: CronJob, patch: CronJobPatch) {
   }
   if ("agentId" in patch) {
     job.agentId = normalizeOptionalAgentId((patch as { agentId?: unknown }).agentId);
+  }
+  if ("taskId" in patch) {
+    const taskId = (patch as { taskId?: unknown }).taskId;
+    job.taskId = typeof taskId === "string" && taskId.trim() ? taskId.trim() : undefined;
   }
   assertSupportedJobSpec(job);
   assertDeliverySupport(job);

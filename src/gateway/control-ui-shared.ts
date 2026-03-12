@@ -20,6 +20,46 @@ export function normalizeControlUiBasePath(basePath?: string): string {
   return normalized;
 }
 
+export function resolveControlUiPublicBase(params: {
+  publicUrl?: string;
+  basePath?: string;
+}): string | undefined {
+  const raw = params.publicUrl?.trim();
+  if (!raw) {
+    return undefined;
+  }
+  try {
+    const url = new URL(raw);
+    const normalizedBasePath = normalizeControlUiBasePath(params.basePath);
+    const currentPath = url.pathname === "/" ? "" : url.pathname.replace(/\/+$/, "");
+    const finalPath =
+      normalizedBasePath && !currentPath.endsWith(normalizedBasePath)
+        ? `${currentPath}${normalizedBasePath}`
+        : currentPath || normalizedBasePath;
+    url.pathname = finalPath || "/";
+    url.search = "";
+    url.hash = "";
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return undefined;
+  }
+}
+
+export function buildControlUiSessionUrl(params: {
+  publicUrl?: string;
+  basePath?: string;
+  sessionKey: string;
+}): string | undefined {
+  const base = resolveControlUiPublicBase({
+    publicUrl: params.publicUrl,
+    basePath: params.basePath,
+  });
+  if (!base) {
+    return undefined;
+  }
+  return `${base}/chat?session=${encodeURIComponent(params.sessionKey)}`;
+}
+
 export function buildControlUiAvatarUrl(basePath: string, agentId: string): string {
   return basePath
     ? `${basePath}${CONTROL_UI_AVATAR_PREFIX}/${agentId}`

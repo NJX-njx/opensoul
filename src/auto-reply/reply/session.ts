@@ -26,6 +26,13 @@ import {
   type SessionScope,
   updateSessionStore,
 } from "../../config/sessions.js";
+import {
+  appendTaskEvent,
+  ensureContinuityEventSinkStarted,
+  resolveOrCreateTaskForInbound,
+  setSessionActiveTask,
+  type SurfaceRef,
+} from "../../continuity/index.js";
 import { normalizeMainKey } from "../../routing/session-key.js";
 import { normalizeSessionDeliveryFields } from "../../utils/delivery-context.js";
 import { resolveCommandAuthorization } from "../command-auth.js";
@@ -89,6 +96,18 @@ function forkSessionFromParent(params: {
   } catch {
     return null;
   }
+}
+
+function resolveInboundSurface(params: {
+  isGroup: boolean;
+  channel?: string;
+  chatType?: SessionEntry["chatType"];
+}): SurfaceRef {
+  return {
+    kind: params.isGroup ? "group-chat" : "direct-chat",
+    channel: params.channel?.trim().toLowerCase() || undefined,
+    chatType: params.chatType,
+  };
 }
 
 export async function initSessionState(params: {
@@ -350,6 +369,60 @@ export async function initSessionState(params: {
   await updateSessionStore(storePath, (store) => {
     // Preserve per-session overrides while resetting compaction state on /new.
     store[sessionKey] = { ...store[sessionKey], ...sessionEntry };
+  });
+
+  ensureContinuityEventSinkStarted();
+  const inboundText =
+    bodyStripped ??
+    ctx.BodyForAgent ??
+    ctx.Body ??
+    ctx.CommandBody ??
+    ctx.RawBody ??
+    ctx.BodyForCommands ??
+    "";
+  const inboundSurface = resolveInboundSurface({
+    isGroup,
+    channel:
+      (ctx.OriginatingChannel as string | undefined) ??
+      ctx.Surface ??
+      ctx.Provider ??
+      sessionEntry.channel,
+    chatType: sessionEntry.chatType,
+  });
+  const resolvedTask = resolveOrCreateTaskForInbound({
+    cfg,
+    agentId,
+    sessionKey,
+    sessionEntry,
+    inboundText,
+    surface: inboundSurface,
+  });
+  await setSessionActiveTask({
+    storePath,
+    sessionKey,
+    taskId: resolvedTask.task.taskId,
+  });
+  sessionEntry.activeTaskId = resolvedTask.task.taskId;
+  sessionEntry.lastTaskId = resolvedTask.task.taskId;
+  sessionStore[sessionKey] = {
+    ...sessionStore[sessionKey],
+    activeTaskId: resolvedTask.task.taskId,
+    lastTaskId: resolvedTask.task.taskId,
+  };
+  appendTaskEvent({
+    cfg,
+    agentId,
+    taskId: resolvedTask.task.taskId,
+    kind: "user-message",
+    sessionKey,
+    summary: inboundText,
+    surface: inboundSurface,
+    payload: {
+      provider: ctx.Provider,
+      surface: ctx.Surface,
+      channel: ctx.OriginatingChannel,
+      threadId: ctx.MessageThreadId,
+    },
   });
 
   const sessionCtx: TemplateContext = {

@@ -12,6 +12,7 @@ The Control UI is a small **Vite + Lit** single-page app served by the Gateway:
 
 - default: `http://<host>:18789/`
 - optional prefix: set `gateway.controlUi.basePath` (e.g. `/opensoul`)
+- public deep-link origin: set `gateway.controlUi.publicUrl` when agents should hand users off from chat into the browser UI
 
 It speaks **directly to the Gateway WebSocket** on the same port.
 
@@ -67,6 +68,7 @@ you revoke it with `opensoul devices revoke --device <id> --role <role>`. See
 - Channels: WhatsApp/Telegram/Discord/Slack + plugin channels (Mattermost, etc.) status + QR login + per-channel config (`channels.status`, `web.login.*`, `config.patch`)
 - Instances: presence list + refresh (`system-presence`)
 - Sessions: list + per-session thinking/verbose overrides (`sessions.list`, `sessions.patch`)
+- Task continuity handoff target: rich direct-chat runs can deep-link into `chat?session=...`; the Gateway also exposes read-only task continuity APIs (`tasks.list`, `tasks.get`, `tasks.events`)
 - Cron jobs: list/add/run/enable/disable + run history (`cron.*`)
 - Skills: status, enable/disable, install, API key updates (`skills.*`)
 - Nodes: list + caps (`node.list`)
@@ -207,6 +209,7 @@ Notes:
 - `gatewayUrl` is only accepted in a top-level window (not embedded) to prevent clickjacking.
 - For cross-origin dev setups (e.g. `pnpm ui:dev` to a remote Gateway), add the UI
   origin to `gateway.controlUi.allowedOrigins`.
+- For cross-surface task continuity, set `gateway.controlUi.publicUrl` to the externally reachable Control UI origin so handoff links and canvas opens can target the same session reliably.
 
 Example:
 

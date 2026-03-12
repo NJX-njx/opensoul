@@ -61,6 +61,23 @@ describe("normalizeCronJobCreate", () => {
     expect(cleared.agentId).toBeNull();
   });
 
+  it("preserves taskId when provided", () => {
+    const normalized = normalizeCronJobCreate({
+      name: "task-linked",
+      enabled: true,
+      schedule: { kind: "cron", expr: "* * * * *" },
+      sessionTarget: "isolated",
+      wakeMode: "now",
+      taskId: " task-123 ",
+      payload: {
+        kind: "agentTurn",
+        message: "hi",
+      },
+    }) as unknown as Record<string, unknown>;
+
+    expect(normalized.taskId).toBe("task-123");
+  });
+
   it("canonicalizes payload.channel casing", () => {
     const normalized = normalizeCronJobCreate({
       name: "legacy provider",

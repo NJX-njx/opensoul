@@ -1,12 +1,13 @@
 import { html } from "lit";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
-import { icons } from "../icons.ts";
-import { uiText } from "../i18n.ts";
-import { toSanitizedMarkdownHtml } from "../markdown.ts";
 import type { Locale } from "./onboarding/i18n.ts";
+import { uiText } from "../i18n.ts";
+import { icons } from "../icons.ts";
+import { toSanitizedMarkdownHtml } from "../markdown.ts";
 
 export type MarkdownSidebarProps = {
   locale: Locale;
+  title?: string | null;
   content: string | null;
   error: string | null;
   onClose: () => void;
@@ -18,7 +19,7 @@ export function renderMarkdownSidebar(props: MarkdownSidebarProps) {
   return html`
     <div class="sidebar-panel">
       <div class="sidebar-header">
-        <div class="sidebar-title">${t("Tool Output", "工具输出")}</div>
+        <div class="sidebar-title">${props.title ?? t("Tool Output", "工具输出")}</div>
         <button @click=${props.onClose} class="btn" title=${t("Close sidebar", "关闭侧栏")}>
           ${icons.x}
         </button>

@@ -3,5 +3,6 @@
 @import "./chat/grouped.css";
 @import "./chat/tool-cards.css";
 @import "./chat/sidebar.css";
+@import "./chat/task-continuity.css";
 @import "./chat/conversation-navigator.css";
 @import "./chat/chat-list.css";

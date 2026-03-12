@@ -117,6 +117,13 @@ export function createFollowupRunner(params: {
       if (queued.run.sessionKey) {
         registerAgentRunContext(runId, {
           sessionKey: queued.run.sessionKey,
+          taskId: queued.run.taskId,
+          sourceSurface:
+            queued.originatingChatType === "group" || queued.originatingChatType === "channel"
+              ? "group-chat"
+              : "direct-chat",
+          handoffEligible:
+            queued.originatingChatType !== "group" && queued.originatingChatType !== "channel",
           verboseLevel: queued.run.verboseLevel,
         });
       }

@@ -85,6 +85,9 @@ export async function runMemoryFlushIfNeeded(params: {
   if (params.sessionKey) {
     registerAgentRunContext(flushRunId, {
       sessionKey: params.sessionKey,
+      taskId: params.followupRun.run.taskId,
+      sourceSurface: "direct-chat",
+      handoffEligible: false,
       verboseLevel: params.resolvedVerboseLevel,
     });
   }

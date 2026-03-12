@@ -127,11 +127,11 @@ function seedDevDefaultModel(cfg: OpenSoulConfig): OpenSoulConfig {
   const defaults = cfg.agents?.defaults;
   const existingModel = defaults?.model;
   const primary =
-    typeof existingModel === "string"
-      ? existingModel.trim()
-      : typeof existingModel?.primary === "string"
-        ? existingModel.primary.trim()
-        : "";
+    typeof existingModel === "object" &&
+    existingModel !== null &&
+    typeof existingModel.primary === "string"
+      ? existingModel.primary.trim()
+      : "";
   if (primary) {
     return cfg;
   }

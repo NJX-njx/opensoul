@@ -46,6 +46,7 @@ import {
   resolveSessionTranscriptPath,
   updateSessionStore,
 } from "../../config/sessions.js";
+import { appendTaskEvent } from "../../continuity/service.js";
 import { registerAgentRunContext } from "../../infra/agent-events.js";
 import { deliverOutboundPayloads } from "../../infra/outbound/deliver.js";
 import { getRemoteSkillEligibility } from "../../infra/skills-remote.js";
@@ -222,6 +223,10 @@ export async function runCronIsolatedAgentTurn(params: {
     ? `${agentSessionKey}:run:${runSessionId}`
     : agentSessionKey;
   const persistSessionEntry = async () => {
+    if (params.job.taskId?.trim()) {
+      cronSession.sessionEntry.activeTaskId = params.job.taskId.trim();
+      cronSession.sessionEntry.lastTaskId = params.job.taskId.trim();
+    }
     cronSession.store[agentSessionKey] = cronSession.sessionEntry;
     if (runSessionKey !== agentSessionKey) {
       cronSession.store[runSessionKey] = cronSession.sessionEntry;
@@ -359,6 +364,22 @@ export async function runCronIsolatedAgentTurn(params: {
   // Persist systemSent before the run, mirroring the inbound auto-reply behavior.
   cronSession.sessionEntry.systemSent = true;
   await persistSessionEntry();
+  if (params.job.taskId?.trim()) {
+    appendTaskEvent({
+      cfg: cfgWithAgentDefaults,
+      agentId,
+      taskId: params.job.taskId.trim(),
+      kind: "cron-scheduled",
+      sessionKey: agentSessionKey,
+      runId: cronSession.sessionEntry.sessionId,
+      summary: `Cron job ${params.job.name} scheduled`,
+      surface: { kind: "cron", label: params.job.name },
+      payload: {
+        jobId: params.job.id,
+        runSessionKey,
+      },
+    });
+  }
 
   let runResult: Awaited<ReturnType<typeof runEmbeddedPiAgent>>;
   let fallbackProvider = provider;
@@ -373,8 +394,27 @@ export async function runCronIsolatedAgentTurn(params: {
       "off";
     registerAgentRunContext(cronSession.sessionEntry.sessionId, {
       sessionKey: agentSessionKey,
+      taskId: params.job.taskId?.trim() || undefined,
+      sourceSurface: "cron",
+      handoffEligible: false,
       verboseLevel: resolvedVerboseLevel,
     });
+    if (params.job.taskId?.trim()) {
+      appendTaskEvent({
+        cfg: cfgWithAgentDefaults,
+        agentId,
+        taskId: params.job.taskId.trim(),
+        kind: "cron-fired",
+        sessionKey: agentSessionKey,
+        runId: cronSession.sessionEntry.sessionId,
+        summary: `Cron job ${params.job.name} fired`,
+        surface: { kind: "cron", label: params.job.name },
+        payload: {
+          jobId: params.job.id,
+          deliveryRequested,
+        },
+      });
+    }
     const messageChannel = resolvedDelivery.channel;
     const fallbackResult = await runWithModelFallback({
       cfg: cfgWithAgentDefaults,

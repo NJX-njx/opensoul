@@ -155,4 +155,64 @@ describe("chat view", () => {
     expect(onNewSession).toHaveBeenCalledTimes(1);
     expect(container.textContent).not.toContain("Stop");
   });
+
+  it("renders the task continuity rail with commitments and events", () => {
+    const container = document.createElement("div");
+    const onSelectTaskContinuityTask = vi.fn();
+    render(
+      renderChat(
+        createProps({
+          taskContinuityTasks: [
+            {
+              taskId: "task-1",
+              agentId: "main",
+              status: "running",
+              title: "Ship task continuity",
+              summary: "Visualize the same task across multiple surfaces",
+              currentSurface: { kind: "control-ui" },
+              sourceSurface: { kind: "direct-chat", channel: "telegram" },
+              createdAt: Date.now() - 3_000,
+              updatedAt: Date.now(),
+            },
+          ],
+          taskContinuitySelectedTaskId: "task-1",
+          taskContinuityEvents: [
+            {
+              eventId: "evt-1",
+              taskId: "task-1",
+              agentId: "main",
+              kind: "handoff.control-ui",
+              summary: "Delivered Control UI handoff",
+              createdAt: Date.now(),
+              surface: { kind: "control-ui" },
+            },
+          ],
+          taskContinuityCommitments: [
+            {
+              commitmentId: "commit-1",
+              taskId: "task-1",
+              agentId: "main",
+              status: "open",
+              title: "Follow up on the browser flow",
+              detail: "Verify the Control UI deep-link from DM",
+              createdAt: Date.now() - 5_000,
+              updatedAt: Date.now(),
+            },
+          ],
+          onSelectTaskContinuityTask,
+        }),
+      ),
+      container,
+    );
+
+    expect(container.textContent).toContain("One task, many surfaces");
+    expect(container.textContent).toContain("Ship task continuity");
+    expect(container.textContent).toContain("Follow up on the browser flow");
+    expect(container.textContent).toContain("Delivered Control UI handoff");
+
+    const taskCard = container.querySelector(".task-continuity-card");
+    expect(taskCard).not.toBeNull();
+    taskCard?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(onSelectTaskContinuityTask).toHaveBeenCalledWith("task-1");
+  });
 });

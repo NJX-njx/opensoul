@@ -89,6 +89,15 @@ export async function runAgentTurnWithFallback(params: {
   if (params.sessionKey) {
     registerAgentRunContext(runId, {
       sessionKey: params.sessionKey,
+      taskId: params.followupRun.run.taskId,
+      sourceSurface:
+        params.sessionCtx.ChatType === "group" || params.sessionCtx.ChatType === "channel"
+          ? "group-chat"
+          : "direct-chat",
+      handoffEligible:
+        !params.isHeartbeat &&
+        params.sessionCtx.ChatType !== "group" &&
+        params.sessionCtx.ChatType !== "channel",
       verboseLevel: params.resolvedVerboseLevel,
       isHeartbeat: params.isHeartbeat,
     });

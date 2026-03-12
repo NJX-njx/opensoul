@@ -129,6 +129,19 @@ import {
 } from "./sessions.js";
 import { PresenceEntrySchema, SnapshotSchema, StateVersionSchema } from "./snapshot.js";
 import {
+  TaskCommitmentSchema,
+  TaskEventSchema,
+  TaskRecordSchema,
+  TasksCommitmentsParamsSchema,
+  TasksCommitmentsResultSchema,
+  TasksEventsParamsSchema,
+  TasksEventsResultSchema,
+  TasksGetParamsSchema,
+  TasksGetResultSchema,
+  TasksListParamsSchema,
+  TasksListResultSchema,
+} from "./tasks.js";
+import {
   WizardCancelParamsSchema,
   WizardNextParamsSchema,
   WizardNextResultSchema,
@@ -180,6 +193,17 @@ export const ProtocolSchemas: Record<string, TSchema> = {
   SessionsDeleteParams: SessionsDeleteParamsSchema,
   SessionsCompactParams: SessionsCompactParamsSchema,
   SessionsUsageParams: SessionsUsageParamsSchema,
+  TaskRecord: TaskRecordSchema,
+  TaskEvent: TaskEventSchema,
+  TaskCommitment: TaskCommitmentSchema,
+  TasksListParams: TasksListParamsSchema,
+  TasksListResult: TasksListResultSchema,
+  TasksGetParams: TasksGetParamsSchema,
+  TasksGetResult: TasksGetResultSchema,
+  TasksEventsParams: TasksEventsParamsSchema,
+  TasksEventsResult: TasksEventsResultSchema,
+  TasksCommitmentsParams: TasksCommitmentsParamsSchema,
+  TasksCommitmentsResult: TasksCommitmentsResultSchema,
   ConfigGetParams: ConfigGetParamsSchema,
   ConfigSetParams: ConfigSetParamsSchema,
   ConfigApplyParams: ConfigApplyParamsSchema,

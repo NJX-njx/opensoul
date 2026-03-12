@@ -5,6 +5,7 @@ import type { AnyAgentTool } from "./common.js";
 import { formatThinkingLevels, normalizeThinkLevel } from "../../auto-reply/thinking.js";
 import { loadConfig } from "../../config/config.js";
 import { callGateway } from "../../gateway/call.js";
+import { loadSessionEntry } from "../../gateway/session-utils.js";
 import {
   isSubagentSessionKey,
   normalizeAgentId,
@@ -137,6 +138,9 @@ export function createSessionsSpawnTool(opts?: {
         alias,
         mainKey,
       });
+      const requesterTaskId = requesterSessionKey
+        ? loadSessionEntry(requesterInternalKey).entry?.activeTaskId?.trim()
+        : undefined;
 
       const requesterAgentId = normalizeAgentId(
         opts?.requesterAgentIdOverride ?? parseAgentSessionKey(requesterInternalKey)?.agentId,
@@ -259,6 +263,7 @@ export function createSessionsSpawnTool(opts?: {
             deliver: false,
             lane: AGENT_LANE_SUBAGENT,
             extraSystemPrompt: childSystemPrompt,
+            taskId: requesterTaskId,
             thinking: thinkingOverride,
             timeout: runTimeoutSeconds > 0 ? runTimeoutSeconds : undefined,
             label: label || undefined,
@@ -290,6 +295,7 @@ export function createSessionsSpawnTool(opts?: {
         requesterOrigin,
         requesterDisplayKey,
         task,
+        taskId: requesterTaskId,
         cleanup,
         label: label || undefined,
         runTimeoutSeconds,

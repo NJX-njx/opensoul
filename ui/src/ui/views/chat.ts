@@ -2,6 +2,7 @@ import { html, nothing } from "lit";
 import { ref } from "lit/directives/ref.js";
 import { repeat } from "lit/directives/repeat.js";
 import type { SessionsListResult, TranscriptListEntry } from "../types.ts";
+import type { TaskCommitment, TaskEvent, TaskRecord } from "../types.ts";
 import type { ChatItem, MessageGroup } from "../types/chat-types.ts";
 import type { ChatAttachment, ChatQueueItem } from "../ui-types.ts";
 import type { Locale } from "./onboarding/i18n.ts";
@@ -15,6 +16,7 @@ import { uiText } from "../i18n.ts";
 import { icons } from "../icons.ts";
 import { renderConversationNavigator } from "./conversation-navigator.ts";
 import { renderMarkdownSidebar } from "./markdown-sidebar.ts";
+import { renderTaskContinuityPanel } from "./task-continuity-panel.ts";
 import "../components/resizable-divider.ts";
 
 export type CompactionIndicatorStatus = {
@@ -57,11 +59,21 @@ export type ChatProps = {
   focusMode: boolean;
   // Sidebar state
   sidebarOpen?: boolean;
+  sidebarTitle?: string | null;
   sidebarContent?: string | null;
   sidebarError?: string | null;
   splitRatio?: number;
   assistantName: string;
   assistantAvatar: string | null;
+  taskContinuityLoading?: boolean;
+  taskContinuityError?: string | null;
+  taskContinuityTasks?: Array<TaskRecord>;
+  taskContinuitySelectedTaskId?: string | null;
+  taskContinuityEvents?: Array<TaskEvent>;
+  taskContinuityCommitments?: Array<TaskCommitment>;
+  taskContinuityDetailsLoading?: boolean;
+  onRefreshTaskContinuity?: () => void;
+  onSelectTaskContinuityTask?: (taskId: string) => void;
   // Image attachments
   attachments?: ChatAttachment[];
   onAttachmentsChange?: (attachments: ChatAttachment[]) => void;
@@ -79,7 +91,7 @@ export type ChatProps = {
   onAbort?: () => void;
   onQueueRemove: (id: string) => void;
   onNewSession: () => void;
-  onOpenSidebar?: (content: string) => void;
+  onOpenSidebar?: (content: string, options?: { title?: string }) => void;
   onCloseSidebar?: () => void;
   onSplitRatioChange?: (ratio: number) => void;
   onChatScroll?: (event: Event) => void;
@@ -329,6 +341,36 @@ export function renderChat(props: ChatProps) {
       <path d="M21 3v5h-5"></path>
     </svg>
   `;
+  const rightRail = props.focusMode
+    ? nothing
+    : html`
+        <div class="chat-right-rail">
+          ${renderTaskContinuityPanel({
+            locale: props.locale,
+            sessionKey: props.sessionKey,
+            loading: props.taskContinuityLoading ?? false,
+            error: props.taskContinuityError ?? null,
+            tasks: props.taskContinuityTasks ?? [],
+            selectedTaskId: props.taskContinuitySelectedTaskId ?? null,
+            events: props.taskContinuityEvents ?? [],
+            commitments: props.taskContinuityCommitments ?? [],
+            detailsLoading: props.taskContinuityDetailsLoading ?? false,
+            onRefresh: props.onRefreshTaskContinuity ?? props.onRefresh,
+            onSelectTask: props.onSelectTaskContinuityTask ?? (() => {}),
+            onOpenEventDetails: (content, options) => props.onOpenSidebar?.(content, options),
+          })}
+          ${renderConversationNavigator({
+            locale: props.locale,
+            transcripts: props.transcripts ?? [],
+            sessionKey: props.sessionKey,
+            currentSessionId: props.currentSessionId ?? null,
+            viewingSessionId: props.viewingSessionId ?? null,
+            assistantName: props.assistantName,
+            onSelect: props.onSelectTranscript ?? (() => {}),
+            variant: "panel",
+          })}
+        </div>
+      `;
 
   return html`
     <section class="card chat">
@@ -408,6 +450,7 @@ export function renderChat(props: ChatProps) {
               <div class="chat-sidebar">
                 ${renderMarkdownSidebar({
                   locale: props.locale,
+                  title: props.sidebarTitle ?? t("Tool Output", "工具输出"),
                   content: props.sidebarContent ?? null,
                   error: props.sidebarError ?? null,
                   onClose: props.onCloseSidebar!,
@@ -423,15 +466,7 @@ export function renderChat(props: ChatProps) {
             : nothing
         }
 
-        ${renderConversationNavigator({
-          locale: props.locale,
-          transcripts: props.transcripts ?? [],
-          sessionKey: props.sessionKey,
-          currentSessionId: props.currentSessionId ?? null,
-          viewingSessionId: props.viewingSessionId ?? null,
-          assistantName: props.assistantName,
-          onSelect: props.onSelectTranscript ?? (() => {}),
-        })}
+        ${rightRail}
       </div>
 
       ${

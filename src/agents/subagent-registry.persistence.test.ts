@@ -17,6 +17,11 @@ vi.mock("../infra/agent-events.js", () => ({
   onAgentEvent: vi.fn(() => noop),
 }));
 
+const appendTaskEventSpy = vi.fn();
+vi.mock("../continuity/service.js", () => ({
+  appendTaskEvent: (...args: unknown[]) => appendTaskEventSpy(...args),
+}));
+
 const announceSpy = vi.fn(async () => true);
 vi.mock("./subagent-announce.js", () => ({
   runSubagentAnnounceFlow: (...args: unknown[]) => announceSpy(...args),
@@ -28,6 +33,7 @@ describe("subagent registry persistence", () => {
 
   afterEach(async () => {
     announceSpy.mockClear();
+    appendTaskEventSpy.mockClear();
     vi.resetModules();
     if (tempStateDir) {
       await fs.rm(tempStateDir, { recursive: true, force: true });
@@ -49,6 +55,7 @@ describe("subagent registry persistence", () => {
 
     mod1.registerSubagentRun({
       runId: "run-1",
+      taskId: "task-1",
       childSessionKey: "agent:main:subagent:test",
       requesterSessionKey: "agent:main:main",
       requesterOrigin: { channel: " whatsapp ", accountId: " acct-main " },
@@ -73,6 +80,7 @@ describe("subagent registry persistence", () => {
     }
     expect(run?.requesterOrigin?.channel).toBe("whatsapp");
     expect(run?.requesterOrigin?.accountId).toBe("acct-main");
+    expect((parsed.runs?.["run-1"] as { taskId?: string } | undefined)?.taskId).toBe("task-1");
 
     // Simulate a process restart: module re-import should load persisted runs
     // and trigger the announce flow once the run resolves.

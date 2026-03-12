@@ -7,6 +7,13 @@ const mocks = vi.hoisted(() => ({
   updateSessionStore: vi.fn(),
   agentCommand: vi.fn(),
   registerAgentRunContext: vi.fn(),
+  ensureContinuityEventSinkStarted: vi.fn(),
+  resolveOrCreateTaskForInbound: vi.fn(() => ({
+    task: { taskId: "task-1" },
+    reason: "new-task",
+    reused: false,
+  })),
+  buildTaskContextEnvelope: vi.fn(() => null),
   loadConfigReturn: {} as Record<string, unknown>,
 }));
 
@@ -33,6 +40,12 @@ vi.mock("../../commands/agent.js", () => ({
 
 vi.mock("../../config/config.js", () => ({
   loadConfig: () => mocks.loadConfigReturn,
+}));
+
+vi.mock("../../continuity/index.js", () => ({
+  ensureContinuityEventSinkStarted: mocks.ensureContinuityEventSinkStarted,
+  resolveOrCreateTaskForInbound: mocks.resolveOrCreateTaskForInbound,
+  buildTaskContextEnvelope: mocks.buildTaskContextEnvelope,
 }));
 
 vi.mock("../../agents/agent-scope.js", () => ({
@@ -212,5 +225,50 @@ describe("gateway agent handler", () => {
     // Should be undefined, not cause an error
     expect(capturedEntry?.cliSessionIds).toBeUndefined();
     expect(capturedEntry?.claudeCliSessionId).toBeUndefined();
+  });
+
+  it("registers task context and appends continuity prompt", async () => {
+    mocks.loadSessionEntry.mockReturnValue({
+      cfg: {},
+      storePath: "/tmp/sessions.json",
+      entry: {
+        sessionId: "existing-session-id",
+        updatedAt: Date.now(),
+      },
+      canonicalKey: "agent:main:main",
+    });
+    mocks.updateSessionStore.mockResolvedValue(undefined);
+    mocks.buildTaskContextEnvelope.mockReturnValue({ prompt: "task continuity prompt" });
+    mocks.agentCommand.mockResolvedValue({
+      payloads: [{ text: "ok" }],
+      meta: { durationMs: 100 },
+    });
+
+    const respond = vi.fn();
+    await agentHandlers.agent({
+      params: {
+        message: "test",
+        agentId: "main",
+        sessionKey: "agent:main:main",
+        idempotencyKey: "test-task-id",
+      },
+      respond,
+      context: makeContext(),
+      req: { type: "req", id: "3", method: "agent" },
+      client: null,
+      isWebchatConnect: () => false,
+    });
+
+    expect(mocks.registerAgentRunContext).toHaveBeenCalledWith(
+      "test-task-id",
+      expect.objectContaining({
+        sessionKey: "agent:main:main",
+        taskId: "task-1",
+      }),
+    );
+    await vi.waitFor(() => expect(mocks.agentCommand).toHaveBeenCalled());
+    expect(mocks.agentCommand.mock.calls.at(-1)?.[0]?.extraSystemPrompt).toContain(
+      "task continuity prompt",
+    );
   });
 });

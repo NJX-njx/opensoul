@@ -46,6 +46,7 @@ export type FollowupRun = {
     agentDir: string;
     sessionId: string;
     sessionKey?: string;
+    taskId?: string;
     messageProvider?: string;
     agentAccountId?: string;
     groupId?: string;

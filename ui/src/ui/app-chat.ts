@@ -7,6 +7,7 @@ import { setLastActiveSessionKey } from "./app-settings.ts";
 import { resetToolStream } from "./app-tool-stream.ts";
 import { abortChatRun, loadChatHistory, sendChatMessage } from "./controllers/chat.ts";
 import { loadSessions, loadTranscripts } from "./controllers/sessions.ts";
+import { loadTaskContinuity } from "./controllers/tasks.ts";
 import { normalizeBasePath } from "./navigation.ts";
 import { generateUUID } from "./uuid.ts";
 
@@ -209,6 +210,7 @@ export async function refreshChat(host: ChatHost, opts?: { scheduleScroll?: bool
       activeMinutes: CHAT_SESSIONS_ACTIVE_MINUTES,
     }),
     loadTranscripts(host as unknown as OpenSoulApp),
+    loadTaskContinuity(host as unknown as OpenSoulApp),
     refreshChatAvatar(host),
   ]);
   if (opts?.scheduleScroll !== false) {

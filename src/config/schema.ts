@@ -200,6 +200,7 @@ const FIELD_LABELS: Record<string, string> = {
   "tools.web.fetch.cacheTtlMinutes": "Web Fetch Cache TTL (min)",
   "tools.web.fetch.maxRedirects": "Web Fetch Max Redirects",
   "tools.web.fetch.userAgent": "Web Fetch User-Agent",
+  "gateway.controlUi.publicUrl": "Control UI Public URL",
   "gateway.controlUi.basePath": "Control UI Base Path",
   "gateway.controlUi.root": "Control UI Assets Root",
   "gateway.controlUi.allowedOrigins": "Control UI Allowed Origins",
@@ -418,6 +419,8 @@ const FIELD_HELP: Record<string, string> = {
   "gateway.auth.token":
     "Required by default for gateway access (unless using Tailscale Serve identity); required for non-loopback binds.",
   "gateway.auth.password": "Required for Tailscale funnel.",
+  "gateway.controlUi.publicUrl":
+    "Publicly reachable Control UI URL used for deep-links and canvas handoff (e.g. https://control.example.com/opensoul).",
   "gateway.controlUi.basePath":
     "Optional URL prefix where the Control UI is served (e.g. /opensoul).",
   "gateway.controlUi.root":
@@ -768,6 +771,7 @@ const FIELD_PLACEHOLDERS: Record<string, string> = {
   "gateway.remote.url": "ws://host:18789",
   "gateway.remote.tlsFingerprint": "sha256:ab12cd34…",
   "gateway.remote.sshTarget": "user@host",
+  "gateway.controlUi.publicUrl": "https://control.example.com/opensoul",
   "gateway.controlUi.basePath": "/opensoul",
   "gateway.controlUi.root": "dist/control-ui",
   "gateway.controlUi.allowedOrigins": "https://control.example.com",

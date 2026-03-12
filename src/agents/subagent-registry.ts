@@ -1,7 +1,9 @@
 import { loadConfig } from "../config/config.js";
+import { appendTaskEvent } from "../continuity/service.js";
 import { callGateway } from "../gateway/call.js";
 import { onAgentEvent } from "../infra/agent-events.js";
 import { type DeliveryContext, normalizeDeliveryContext } from "../utils/delivery-context.js";
+import { resolveSessionAgentId } from "./agent-scope.js";
 import { runSubagentAnnounceFlow, type SubagentRunOutcome } from "./subagent-announce.js";
 import {
   loadSubagentRegistryFromDisk,
@@ -11,6 +13,7 @@ import { resolveAgentTimeoutMs } from "./timeout.js";
 
 export type SubagentRunRecord = {
   runId: string;
+  taskId?: string;
   childSessionKey: string;
   requesterSessionKey: string;
   requesterOrigin?: DeliveryContext;
@@ -25,6 +28,7 @@ export type SubagentRunRecord = {
   archiveAtMs?: number;
   cleanupCompletedAt?: number;
   cleanupHandled?: boolean;
+  outcomePersistedAt?: number;
 };
 
 const subagentRuns = new Map<string, SubagentRunRecord>();
@@ -139,6 +143,56 @@ function resolveSubagentWaitTimeoutMs(
   return resolveAgentTimeoutMs({ cfg, overrideSeconds: runTimeoutSeconds });
 }
 
+function appendSubagentContinuityEvent(
+  entry: Pick<
+    SubagentRunRecord,
+    "taskId" | "requesterSessionKey" | "runId" | "childSessionKey" | "task" | "label" | "outcome"
+  >,
+  kind: string,
+  summary: string,
+) {
+  const taskId = entry.taskId?.trim();
+  if (!taskId) {
+    return;
+  }
+  const cfg = loadConfig();
+  const agentId = resolveSessionAgentId({
+    sessionKey: entry.requesterSessionKey,
+    config: cfg,
+  });
+  appendTaskEvent({
+    cfg,
+    agentId,
+    taskId,
+    kind,
+    sessionKey: entry.requesterSessionKey,
+    runId: entry.runId,
+    summary,
+    surface: { kind: "subagent", label: entry.label },
+    payload: {
+      childSessionKey: entry.childSessionKey,
+      task: entry.task,
+      outcome: entry.outcome,
+    },
+  });
+}
+
+function persistSubagentOutcomeIfNeeded(entry: SubagentRunRecord) {
+  if (entry.outcomePersistedAt || !entry.outcome) {
+    return;
+  }
+  const summary =
+    entry.outcome.status === "error"
+      ? (entry.outcome.error ?? "subagent failed")
+      : "subagent completed";
+  appendSubagentContinuityEvent(
+    entry,
+    entry.outcome.status === "error" ? "subagent.error" : "subagent.completed",
+    summary,
+  );
+  entry.outcomePersistedAt = Date.now();
+}
+
 function startSweeper() {
   if (sweeper) {
     return;
@@ -217,6 +271,7 @@ function ensureListener() {
     } else {
       entry.outcome = { status: "ok" };
     }
+    persistSubagentOutcomeIfNeeded(entry);
     persistSubagentRuns();
 
     if (!beginSubagentCleanup(evt.runId)) {
@@ -281,6 +336,7 @@ function beginSubagentCleanup(runId: string) {
 
 export function registerSubagentRun(params: {
   runId: string;
+  taskId?: string;
   childSessionKey: string;
   requesterSessionKey: string;
   requesterOrigin?: DeliveryContext;
@@ -298,6 +354,7 @@ export function registerSubagentRun(params: {
   const requesterOrigin = normalizeDeliveryContext(params.requesterOrigin);
   subagentRuns.set(params.runId, {
     runId: params.runId,
+    taskId: params.taskId,
     childSessionKey: params.childSessionKey,
     requesterSessionKey: params.requesterSessionKey,
     requesterOrigin,
@@ -310,6 +367,10 @@ export function registerSubagentRun(params: {
     archiveAtMs,
     cleanupHandled: false,
   });
+  const createdEntry = subagentRuns.get(params.runId);
+  if (createdEntry) {
+    appendSubagentContinuityEvent(createdEntry, "subagent.started", params.task);
+  }
   ensureListener();
   persistSubagentRuns();
   if (archiveAfterMs) {
@@ -359,6 +420,7 @@ async function waitForSubagentCompletion(runId: string, waitTimeoutMs: number) {
     const waitError = typeof wait.error === "string" ? wait.error : undefined;
     entry.outcome =
       wait.status === "error" ? { status: "error", error: waitError } : { status: "ok" };
+    persistSubagentOutcomeIfNeeded(entry);
     mutated = true;
     if (mutated) {
       persistSubagentRuns();
