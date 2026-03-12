@@ -62,6 +62,7 @@ import { resolveTranscriptPolicy } from "../../transcript-policy.js";
 import { DEFAULT_BOOTSTRAP_FILENAME } from "../../workspace.js";
 import { isAbortError } from "../abort.js";
 import { appendCacheTtlTimestamp, isCacheTtlEligibleProvider } from "../cache-ttl.js";
+import { acquireProcessCwdLock } from "../cwd-lock.js";
 import { buildEmbeddedExtensionPaths } from "../extensions.js";
 import { applyExtraParamsToAgent } from "../extra-params.js";
 import {
@@ -77,7 +78,6 @@ import {
   type EmbeddedPiQueueHandle,
   setActiveEmbeddedRun,
 } from "../runs.js";
-import { acquireProcessCwdLock } from "../cwd-lock.js";
 import { buildEmbeddedSandboxInfo } from "../sandbox-info.js";
 import { prewarmSessionFile, trackSessionManagerAccess } from "../session-manager-cache.js";
 import { prepareSessionManagerForRun } from "../session-manager-init.js";

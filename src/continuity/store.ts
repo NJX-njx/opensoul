@@ -5,6 +5,7 @@ import type { OpenSoulConfig } from "../config/config.js";
 import type {
   CommitmentRecord,
   CommitmentStatus,
+  ContinuityRepairRecord,
   SurfaceRef,
   TaskEvent,
   TaskRecord,
@@ -13,7 +14,7 @@ import type {
 } from "./types.js";
 import { requireNodeSqlite } from "../memory/sqlite.js";
 import { resolveContinuityDbPath } from "./paths.js";
-import { ensureContinuitySchema } from "./schema.js";
+import { type ContinuitySchemaState, ensureContinuitySchema } from "./schema.js";
 
 type TaskRow = {
   task_id: string;
@@ -69,6 +70,32 @@ type CommitmentRow = {
   created_at: number;
   updated_at: number;
   closed_at: number | null;
+};
+
+type ContinuityRepairRow = {
+  repair_id: string;
+  agent_id: string;
+  task_id: string | null;
+  session_key: string | null;
+  kind: string;
+  detail: string | null;
+  payload_json: string | null;
+  created_at: number;
+};
+
+type ContinuityMetaRow = {
+  value: string;
+};
+
+type IntegrityCheckRow = {
+  integrity_check?: string;
+};
+
+type ForeignKeyCheckRow = {
+  table: string;
+  rowid: number;
+  parent: string;
+  fkid: number;
 };
 
 type ListTasksOptions = {
@@ -174,6 +201,19 @@ function readCommitmentRow(row: CommitmentRow): CommitmentRecord {
   };
 }
 
+function readContinuityRepairRow(row: ContinuityRepairRow): ContinuityRepairRecord {
+  return {
+    repairId: row.repair_id,
+    agentId: row.agent_id,
+    taskId: row.task_id ?? undefined,
+    sessionKey: row.session_key ?? undefined,
+    kind: row.kind,
+    detail: row.detail ?? undefined,
+    payload: parseJsonValue<Record<string, unknown>>(row.payload_json),
+    createdAt: row.created_at,
+  };
+}
+
 function resolveLimit(limit: number | undefined, defaultValue: number): number {
   if (typeof limit !== "number" || !Number.isFinite(limit)) {
     return defaultValue;
@@ -184,10 +224,12 @@ function resolveLimit(limit: number | undefined, defaultValue: number): number {
 export class ContinuityStore {
   readonly path: string;
   readonly db: DatabaseSync;
+  readonly schemaState: ContinuitySchemaState;
 
-  constructor(dbPath: string, db: DatabaseSync) {
+  constructor(dbPath: string, db: DatabaseSync, schemaState: ContinuitySchemaState) {
     this.path = dbPath;
     this.db = db;
+    this.schemaState = schemaState;
   }
 
   transaction<T>(fn: () => T): T {
@@ -304,6 +346,30 @@ export class ContinuityStore {
     return rows.map((row) => readTaskRow(row)).filter((row): row is TaskRecord => row != null);
   }
 
+  listAllTasks(): Array<TaskRecord> {
+    const rows = this.db
+      .prepare(
+        `SELECT
+           task_id,
+           agent_id,
+           status,
+           title,
+           summary,
+           source_surface_json,
+           current_surface_json,
+           latest_session_key,
+           latest_run_id,
+           metadata_json,
+           created_at,
+           updated_at,
+           closed_at
+         FROM tasks
+         ORDER BY updated_at DESC`,
+      )
+      .all() as Array<TaskRow>;
+    return rows.map((row) => readTaskRow(row)).filter((row): row is TaskRecord => row != null);
+  }
+
   upsertTask(task: TaskRecord): TaskRecord {
     this.db
       .prepare(
@@ -391,6 +457,12 @@ export class ContinuityStore {
       )
       .all(taskId) as Array<TaskSessionLinkRow>;
     return rows.map(readTaskSessionLinkRow);
+  }
+
+  deleteTaskSessionLink(taskId: string, sessionKey: string): void {
+    this.db
+      .prepare(`DELETE FROM task_session_links WHERE task_id = ? AND session_key = ?`)
+      .run(taskId, sessionKey);
   }
 
   getLatestLinkedTask(sessionKey: string, statuses?: Array<TaskStatus>): TaskRecord | null {
@@ -608,6 +680,82 @@ export class ContinuityStore {
     return rows.map(readCommitmentRow);
   }
 
+  appendRepair(record: ContinuityRepairRecord): ContinuityRepairRecord {
+    this.db
+      .prepare(
+        `INSERT INTO continuity_repairs (
+           repair_id,
+           agent_id,
+           task_id,
+           session_key,
+           kind,
+           detail,
+           payload_json,
+           created_at
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        record.repairId,
+        record.agentId,
+        record.taskId ?? null,
+        record.sessionKey ?? null,
+        record.kind,
+        record.detail ?? null,
+        stringifyJson(record.payload),
+        record.createdAt,
+      );
+    return record;
+  }
+
+  listRepairs(limit = 100): Array<ContinuityRepairRecord> {
+    const rows = this.db
+      .prepare(
+        `SELECT
+           repair_id,
+           agent_id,
+           task_id,
+           session_key,
+           kind,
+           detail,
+           payload_json,
+           created_at
+         FROM continuity_repairs
+         ORDER BY created_at DESC
+         LIMIT ?`,
+      )
+      .all(resolveLimit(limit, 100)) as Array<ContinuityRepairRow>;
+    return rows.map(readContinuityRepairRow);
+  }
+
+  readMeta(key: string): string | undefined {
+    const row = this.db.prepare(`SELECT value FROM continuity_meta WHERE key = ?`).get(key) as
+      | ContinuityMetaRow
+      | undefined;
+    return row?.value;
+  }
+
+  runIntegrityCheck(): Array<string> {
+    const rows = this.db.prepare(`PRAGMA integrity_check`).all() as Array<IntegrityCheckRow>;
+    return rows
+      .map((row) => row.integrity_check)
+      .filter((value): value is string => typeof value === "string" && value.trim().length > 0);
+  }
+
+  runForeignKeyCheck(): Array<{
+    table: string;
+    rowId: number;
+    parent: string;
+    foreignKeyId: number;
+  }> {
+    const rows = this.db.prepare(`PRAGMA foreign_key_check`).all() as Array<ForeignKeyCheckRow>;
+    return rows.map((row) => ({
+      table: row.table,
+      rowId: row.rowid,
+      parent: row.parent,
+      foreignKeyId: row.fkid,
+    }));
+  }
+
   close(): void {
     STORE_CACHE.delete(this.path);
     this.db.close();
@@ -623,8 +771,8 @@ export function openContinuityStore(dbPath: string): ContinuityStore {
   const sqlite = requireNodeSqlite();
   const db = new sqlite.DatabaseSync(dbPath);
   db.exec("PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL; PRAGMA busy_timeout = 5000;");
-  ensureContinuitySchema(db);
-  const store = new ContinuityStore(dbPath, db);
+  const schemaState = ensureContinuitySchema(db);
+  const store = new ContinuityStore(dbPath, db, schemaState);
   STORE_CACHE.set(dbPath, store);
   return store;
 }

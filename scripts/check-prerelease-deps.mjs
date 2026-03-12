@@ -5,11 +5,26 @@ const packageJsonPath = path.resolve("package.json");
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 
 const trackedPrereleaseDeps = new Map([
-  ["@buape/carbon", "Upstream only ships beta builds currently; review monthly for stable channel."],
-  ["@lydell/node-pty", "Required Windows behavior currently depends on beta line; re-evaluate each release."],
-  ["@whiskeysockets/baileys", "Project currently tracks upstream RC branch used by WhatsApp ecosystem."],
-  ["sqlite-vec", "Project currently depends on alpha sqlite-vec features; migrate when stable is available."],
-  ["@typescript/native-preview", "Required by current tsgo type-check workflow; review on each TypeScript release."],
+  [
+    "@buape/carbon",
+    "Upstream only ships beta builds currently; review monthly for stable channel.",
+  ],
+  [
+    "@lydell/node-pty",
+    "Required Windows behavior currently depends on beta line; re-evaluate each release.",
+  ],
+  [
+    "@whiskeysockets/baileys",
+    "Project currently tracks upstream RC branch used by WhatsApp ecosystem.",
+  ],
+  [
+    "sqlite-vec",
+    "Project currently depends on alpha sqlite-vec features; migrate when stable is available.",
+  ],
+  [
+    "@typescript/native-preview",
+    "Required by current tsgo type-check workflow; review on each TypeScript release.",
+  ],
   ["rolldown", "Toolchain currently uses RC build; review on each minor release."],
 ]);
 

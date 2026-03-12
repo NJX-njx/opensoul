@@ -7,8 +7,11 @@ import { saveSessionStore } from "../config/sessions.js";
 import {
   appendTaskEvent,
   getTask,
+  listCommitments,
+  listTaskEvents,
   resolveOrCreateTaskForInbound,
   setSessionActiveTask,
+  updateTaskStatus,
 } from "./service.js";
 import { resetContinuityStoreCacheForTest } from "./store.js";
 
@@ -112,5 +115,294 @@ describe("continuity service", () => {
     });
     expect(task?.status).toBe("running");
     expect(task?.latestSessionKey).toBe("agent:main:main");
+  });
+
+  it("extracts, deduplicates, and reopens commitments from lifecycle summaries", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-commitments-"));
+    const cfg = makeConfig(tempDir);
+    const resolved = resolveOrCreateTaskForInbound({
+      cfg,
+      agentId: "main",
+      sessionKey: "agent:main:main",
+      inboundText: "Keep the task moving",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: resolved.task.taskId,
+      kind: "lifecycle.end",
+      stream: "lifecycle",
+      phase: "end",
+      sessionKey: "agent:main:main",
+      runId: "run-1",
+      summary: "Next steps:\n- Follow up on the browser flow",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+
+    let commitments = listCommitments({
+      cfg,
+      agentId: "main",
+      taskId: resolved.task.taskId,
+    });
+    expect(commitments).toHaveLength(1);
+    expect(commitments[0]?.status).toBe("open");
+    expect(commitments[0]?.title).toBe("Follow up on the browser flow");
+
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: resolved.task.taskId,
+      kind: "lifecycle.end",
+      stream: "lifecycle",
+      phase: "end",
+      sessionKey: "agent:main:main",
+      runId: "run-2",
+      summary: "Next steps:\n- Follow up on the browser flow",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+
+    commitments = listCommitments({
+      cfg,
+      agentId: "main",
+      taskId: resolved.task.taskId,
+    });
+    expect(commitments).toHaveLength(1);
+    expect(commitments[0]?.status).toBe("open");
+
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: resolved.task.taskId,
+      kind: "user-message",
+      sessionKey: "agent:main:main",
+      summary: "The follow up on the browser flow is done.",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+
+    commitments = listCommitments({
+      cfg,
+      agentId: "main",
+      taskId: resolved.task.taskId,
+    });
+    expect(commitments).toHaveLength(1);
+    expect(commitments[0]?.status).toBe("done");
+
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: resolved.task.taskId,
+      kind: "lifecycle.end",
+      stream: "lifecycle",
+      phase: "end",
+      sessionKey: "agent:main:main",
+      runId: "run-3",
+      summary: "Next steps:\n- Follow up on the browser flow",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+
+    commitments = listCommitments({
+      cfg,
+      agentId: "main",
+      taskId: resolved.task.taskId,
+    });
+    expect(commitments).toHaveLength(1);
+    expect(commitments[0]?.status).toBe("open");
+
+    expect(
+      listTaskEvents({
+        cfg,
+        agentId: "main",
+        taskId: resolved.task.taskId,
+        limit: 20,
+      })
+        .filter((event) => event.kind.startsWith("commitment."))
+        .map((event) => event.kind),
+    ).toEqual(["commitment.reopened", "commitment.done", "commitment.opened"]);
+  });
+
+  it("cancels a single open commitment from an explicit user message", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-cancel-"));
+    const cfg = makeConfig(tempDir);
+    const resolved = resolveOrCreateTaskForInbound({
+      cfg,
+      agentId: "main",
+      sessionKey: "agent:main:main",
+      inboundText: "Handle the retry",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: resolved.task.taskId,
+      kind: "lifecycle.end",
+      stream: "lifecycle",
+      phase: "end",
+      sessionKey: "agent:main:main",
+      runId: "run-cancel-open",
+      summary: "TODO: Retry the canvas handoff",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: resolved.task.taskId,
+      kind: "user-message",
+      sessionKey: "agent:main:main",
+      summary: "不用了，Retry the canvas handoff",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+
+    const commitments = listCommitments({
+      cfg,
+      agentId: "main",
+      taskId: resolved.task.taskId,
+    });
+    expect(commitments).toHaveLength(1);
+    expect(commitments[0]?.status).toBe("cancelled");
+    expect(
+      listTaskEvents({
+        cfg,
+        agentId: "main",
+        taskId: resolved.task.taskId,
+        limit: 20,
+      }).some((event) => event.kind === "commitment.cancelled"),
+    ).toBe(true);
+  });
+
+  it("marks tasks as failed on lifecycle error and reopens them on the next inbound message", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-failed-"));
+    const cfg = makeConfig(tempDir);
+    const first = resolveOrCreateTaskForInbound({
+      cfg,
+      agentId: "main",
+      sessionKey: "agent:main:main",
+      inboundText: "Retry the deployment",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: first.task.taskId,
+      kind: "lifecycle.error",
+      stream: "lifecycle",
+      phase: "error",
+      sessionKey: "agent:main:main",
+      summary: "deployment failed",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+
+    expect(
+      getTask({
+        cfg,
+        agentId: "main",
+        taskId: first.task.taskId,
+      })?.status,
+    ).toBe("failed");
+
+    const reopened = resolveOrCreateTaskForInbound({
+      cfg,
+      agentId: "main",
+      sessionKey: "agent:main:main",
+      sessionEntry: {
+        sessionId: "session-retry",
+        updatedAt: Date.now(),
+        activeTaskId: first.task.taskId,
+      },
+      inboundText: "Try again and continue the same task",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+
+    expect(reopened.task.taskId).toBe(first.task.taskId);
+    expect(reopened.task.status).toBe("open");
+    expect(reopened.reused).toBe(true);
+  });
+
+  it("does not reuse closed tasks for new inbound messages", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-closed-"));
+    const cfg = makeConfig(tempDir);
+    const first = resolveOrCreateTaskForInbound({
+      cfg,
+      agentId: "main",
+      sessionKey: "agent:main:main",
+      inboundText: "Close this task",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+
+    const closed = updateTaskStatus({
+      cfg,
+      agentId: "main",
+      taskId: first.task.taskId,
+      status: "completed",
+    });
+    expect(closed?.status).toBe("completed");
+    expect(closed?.closedAt).toBeTruthy();
+
+    const next = resolveOrCreateTaskForInbound({
+      cfg,
+      agentId: "main",
+      sessionKey: "agent:main:main",
+      sessionEntry: {
+        sessionId: "session-next",
+        updatedAt: Date.now(),
+        activeTaskId: first.task.taskId,
+        lastTaskId: first.task.taskId,
+      },
+      inboundText: "Start a new task instead",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+
+    expect(next.reused).toBe(false);
+    expect(next.task.taskId).not.toBe(first.task.taskId);
+  });
+
+  it("moves tasks into running when subagents or cron work starts", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-running-"));
+    const cfg = makeConfig(tempDir);
+    const task = resolveOrCreateTaskForInbound({
+      cfg,
+      agentId: "main",
+      sessionKey: "agent:main:main",
+      inboundText: "Watch background work",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    }).task;
+
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: task.taskId,
+      kind: "subagent.started",
+      sessionKey: "agent:main:main",
+      summary: "subagent started",
+      surface: { kind: "subagent", label: "worker" },
+    });
+    expect(
+      getTask({
+        cfg,
+        agentId: "main",
+        taskId: task.taskId,
+      })?.status,
+    ).toBe("running");
+
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: task.taskId,
+      kind: "cron-fired",
+      sessionKey: "agent:main:main",
+      summary: "cron fired",
+      surface: { kind: "cron", label: "nightly" },
+    });
+    expect(
+      getTask({
+        cfg,
+        agentId: "main",
+        taskId: task.taskId,
+      })?.status,
+    ).toBe("running");
   });
 });

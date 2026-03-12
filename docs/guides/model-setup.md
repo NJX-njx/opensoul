@@ -16,11 +16,11 @@ to OpenSoul. Choose the path that fits your provider.
 
 ## Choosing a Setup Path
 
-| Path | When to use | Examples |
-|------|-------------|---------|
-| **API key** | Provider gives you a secret key | OpenAI, Anthropic, Google Gemini, xAI, MiniMax, OpenRouter, … |
-| **OAuth / device login** | Provider uses browser or device-code auth | GitHub Copilot, Google Gemini CLI, Google Antigravity |
-| **Local (no key)** | Model runs on your machine | Ollama, LM Studio, vLLM, LiteLLM |
+| Path                     | When to use                               | Examples                                                      |
+| ------------------------ | ----------------------------------------- | ------------------------------------------------------------- |
+| **API key**              | Provider gives you a secret key           | OpenAI, Anthropic, Google Gemini, xAI, MiniMax, OpenRouter, … |
+| **OAuth / device login** | Provider uses browser or device-code auth | GitHub Copilot, Google Gemini CLI, Google Antigravity         |
+| **Local (no key)**       | Model runs on your machine                | Ollama, LM Studio, vLLM, LiteLLM                              |
 
 ---
 
@@ -30,16 +30,16 @@ to OpenSoul. Choose the path that fits your provider.
 
 Visit the provider's developer portal and generate an API key:
 
-| Provider | Key source |
-|----------|-----------|
-| OpenAI | https://platform.openai.com/api-keys |
-| Anthropic | https://console.anthropic.com/ |
+| Provider      | Key source                             |
+| ------------- | -------------------------------------- |
+| OpenAI        | https://platform.openai.com/api-keys   |
+| Anthropic     | https://console.anthropic.com/         |
 | Google Gemini | https://aistudio.google.com/app/apikey |
-| OpenRouter | https://openrouter.ai/keys |
-| xAI | https://console.x.ai |
-| MiniMax | https://platform.minimaxi.com |
-| Moonshot AI | https://platform.moonshot.ai |
-| Venice AI | https://venice.ai/settings |
+| OpenRouter    | https://openrouter.ai/keys             |
+| xAI           | https://console.x.ai                   |
+| MiniMax       | https://platform.minimaxi.com          |
+| Moonshot AI   | https://platform.moonshot.ai           |
+| Venice AI     | https://venice.ai/settings             |
 
 ### 2. Add the key to OpenSoul
 
@@ -67,13 +67,13 @@ GEMINI_API_KEY=AIza...
 ```json5
 {
   env: {
-    OPENAI_API_KEY: "${OPENAI_API_KEY}"  // or paste key directly
+    OPENAI_API_KEY: "${OPENAI_API_KEY}", // or paste key directly
   },
   agents: {
     defaults: {
-      model: { primary: "openai/gpt-5.1-codex" }
-    }
-  }
+      model: { primary: "openai/gpt-5.1-codex" },
+    },
+  },
 }
 ```
 
@@ -165,9 +165,9 @@ To set it as the default model:
 {
   agents: {
     defaults: {
-      model: { primary: "ollama/llama3.3" }
-    }
-  }
+      model: { primary: "ollama/llama3.3" },
+    },
+  },
 }
 ```
 
@@ -181,10 +181,10 @@ For a custom Ollama URL or port:
       ollama: {
         baseUrl: "http://my-server:11434/v1",
         api: "openai-completions",
-        models: []
-      }
-    }
-  }
+        models: [],
+      },
+    },
+  },
 }
 ```
 
@@ -205,7 +205,7 @@ opensoul models status --probe-provider ollama
 ```json5
 {
   env: { OPENAI_API_KEY: "sk-..." },
-  agents: { defaults: { model: { primary: "openai/gpt-5.1-codex" } } }
+  agents: { defaults: { model: { primary: "openai/gpt-5.1-codex" } } },
 }
 ```
 
@@ -214,7 +214,7 @@ opensoul models status --probe-provider ollama
 ```json5
 {
   env: { ANTHROPIC_API_KEY: "sk-ant-..." },
-  agents: { defaults: { model: { primary: "anthropic/claude-opus-4-6" } } }
+  agents: { defaults: { model: { primary: "anthropic/claude-opus-4-6" } } },
 }
 ```
 
@@ -223,7 +223,7 @@ opensoul models status --probe-provider ollama
 ```json5
 {
   env: { GEMINI_API_KEY: "AIza..." },
-  agents: { defaults: { model: { primary: "google/gemini-2.5-flash" } } }
+  agents: { defaults: { model: { primary: "google/gemini-2.5-flash" } } },
 }
 ```
 
@@ -232,7 +232,7 @@ opensoul models status --probe-provider ollama
 ```json5
 {
   env: { OPENROUTER_API_KEY: "sk-or-..." },
-  agents: { defaults: { model: { primary: "openrouter/anthropic/claude-sonnet-4-5" } } }
+  agents: { defaults: { model: { primary: "openrouter/anthropic/claude-sonnet-4-5" } } },
 }
 ```
 
@@ -240,7 +240,7 @@ opensoul models status --probe-provider ollama
 
 ```json5
 {
-  agents: { defaults: { model: { primary: "ollama/llama3.3" } } }
+  agents: { defaults: { model: { primary: "ollama/llama3.3" } } },
 }
 ```
 
@@ -272,16 +272,16 @@ opensoul models status
 
 ## Common Failures & Fixes
 
-| Symptom | Likely cause | Fix |
-|---------|-------------|-----|
-| `401 Unauthorized` / `invalid api key` | Wrong or expired API key | Re-generate key from provider console; run `opensoul models auth paste-token --provider <name>` |
-| `ECONNREFUSED 127.0.0.1:11434` | Ollama not running | Run `ollama serve` |
-| `Model not found` | Model ID typo or model not pulled | Run `opensoul models list --provider <name>` or `ollama list` |
-| `429 Too Many Requests` | Rate limit exceeded | Check provider dashboard for quota; switch to a lower-tier model |
-| OAuth token expired | Token needs refresh | Re-run `opensoul models auth login --provider <name>` |
-| `Config hash mismatch` | Concurrent config edit | Reload config page and re-apply |
-| `OPENSOUL_GATEWAY_TOKEN not set` | Gateway auth missing | Set `OPENSOUL_GATEWAY_TOKEN` or `gateway.auth.token` in config |
-| `env var not found in process` | Key in shell but not gateway | Add to `~/.opensoul/.env` or set `env.shellEnv: true` in config |
+| Symptom                                | Likely cause                      | Fix                                                                                             |
+| -------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `401 Unauthorized` / `invalid api key` | Wrong or expired API key          | Re-generate key from provider console; run `opensoul models auth paste-token --provider <name>` |
+| `ECONNREFUSED 127.0.0.1:11434`         | Ollama not running                | Run `ollama serve`                                                                              |
+| `Model not found`                      | Model ID typo or model not pulled | Run `opensoul models list --provider <name>` or `ollama list`                                   |
+| `429 Too Many Requests`                | Rate limit exceeded               | Check provider dashboard for quota; switch to a lower-tier model                                |
+| OAuth token expired                    | Token needs refresh               | Re-run `opensoul models auth login --provider <name>`                                           |
+| `Config hash mismatch`                 | Concurrent config edit            | Reload config page and re-apply                                                                 |
+| `OPENSOUL_GATEWAY_TOKEN not set`       | Gateway auth missing              | Set `OPENSOUL_GATEWAY_TOKEN` or `gateway.auth.token` in config                                  |
+| `env var not found in process`         | Key in shell but not gateway      | Add to `~/.opensoul/.env` or set `env.shellEnv: true` in config                                 |
 
 ---
 

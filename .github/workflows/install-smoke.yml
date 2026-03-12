@@ -60,8 +60,10 @@ jobs:
 
       - name: Run installer docker tests
         env:
-          OPENSOUL_INSTALL_URL: https://opensoul.ai/install.sh
-          OPENSOUL_INSTALL_CLI_URL: https://opensoul.ai/install-cli.sh
+          OPENSOUL_INSTALL_URL: https://opensoul-web.vercel.app/install.sh
+          OPENSOUL_INSTALL_CLI_URL: https://opensoul-web.vercel.app/install-cli.sh
+          OPENSOUL_INSTALL_FALLBACK_URL: https://opensoul.ai/install.sh
+          OPENSOUL_INSTALL_CLI_FALLBACK_URL: https://opensoul.ai/install-cli.sh
           OPENSOUL_NO_ONBOARD: "1"
           OPENSOUL_INSTALL_SMOKE_SKIP_CLI: "1"
           OPENSOUL_INSTALL_SMOKE_SKIP_NONROOT: ${{ github.event_name == 'pull_request' && '1' || '0' }}

@@ -1,8 +1,59 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-INSTALL_URL="${OPENSOUL_INSTALL_URL:-${OPENCLAW_INSTALL_URL:-https://opensoul.ai/install.sh}}"
+INSTALL_URL="${OPENSOUL_INSTALL_URL:-${OPENCLAW_INSTALL_URL:-https://opensoul-web.vercel.app/install.sh}}"
+FALLBACK_INSTALL_URL="${OPENSOUL_INSTALL_FALLBACK_URL:-${OPENCLAW_INSTALL_FALLBACK_URL:-https://opensoul.ai/install.sh}}"
 MODELS_MODE="${OPENSOUL_E2E_MODELS:-${OPENCLAW_E2E_MODELS:-both}}" # both|openai|anthropic
+CURL_PROBE_ARGS=(--connect-timeout 8 --max-time 20 -sS -o /dev/null -w "%{http_code}")
+
+probe_installer_url() {
+  local url="$1"
+  local label="$2"
+  local http_code
+  local curl_exit
+  local err_file
+  err_file="$(mktemp)"
+  set +e
+  http_code="$(curl "${CURL_PROBE_ARGS[@]}" "$url" 2>"$err_file")"
+  curl_exit=$?
+  set -e
+  if [[ "$curl_exit" -eq 0 ]]; then
+    rm -f "$err_file"
+    case "$http_code" in
+      2*|3*)
+        return 0
+        ;;
+      *)
+        echo "WARN: $label not usable (HTTP $http_code): $url" >&2
+        return 1
+        ;;
+    esac
+  fi
+  echo "WARN: $label probe failed (curl exit $curl_exit): $url" >&2
+  sed 's/^/  > /' "$err_file" >&2 || true
+  rm -f "$err_file"
+  return 1
+}
+
+resolve_working_installer_url() {
+  if probe_installer_url "$INSTALL_URL" "primary installer URL"; then
+    printf "%s" "$INSTALL_URL"
+    return 0
+  fi
+  if [[ -n "$FALLBACK_INSTALL_URL" && "$FALLBACK_INSTALL_URL" != "$INSTALL_URL" ]]; then
+    if probe_installer_url "$FALLBACK_INSTALL_URL" "fallback installer URL"; then
+      printf "%s" "$FALLBACK_INSTALL_URL"
+      return 0
+    fi
+  fi
+  return 1
+}
+
+run_installer() {
+  local url="$1"
+  curl -fsSL "$url" | bash
+}
+
 INSTALL_TAG="${OPENSOUL_INSTALL_TAG:-${OPENCLAW_INSTALL_TAG:-latest}}"
 E2E_PREVIOUS_VERSION="${OPENSOUL_INSTALL_E2E_PREVIOUS:-${OPENCLAW_INSTALL_E2E_PREVIOUS:-}}"
 SKIP_PREVIOUS="${OPENSOUL_INSTALL_E2E_SKIP_PREVIOUS:-${OPENCLAW_INSTALL_E2E_SKIP_PREVIOUS:-0}}"
@@ -59,12 +110,23 @@ else
 fi
 
 echo "==> Run official installer one-liner"
+WORKING_INSTALL_URL="$(resolve_working_installer_url || true)"
+if [[ -z "$WORKING_INSTALL_URL" ]]; then
+  echo "ERROR: No reachable installer URL for e2e installer test." >&2
+  echo "  primary:  $INSTALL_URL" >&2
+  echo "  fallback: $FALLBACK_INSTALL_URL" >&2
+  echo "  hint: verify DNS/proxy/TLS reachability from inside Docker container." >&2
+  exit 1
+fi
+if [[ "$WORKING_INSTALL_URL" != "$INSTALL_URL" ]]; then
+  echo "Primary installer URL unavailable, using fallback: $WORKING_INSTALL_URL"
+fi
 if [[ "$INSTALL_TAG" == "beta" ]]; then
-  OPENSOUL_BETA=1 OPENSOUL_BETA=1 curl -fsSL "$INSTALL_URL" | bash
+  OPENSOUL_BETA=1 OPENSOUL_BETA=1 run_installer "$WORKING_INSTALL_URL"
 elif [[ "$INSTALL_TAG" != "latest" ]]; then
-  OPENSOUL_VERSION="$INSTALL_TAG" OPENSOUL_VERSION="$INSTALL_TAG" curl -fsSL "$INSTALL_URL" | bash
+  OPENSOUL_VERSION="$INSTALL_TAG" OPENSOUL_VERSION="$INSTALL_TAG" run_installer "$WORKING_INSTALL_URL"
 else
-  curl -fsSL "$INSTALL_URL" | bash
+  run_installer "$WORKING_INSTALL_URL"
 fi
 
 echo "==> Verify installed version"

@@ -70,6 +70,17 @@ export type CommitmentRecord = {
   metadata?: Record<string, unknown>;
 };
 
+export type ContinuityRepairRecord = {
+  repairId: string;
+  agentId: string;
+  taskId?: string;
+  sessionKey?: string;
+  kind: string;
+  detail?: string;
+  payload?: Record<string, unknown>;
+  createdAt: number;
+};
+
 export type HandoffMode = "none" | "control-ui" | "control-ui+canvas";
 
 export type HandoffDecision = {

@@ -1,5 +1,5 @@
-import { uiText } from "../i18n.ts";
 import type { Locale } from "./onboarding/i18n.ts";
+import { uiText } from "../i18n.ts";
 
 const SECTION_LABELS_ZH: Record<string, string> = {
   env: "\u73af\u5883",
@@ -87,11 +87,7 @@ export function localizeConfigText(locale: Locale, fallback: string): string {
   return chinese ? configText(locale, fallback, chinese) : fallback;
 }
 
-export function localizeConfigSectionLabel(
-  locale: Locale,
-  key: string,
-  fallback: string,
-): string {
+export function localizeConfigSectionLabel(locale: Locale, key: string, fallback: string): string {
   const chinese = SECTION_LABELS_ZH[key];
   return chinese ? configText(locale, fallback, chinese) : fallback;
 }

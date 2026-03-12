@@ -69,9 +69,7 @@ export function registerCronEditCommand(cron: Command) {
             );
           }
           if (typeof opts.deliver === "boolean") {
-            console.error(
-              "Warning: --deliver/--no-deliver is deprecated. Use --announce instead.",
-            );
+            console.error("Warning: --deliver/--no-deliver is deprecated. Use --announce instead.");
           }
           if (opts.announce && typeof opts.deliver === "boolean") {
             throw new Error("Choose --announce or --no-deliver (not multiple).");

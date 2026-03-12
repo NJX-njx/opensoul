@@ -7,10 +7,7 @@ import { formatCliCommand } from "./command-format.js";
  * Re-use this in every CLI that contacts the Gateway so users always get
  * the same troubleshooting guidance regardless of which command they ran.
  */
-export function emitGatewayConnectionError(
-  err: unknown,
-  opts?: { url?: string },
-): void {
+export function emitGatewayConnectionError(err: unknown, opts?: { url?: string }): void {
   const rich = isRich();
   const details = buildGatewayConnectionDetails({ url: opts?.url });
   const message = "Gateway not reachable. Is it running and accessible?";

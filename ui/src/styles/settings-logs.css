@@ -120,12 +120,24 @@
 }
 
 /* Level-specific dot colors */
-.logs-level-pill.trace .logs-level-pill__dot { background: var(--muted); }
-.logs-level-pill.debug .logs-level-pill__dot { background: color-mix(in srgb, var(--info) 70%, var(--muted)); }
-.logs-level-pill.info .logs-level-pill__dot { background: var(--info); }
-.logs-level-pill.warn .logs-level-pill__dot { background: var(--warn); }
-.logs-level-pill.error .logs-level-pill__dot { background: var(--danger); }
-.logs-level-pill.fatal .logs-level-pill__dot { background: var(--danger); }
+.logs-level-pill.trace .logs-level-pill__dot {
+  background: var(--muted);
+}
+.logs-level-pill.debug .logs-level-pill__dot {
+  background: color-mix(in srgb, var(--info) 70%, var(--muted));
+}
+.logs-level-pill.info .logs-level-pill__dot {
+  background: var(--info);
+}
+.logs-level-pill.warn .logs-level-pill__dot {
+  background: var(--warn);
+}
+.logs-level-pill.error .logs-level-pill__dot {
+  background: var(--danger);
+}
+.logs-level-pill.fatal .logs-level-pill__dot {
+  background: var(--danger);
+}
 
 .logs-level-pill__label {
   text-transform: capitalize;
@@ -318,12 +330,30 @@
   letter-spacing: 0.03em;
 }
 
-.log-entry-v2__badge.trace { background: color-mix(in srgb, var(--muted) 14%, transparent); color: var(--muted); }
-.log-entry-v2__badge.debug { background: color-mix(in srgb, var(--info) 12%, transparent); color: var(--info); }
-.log-entry-v2__badge.info  { background: color-mix(in srgb, var(--info) 14%, transparent); color: var(--info); }
-.log-entry-v2__badge.warn  { background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); }
-.log-entry-v2__badge.error { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
-.log-entry-v2__badge.fatal { background: color-mix(in srgb, var(--danger) 18%, transparent); color: var(--danger); }
+.log-entry-v2__badge.trace {
+  background: color-mix(in srgb, var(--muted) 14%, transparent);
+  color: var(--muted);
+}
+.log-entry-v2__badge.debug {
+  background: color-mix(in srgb, var(--info) 12%, transparent);
+  color: var(--info);
+}
+.log-entry-v2__badge.info {
+  background: color-mix(in srgb, var(--info) 14%, transparent);
+  color: var(--info);
+}
+.log-entry-v2__badge.warn {
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+  color: var(--warn);
+}
+.log-entry-v2__badge.error {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+}
+.log-entry-v2__badge.fatal {
+  background: color-mix(in srgb, var(--danger) 18%, transparent);
+  color: var(--danger);
+}
 
 /* Body: message + subsystem */
 .log-entry-v2__body {

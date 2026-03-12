@@ -63,6 +63,7 @@ The wizard starts with **QuickStart** (defaults) vs **Advanced** (full control).
 **Local mode (default)** walks you through these steps:
 
 ### 1. Model/Auth
+
 - **Anthropic API key (recommended)**: Uses `ANTHROPIC_API_KEY` or prompts for one, then saves it for the daemon.
 - **Anthropic OAuth (Claude Code)**: Reuses credentials from Claude Code CLI when available.
 - **OpenAI / Codex**: OAuth or API key support.
@@ -70,38 +71,46 @@ The wizard starts with **QuickStart** (defaults) vs **Advanced** (full control).
 - **Auth Profiles**: Credentials are stored in `~/.opensoul/agents/<agentId>/agent/auth-profiles.json`.
 
 ### 2. Workspace
+
 - Default location: `~/.opensoul/workspace`.
 - Seeds bootstrap files for agent initialization.
 - See [Agent Workspace](/concepts/agent-workspace) for layout details.
 
 ### 3. Gateway
+
 - Configures port (default 18789), bind address, and auth mode.
 - **Security Tip**: Keep **Token** auth enabled even on loopback for security.
 - Optional Tailscale exposure for remote access.
 
 ### 4. Channels
+
 - Setup for [WhatsApp](/channels/whatsapp), [Telegram](/channels/telegram), [Discord](/channels/discord), [Google Chat](/channels/googlechat), [Mattermost](/channels/mattermost), [Signal](/channels/signal), and [iMessage](/channels/imessage).
 - Configures pairing flow for secure DMs.
 
 ### 5. Daemon Installation
+
 - **macOS**: LaunchAgent (requires user session).
 - **Linux / WSL2**: systemd user unit.
 - **Lingering**: Tries to enable `loginctl enable-linger` so the gateway stays up after logout.
 - **Node vs Bun**: **Node** is recommended for WhatsApp/Telegram stability.
 
 ### 6. Skills
+
 - Installs recommended skills and checks dependencies.
 - Configuration for Node manager (`npm` or `pnpm`).
 
 ## Advanced Management
 
 ### Add another agent
+
 ```bash
 opensoul agents add <name>
 ```
+
 Creates isolated workspaces and auth profiles for multi-agent setups.
 
 ### Non-interactive Mode
+
 Automate setup for CI or headless environments:
 
 ```bash
@@ -115,6 +124,7 @@ opensoul onboard --non-interactive \
 ```
 
 ### Wizard RPC
+
 The gateway exposes the wizard flow via RPC (`wizard.start`, `wizard.next`, etc.), allowing UI clients (macOS app, Control UI) to render the setup flow.
 
 ## Related docs

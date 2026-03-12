@@ -6,6 +6,7 @@ import { registerSkillsChangeListener } from "../agents/skills/refresh.js";
 import { initSubagentRegistry } from "../agents/subagent-registry.js";
 import { createDefaultDeps } from "../cli/deps.js";
 import { CONFIG_PATH, isNixMode, loadConfig, readConfigFileSnapshot } from "../config/config.js";
+import { recoverContinuityOnStartup } from "../continuity/recovery.js";
 import { clearAgentRunContext, onAgentEvent } from "../infra/agent-events.js";
 import { createExecApprovalForwarder } from "../infra/exec-approval-forwarder.js";
 import { onHeartbeatEvent } from "../infra/heartbeat-events.js";
@@ -150,6 +151,14 @@ export async function startGatewayServer(
   }
   setGatewaySigusr1RestartPolicy({ allowExternal: cfgAtStart.commands?.restart === true });
   initSubagentRegistry();
+  await recoverContinuityOnStartup({
+    cfg: cfgAtStart,
+    logger: log.child("continuity"),
+  }).catch((error) => {
+    log.warn(
+      `gateway: continuity startup recovery failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  });
   let pluginServices: PluginServicesHandle | null = null;
   const runtimeConfig = await resolveGatewayRuntimeConfig({
     cfg: cfgAtStart,

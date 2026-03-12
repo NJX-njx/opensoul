@@ -2,6 +2,7 @@ export * from "./context.js";
 export * from "./event-sink.js";
 export * from "./handoff.js";
 export * from "./paths.js";
+export * from "./recovery.js";
 export * from "./schema.js";
 export * from "./service.js";
 export * from "./store.js";

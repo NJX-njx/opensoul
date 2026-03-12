@@ -92,6 +92,7 @@ export function buildTaskContextEnvelope(params: {
   }
   lines.push(
     "Use this only to preserve task continuity. Continue the same task unless the user clearly starts a new one.",
+    "If this turn leaves follow-up work open, prefer a short 'Next steps:' or 'TODO:' list. If you closed one of the open commitments, say it explicitly.",
   );
 
   return {

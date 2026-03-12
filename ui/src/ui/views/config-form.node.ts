@@ -1,6 +1,6 @@
 import { html, nothing, type TemplateResult } from "lit";
 import type { ConfigUiHints } from "../types.ts";
-import { configText, localizeConfigText } from "./config-i18n.ts";
+import type { Locale } from "./onboarding/i18n.ts";
 import {
   defaultValue,
   hintForPath,
@@ -10,7 +10,7 @@ import {
   schemaType,
   type JsonSchema,
 } from "./config-form.shared.ts";
-import type { Locale } from "./onboarding/i18n.ts";
+import { configText, localizeConfigText } from "./config-i18n.ts";
 
 const META_KEYS = new Set(["title", "description", "default", "nullable"]);
 
@@ -726,7 +726,8 @@ function renderMapField(params: {
   reservedKeys: Set<string>;
   onPatch: (path: Array<string | number>, value: unknown) => void;
 }): TemplateResult {
-  const { locale, schema, value, path, hints, unsupported, disabled, reservedKeys, onPatch } = params;
+  const { locale, schema, value, path, hints, unsupported, disabled, reservedKeys, onPatch } =
+    params;
   const t = (english: string, chinese: string) => configText(locale, english, chinese);
   const anySchema = isAnySchema(schema);
   const entries = Object.entries(value ?? {}).filter(([key]) => !reservedKeys.has(key));

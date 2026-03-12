@@ -178,6 +178,7 @@ OpenSoul bundles native modules (`sharp`, `better-sqlite3` via `sqlite-vec`). Mo
     ```bash
     SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g opensoul@latest
     ```
+
   </Tab>
   <Tab title="Ubuntu / Debian">
     ```bash
@@ -204,6 +205,7 @@ OpenSoul bundles native modules (`sharp`, `better-sqlite3` via `sqlite-vec`). Mo
     ```
 
     We strongly recommend running OpenSoul under [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install) instead.
+
   </Tab>
 </Tabs>
 

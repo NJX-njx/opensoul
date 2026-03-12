@@ -50,7 +50,7 @@ vi.mock("../../continuity/service.js", () => ({
 describe("tasks handlers", () => {
   it("lists tasks using the session-derived agent id", () => {
     const respond = vi.fn();
-    tasksHandlers["tasks.list"]({
+    void tasksHandlers["tasks.list"]({
       params: {
         sessionKey: "agent:main:telegram:dm:user-1",
         limit: 10,
@@ -71,7 +71,7 @@ describe("tasks handlers", () => {
 
   it("returns a single task with an explicit agent id", () => {
     const respond = vi.fn();
-    tasksHandlers["tasks.get"]({
+    void tasksHandlers["tasks.get"]({
       params: {
         agentId: "ops",
         taskId: "task-1",
@@ -94,7 +94,7 @@ describe("tasks handlers", () => {
 
   it("lists task events", () => {
     const respond = vi.fn();
-    tasksHandlers["tasks.events"]({
+    void tasksHandlers["tasks.events"]({
       params: {
         taskId: "task-1",
         sessionKey: "agent:main:telegram:dm:user-1",
@@ -115,7 +115,7 @@ describe("tasks handlers", () => {
 
   it("lists task commitments", () => {
     const respond = vi.fn();
-    tasksHandlers["tasks.commitments"]({
+    void tasksHandlers["tasks.commitments"]({
       params: {
         taskId: "task-1",
         sessionKey: "agent:main:telegram:dm:user-1",

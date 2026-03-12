@@ -3,7 +3,12 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import type { OpenSoulConfig } from "../../config/config.js";
-import { getTask, listTaskEvents } from "../../continuity/service.js";
+import {
+  appendTaskEvent,
+  getTask,
+  listCommitments,
+  listTaskEvents,
+} from "../../continuity/service.js";
 import { resetContinuityStoreCacheForTest } from "../../continuity/store.js";
 import { initSessionState } from "./session.js";
 
@@ -81,5 +86,57 @@ describe("initSessionState continuity", () => {
         limit: 10,
       }).filter((event) => event.kind === "user-message"),
     ).toHaveLength(2);
+  });
+
+  it("lets a follow-up user message close a single open commitment", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-session-commitment-close-"));
+    const cfg = makeConfig(tempDir);
+    const sessionKey = "agent:main:telegram:dm:user-2";
+
+    const first = await initSessionState({
+      ctx: {
+        Body: "Please keep an eye on the browser flow",
+        SessionKey: sessionKey,
+        OriginatingChannel: "telegram",
+      },
+      cfg,
+      commandAuthorized: true,
+    });
+
+    const taskId = first.sessionEntry.activeTaskId;
+    if (!taskId) {
+      throw new Error("Missing continuity task");
+    }
+
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId,
+      kind: "lifecycle.end",
+      stream: "lifecycle",
+      phase: "end",
+      sessionKey,
+      runId: "run-followup-close",
+      summary: "TODO: Follow up on the browser flow",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+
+    await initSessionState({
+      ctx: {
+        Body: "The follow up on the browser flow is done.",
+        SessionKey: sessionKey,
+        OriginatingChannel: "telegram",
+      },
+      cfg,
+      commandAuthorized: true,
+    });
+
+    expect(
+      listCommitments({
+        cfg,
+        agentId: "main",
+        taskId,
+      })[0]?.status,
+    ).toBe("done");
   });
 });

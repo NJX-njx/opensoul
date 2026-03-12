@@ -18,10 +18,10 @@ x-i18n:
 
 OpenSoul 提供三个安装器脚本（托管在 `opensoul.ai`）：
 
-| 脚本                               | 平台                 | 功能                                                                                 |
-| ---------------------------------- | -------------------- | -------------------------------------------------------------------------------------------- |
+| 脚本                               | 平台                 | 功能                                                                        |
+| ---------------------------------- | -------------------- | --------------------------------------------------------------------------- |
 | [`install.sh`](#installsh)         | macOS / Linux / WSL  | 在需要时安装 Node，通过 npm（默认）或 git 安装 OpenSoul，并可运行新手引导。 |
-| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL  | 将 Node + OpenSoul 安装到本地前缀目录（`~/.opensoul`）。无需 root 权限。              |
+| [`install-cli.sh`](#install-clish) | macOS / Linux / WSL  | 将 Node + OpenSoul 安装到本地前缀目录（`~/.opensoul`）。无需 root 权限。    |
 | [`install.ps1`](#installps1)       | Windows (PowerShell) | 在需要时安装 Node，通过 npm（默认）或 git 安装 OpenSoul，并可运行新手引导。 |
 
 ## 快速命令
@@ -96,14 +96,14 @@ OpenSoul 提供三个安装器脚本（托管在 `opensoul.ai`）：
 
 ### 参数参考 (install.sh)
 
-| 参数                             | 描述                                                       |
-| ------------------------------- | ---------------------------------------------------------- |
-| `--install-method npm\|git`     | 选择安装方式（默认：`npm`）。别名：`--method`  |
-| `--npm`                         | npm 方式快捷键                                    |
-| `--git`                         | git 方式快捷键。别名：`--github`                 |
-| `--version <version\|dist-tag>` | npm 版本或标签（默认：`latest`）                |
-| `--no-onboard`                  | 跳过新手引导                                            |
-| `--dry-run`                     | 打印操作而不应用更改                                    |
+| 参数                            | 描述                                          |
+| ------------------------------- | --------------------------------------------- |
+| `--install-method npm\|git`     | 选择安装方式（默认：`npm`）。别名：`--method` |
+| `--npm`                         | npm 方式快捷键                                |
+| `--git`                         | git 方式快捷键。别名：`--github`              |
+| `--version <version\|dist-tag>` | npm 版本或标签（默认：`latest`）              |
+| `--no-onboard`                  | 跳过新手引导                                  |
+| `--dry-run`                     | 打印操作而不应用更改                          |
 
 ---
 

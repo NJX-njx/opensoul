@@ -134,9 +134,7 @@ export function registerCronAddCommand(cron: Command) {
               : undefined;
 
           if (typeof opts.deliver === "boolean") {
-            console.error(
-              "Warning: --deliver/--no-deliver is deprecated. Use --announce instead.",
-            );
+            console.error("Warning: --deliver/--no-deliver is deprecated. Use --announce instead.");
           }
           const hasAnnounce = Boolean(opts.announce) || opts.deliver === true;
           const hasNoDeliver = opts.deliver === false;

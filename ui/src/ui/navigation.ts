@@ -1,6 +1,6 @@
 import type { IconName } from "./icons.js";
-import { uiText } from "./i18n.ts";
 import type { Locale } from "./views/onboarding/i18n.ts";
+import { uiText } from "./i18n.ts";
 
 export const TAB_GROUPS = [
   { label: "Assist", tabs: ["chat"] },
@@ -284,11 +284,7 @@ export function subtitleForTab(tab: Tab, locale?: Locale) {
         "检查事件、快照与手动 RPC 调用。",
       );
     case "logs":
-      return uiText(
-        locale,
-        "Stream live gateway logs with filtering.",
-        "实时查看网关日志并过滤。",
-      );
+      return uiText(locale, "Stream live gateway logs with filtering.", "实时查看网关日志并过滤。");
     default:
       return "";
   }

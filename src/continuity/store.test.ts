@@ -3,7 +3,9 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import type { OpenSoulConfig } from "../config/config.js";
+import { requireNodeSqlite } from "../memory/sqlite.js";
 import { resolveContinuityDbPath } from "./paths.js";
+import { CONTINUITY_SCHEMA_VERSION } from "./schema.js";
 import { openContinuityStore, resetContinuityStoreCacheForTest } from "./store.js";
 
 describe("continuity store", () => {
@@ -71,5 +73,46 @@ describe("continuity store", () => {
     expect(resolveContinuityDbPath(cfg, "main")).toBe(
       path.join(tempDir, "agents", "main", "continuity.sqlite"),
     );
+  });
+
+  it("records schema version and repair entries", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-schema-"));
+    const dbPath = path.join(tempDir, "continuity.sqlite");
+    const store = openContinuityStore(dbPath);
+
+    expect(store.readMeta("schema_version")).toBe(String(CONTINUITY_SCHEMA_VERSION));
+    store.appendRepair({
+      repairId: "repair-1",
+      agentId: "main",
+      kind: "test-repair",
+      detail: "repair detail",
+      createdAt: 1,
+    });
+
+    expect(store.listRepairs()).toHaveLength(1);
+    expect(store.listRepairs()[0]?.kind).toBe("test-repair");
+  });
+
+  it("migrates an older schema version in place", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-migrate-"));
+    const dbPath = path.join(tempDir, "continuity.sqlite");
+    const sqlite = requireNodeSqlite();
+    const db = new sqlite.DatabaseSync(dbPath);
+    db.exec(`
+      CREATE TABLE continuity_meta (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      );
+    `);
+    db.prepare(
+      `INSERT INTO continuity_meta (key, value)
+       VALUES (?, ?)`,
+    ).run("schema_version", "1");
+    db.close();
+
+    const store = openContinuityStore(dbPath);
+    expect(store.schemaState.migratedFrom).toBe(1);
+    expect(store.readMeta("schema_version")).toBe(String(CONTINUITY_SCHEMA_VERSION));
+    expect(store.listRepairs()).toEqual([]);
   });
 });

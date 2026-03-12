@@ -219,8 +219,16 @@ body {
   font: 400 14px/1.55 var(--font-body);
   letter-spacing: -0.02em;
   background:
-    radial-gradient(860px 520px at -20% -30%, color-mix(in srgb, var(--info) 10%, transparent), transparent 62%),
-    radial-gradient(720px 420px at 118% -12%, color-mix(in srgb, var(--ok) 9%, transparent), transparent 66%),
+    radial-gradient(
+      860px 520px at -20% -30%,
+      color-mix(in srgb, var(--info) 10%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      720px 420px at 118% -12%,
+      color-mix(in srgb, var(--ok) 9%, transparent),
+      transparent 66%
+    ),
     var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;

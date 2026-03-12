@@ -3,6 +3,7 @@ import fs from "node:fs";
 import fsp from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { resolveUserPath } from "opensoul/plugin-sdk";
 import type { CallMode, VoiceCallConfig } from "./config.js";
 import type { VoiceCallProvider } from "./providers/base.js";
 import { isAllowlistedCaller, normalizePhoneNumber } from "./allowlist.js";
@@ -16,7 +17,6 @@ import {
   TerminalStates,
   type TranscriptEntry,
 } from "./types.js";
-import { resolveUserPath } from "opensoul/plugin-sdk";
 import { escapeXml, mapVoiceToPolly } from "./voice-mapping.js";
 
 function resolveDefaultStoreBase(config: VoiceCallConfig, storePath?: string): string {

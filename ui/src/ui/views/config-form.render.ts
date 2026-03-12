@@ -1,15 +1,15 @@
 import { html, nothing } from "lit";
 import type { ConfigUiHints } from "../types.ts";
+import type { Locale } from "./onboarding/i18n.ts";
 import { icons } from "../icons.ts";
+import { renderNode } from "./config-form.node.ts";
+import { hintForPath, humanize, schemaType, type JsonSchema } from "./config-form.shared.ts";
 import {
   configText,
   localizeConfigText,
   localizeConfigSectionDescription,
   localizeConfigSectionLabel,
 } from "./config-i18n.ts";
-import { renderNode } from "./config-form.node.ts";
-import { hintForPath, humanize, schemaType, type JsonSchema } from "./config-form.shared.ts";
-import type { Locale } from "./onboarding/i18n.ts";
 
 export type ConfigFormProps = {
   locale: Locale;

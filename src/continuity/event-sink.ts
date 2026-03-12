@@ -53,11 +53,7 @@ function resolveEventKind(event: AgentEventPayload): string {
   return event.stream;
 }
 
-function updateRunStats(
-  event: AgentEventPayload,
-  context: AgentRunContext,
-  agentId: string,
-): RunContinuityStats {
+function updateRunStats(event: AgentEventPayload, context: AgentRunContext): RunContinuityStats {
   const existing = runStatsById.get(event.runId);
   const stats: RunContinuityStats = existing ?? {
     taskId: context.taskId as string,
@@ -104,7 +100,7 @@ function handleAgentEvent(event: AgentEventPayload): void {
     return;
   }
 
-  const stats = updateRunStats(event, context, agentId);
+  const stats = updateRunStats(event, context);
   const phase = typeof event.data.phase === "string" ? event.data.phase : undefined;
   const shouldAttachAssistantSummary =
     event.stream === "lifecycle" && (phase === "end" || phase === "error");
@@ -150,6 +146,7 @@ function handleAgentEvent(event: AgentEventPayload): void {
           taskId,
           sessionKey,
           decision,
+          runId: event.runId,
         });
       }
     })
