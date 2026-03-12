@@ -1,3 +1,5 @@
+import type { SessionChatType } from "./sessions/types.js";
+
 export type GatewayBindMode = "auto" | "lan" | "loopback" | "custom" | "tailnet";
 
 export type GatewayTlsConfig = {
@@ -76,6 +78,72 @@ export type GatewayControlUiConfig = {
   allowInsecureAuth?: boolean;
   /** DANGEROUS: Disable device identity checks for the Control UI (default: false). */
   dangerouslyDisableDeviceAuth?: boolean;
+  /** Continuity-specific Control UI behavior, including configurable handoff policy. */
+  continuity?: GatewayControlUiContinuityConfig;
+};
+
+export type GatewayControlUiContinuityHandoffSurface = "control-ui" | "canvas";
+
+export type GatewayControlUiContinuityHandoffMode = "control-ui" | "control-ui+canvas";
+
+export type GatewayControlUiContinuityThresholdsConfig = {
+  /** Minimum assistant chars before this counts as a complexity signal. */
+  assistantChars?: number;
+  /** Minimum tool events before this counts as a complexity signal. */
+  toolEvents?: number;
+};
+
+export type GatewayControlUiContinuitySignalsConfig = {
+  /** Count subagent usage as a complexity signal. */
+  subagent?: boolean;
+  /** Count comparison / multi-option output as a complexity signal. */
+  comparison?: boolean;
+};
+
+export type GatewayControlUiContinuityPolicyRuleConfig = {
+  /** Optional stable identifier for logs and diagnostics. */
+  id?: string;
+  /** If false, matching sessions are excluded from handoff. */
+  enabled?: boolean;
+  /** Match by agent id. */
+  agents?: string[];
+  /** Match by channel id (telegram, discord, ...). */
+  channels?: string[];
+  /** Match by session chat type. */
+  chatTypes?: SessionChatType[];
+  /** Match by account id when a channel carries multi-account identity. */
+  accountIds?: string[];
+  /** Override handoff cooldown for matching sessions. */
+  cooldownMs?: number;
+  /** Override the preferred handoff mode. */
+  defaultMode?: GatewayControlUiContinuityHandoffMode;
+  /** Disable richer surfaces for matching sessions. */
+  disabledSurfaces?: GatewayControlUiContinuityHandoffSurface[];
+  /** Override complexity thresholds for matching sessions. */
+  thresholds?: GatewayControlUiContinuityThresholdsConfig;
+  /** Override which non-threshold signals are enabled. */
+  signals?: GatewayControlUiContinuitySignalsConfig;
+};
+
+export type GatewayControlUiContinuityPolicyConfig = {
+  /** Master switch for continuity handoff policy. */
+  enabled?: boolean;
+  /** Preferred handoff mode when the policy fires. */
+  defaultMode?: GatewayControlUiContinuityHandoffMode;
+  /** Cooldown window that suppresses repeated handoffs for the same task. */
+  cooldownMs?: number;
+  /** Disable specific richer surfaces globally. */
+  disabledSurfaces?: GatewayControlUiContinuityHandoffSurface[];
+  /** Base complexity thresholds. */
+  thresholds?: GatewayControlUiContinuityThresholdsConfig;
+  /** Base optional complexity signals. */
+  signals?: GatewayControlUiContinuitySignalsConfig;
+  /** Ordered matchers; first match wins. */
+  rules?: GatewayControlUiContinuityPolicyRuleConfig[];
+};
+
+export type GatewayControlUiContinuityConfig = {
+  policy?: GatewayControlUiContinuityPolicyConfig;
 };
 
 export type GatewayAuthMode = "token" | "password";

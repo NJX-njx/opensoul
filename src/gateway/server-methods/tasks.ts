@@ -1,4 +1,4 @@
-import type { GatewayRequestHandlers } from "./types.js";
+import type { GatewayClient, GatewayRequestHandlers, RespondFn } from "./types.js";
 import { resolveDefaultAgentId, resolveSessionAgentId } from "../../agents/agent-scope.js";
 import { loadConfig } from "../../config/config.js";
 import {
@@ -21,6 +21,8 @@ import {
   validateTasksListParams,
   validateTasksTaskPatchParams,
 } from "../protocol/index.js";
+
+const ADMIN_SCOPE = "operator.admin";
 
 function resolveTaskAgentId(params: {
   cfg: ReturnType<typeof loadConfig>;
@@ -73,6 +75,89 @@ function resolveTaskAgentIds(params: {
   return agentIds.length > 0 ? agentIds : [resolveDefaultAgentId(params.cfg)];
 }
 
+function hasAdminScope(client: GatewayClient | null | undefined): boolean {
+  return Boolean(client?.connect?.scopes?.includes(ADMIN_SCOPE));
+}
+
+function respondTasksPermissionError(respond: RespondFn, message: string): false {
+  respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, message));
+  return false;
+}
+
+function ensureTasksListAccess(params: {
+  client: GatewayClient | null;
+  respond: RespondFn;
+  cfg: ReturnType<typeof loadConfig>;
+  sessionKey?: string;
+  agentId?: string;
+  allAgents?: boolean;
+}): boolean {
+  if (hasAdminScope(params.client)) {
+    return true;
+  }
+  const sessionKey = params.sessionKey?.trim();
+  if (!sessionKey) {
+    return respondTasksPermissionError(
+      params.respond,
+      "tasks.list without operator.admin requires sessionKey",
+    );
+  }
+  if (params.allAgents) {
+    return respondTasksPermissionError(
+      params.respond,
+      "tasks.list allAgents requires operator.admin",
+    );
+  }
+  const explicitAgentId = params.agentId?.trim();
+  if (!explicitAgentId) {
+    return true;
+  }
+  const sessionAgentId = resolveTaskAgentId({
+    cfg: params.cfg,
+    sessionKey,
+  });
+  if (explicitAgentId !== sessionAgentId) {
+    return respondTasksPermissionError(
+      params.respond,
+      "tasks.list agentId must match sessionKey without operator.admin",
+    );
+  }
+  return true;
+}
+
+function ensureTaskAccess(params: {
+  client: GatewayClient | null;
+  respond: RespondFn;
+  cfg: ReturnType<typeof loadConfig>;
+  agentId: string;
+  taskId: string;
+  sessionKey?: string;
+  task: ReturnType<typeof getTask>;
+}): boolean {
+  if (hasAdminScope(params.client)) {
+    return true;
+  }
+  const sessionKey = params.sessionKey?.trim();
+  if (!sessionKey) {
+    return respondTasksPermissionError(
+      params.respond,
+      "task access without operator.admin requires sessionKey",
+    );
+  }
+  if (params.task?.latestSessionKey === sessionKey) {
+    return true;
+  }
+  const visible = queryTasks({
+    cfg: params.cfg,
+    agentId: params.agentId,
+    sessionKey,
+  }).tasks.some((task) => task.taskId === params.taskId);
+  if (!visible) {
+    return respondTasksPermissionError(params.respond, "task access denied for this session");
+  }
+  return true;
+}
+
 function compareTaskRecords(
   left: { updatedAt: number; createdAt: number },
   right: { updatedAt: number; createdAt: number },
@@ -106,7 +191,7 @@ function hasTaskPatchFields(params: {
 }
 
 export const tasksHandlers: GatewayRequestHandlers = {
-  "tasks.list": ({ params, respond }) => {
+  "tasks.list": ({ params, respond, client }) => {
     if (!validateTasksListParams(params)) {
       respond(
         false,
@@ -132,6 +217,18 @@ export const tasksHandlers: GatewayRequestHandlers = {
       limit?: number;
       sort?: TasksListSort;
     };
+    if (
+      !ensureTasksListAccess({
+        client,
+        respond,
+        cfg,
+        sessionKey: p.sessionKey,
+        agentId: p.agentId,
+        allAgents: p.allAgents,
+      })
+    ) {
+      return;
+    }
     const sort = p.sort ?? "updated-desc";
     const agentIds = resolveTaskAgentIds({
       cfg,
@@ -168,7 +265,7 @@ export const tasksHandlers: GatewayRequestHandlers = {
     const nextOffset = offset + tasks.length < total ? offset + tasks.length : null;
     respond(true, { tasks, total, nextOffset }, undefined);
   },
-  "tasks.get": ({ params, respond }) => {
+  "tasks.get": ({ params, respond, client }) => {
     if (!validateTasksGetParams(params)) {
       respond(
         false,
@@ -192,9 +289,22 @@ export const tasksHandlers: GatewayRequestHandlers = {
       agentId,
       taskId: p.taskId,
     });
+    if (
+      !ensureTaskAccess({
+        client,
+        respond,
+        cfg,
+        agentId,
+        taskId: p.taskId,
+        sessionKey: p.sessionKey,
+        task,
+      })
+    ) {
+      return;
+    }
     respond(true, { task }, undefined);
   },
-  "tasks.events": ({ params, respond }) => {
+  "tasks.events": ({ params, respond, client }) => {
     if (!validateTasksEventsParams(params)) {
       respond(
         false,
@@ -213,6 +323,24 @@ export const tasksHandlers: GatewayRequestHandlers = {
       agentId: p.agentId,
       sessionKey: p.sessionKey,
     });
+    const task = getTask({
+      cfg,
+      agentId,
+      taskId: p.taskId,
+    });
+    if (
+      !ensureTaskAccess({
+        client,
+        respond,
+        cfg,
+        agentId,
+        taskId: p.taskId,
+        sessionKey: p.sessionKey,
+        task,
+      })
+    ) {
+      return;
+    }
     const events = listTaskEvents({
       cfg,
       agentId,
@@ -221,7 +349,7 @@ export const tasksHandlers: GatewayRequestHandlers = {
     });
     respond(true, { events }, undefined);
   },
-  "tasks.commitments": ({ params, respond }) => {
+  "tasks.commitments": ({ params, respond, client }) => {
     if (!validateTasksCommitmentsParams(params)) {
       respond(
         false,
@@ -245,6 +373,24 @@ export const tasksHandlers: GatewayRequestHandlers = {
       agentId: p.agentId,
       sessionKey: p.sessionKey,
     });
+    const task = getTask({
+      cfg,
+      agentId,
+      taskId: p.taskId,
+    });
+    if (
+      !ensureTaskAccess({
+        client,
+        respond,
+        cfg,
+        agentId,
+        taskId: p.taskId,
+        sessionKey: p.sessionKey,
+        task,
+      })
+    ) {
+      return;
+    }
     const commitments = listCommitments({
       cfg,
       agentId,
@@ -253,7 +399,7 @@ export const tasksHandlers: GatewayRequestHandlers = {
     });
     respond(true, { commitments }, undefined);
   },
-  "tasks.commitments.update": ({ params, respond }) => {
+  "tasks.commitments.update": ({ params, respond, client }) => {
     if (!validateTasksCommitmentsUpdateParams(params)) {
       respond(
         false,
@@ -279,6 +425,24 @@ export const tasksHandlers: GatewayRequestHandlers = {
       agentId: p.agentId,
       sessionKey: p.sessionKey,
     });
+    const task = getTask({
+      cfg,
+      agentId,
+      taskId: p.taskId,
+    });
+    if (
+      !ensureTaskAccess({
+        client,
+        respond,
+        cfg,
+        agentId,
+        taskId: p.taskId,
+        sessionKey: p.sessionKey,
+        task,
+      })
+    ) {
+      return;
+    }
     const commitment = patchCommitment({
       cfg,
       agentId,
@@ -300,7 +464,7 @@ export const tasksHandlers: GatewayRequestHandlers = {
     }
     respond(true, { commitment }, undefined);
   },
-  "tasks.task.patch": ({ params, respond }) => {
+  "tasks.task.patch": ({ params, respond, client }) => {
     if (!validateTasksTaskPatchParams(params)) {
       respond(
         false,
@@ -340,6 +504,19 @@ export const tasksHandlers: GatewayRequestHandlers = {
       agentId,
       taskId: p.taskId,
     });
+    if (
+      !ensureTaskAccess({
+        client,
+        respond,
+        cfg,
+        agentId,
+        taskId: p.taskId,
+        sessionKey: p.sessionKey,
+        task: existingTask,
+      })
+    ) {
+      return;
+    }
     if (!existingTask) {
       respond(
         false,

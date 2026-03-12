@@ -64,6 +64,7 @@ import {
   updateSkillEnabled,
 } from "./controllers/skills.ts";
 import { loadUsage, loadSessionTimeSeries, loadSessionLogs } from "./controllers/usage.ts";
+import { canUseTasksWorkbench } from "./gateway.ts";
 import { uiText } from "./i18n.ts";
 import { icons } from "./icons.ts";
 import {
@@ -317,6 +318,12 @@ export function renderApp(state: AppViewState) {
       </header>
       <aside class="nav ${state.settings.navCollapsed ? "nav--collapsed" : ""}">
         ${TAB_GROUPS.map((group) => {
+          const visibleTabs = group.tabs.filter(
+            (tab) => tab !== "tasks" || canUseTasksWorkbench(state.hello),
+          );
+          if (visibleTabs.length === 0) {
+            return nothing;
+          }
           const storedGroupCollapsed = state.settings.navGroupsCollapsed[group.label] ?? false;
           const isGroupCollapsed = state.settings.navCollapsed ? false : storedGroupCollapsed;
           const groupLabel = labelForTabGroup(group.label, state.uiLocale);
@@ -338,7 +345,7 @@ export function renderApp(state: AppViewState) {
                 <span class="nav-label__chevron">${isGroupCollapsed ? "+" : "-"}</span>
               </button>
               <div class="nav-group__items">
-                ${group.tabs.map((tab) => renderTab(state, tab))}
+                ${visibleTabs.map((tab) => renderTab(state, tab))}
               </div>
             </div>
           `;

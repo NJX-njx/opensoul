@@ -269,6 +269,7 @@ export async function executeHandoffDecision(params: {
       });
     } else {
       finalDecision = {
+        ...params.decision,
         mode: "control-ui",
         reason: `${params.decision.reason}; canvas unavailable`,
         controlUiUrl: params.decision.controlUiUrl,
@@ -317,6 +318,8 @@ export async function executeHandoffDecision(params: {
       canvasOpened,
       error: delivered.error,
       attempts: delivered.attempts,
+      policyMatch: finalDecision.policyMatch,
+      complexitySignals: finalDecision.complexitySignals,
     },
   });
   continuityLogger[delivered.ok ? "info" : "warn"]("handoff result", {
@@ -331,6 +334,8 @@ export async function executeHandoffDecision(params: {
     canvasOpened,
     attempts: delivered.attempts,
     error: delivered.error,
+    policyMatch: finalDecision.policyMatch,
+    complexitySignals: finalDecision.complexitySignals,
   });
 
   return finalDecision;

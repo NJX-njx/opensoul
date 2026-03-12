@@ -37,7 +37,8 @@ Last updated: 2026-03-12
 - Links many sessions and runs to one logical `taskId`.
 - Stores task records, task events, session links, and commitments under `src/continuity/`.
 - Subscribes to agent lifecycle events and derives continuity state from real execution, rather than relying on the model to remember or re-describe the task every turn.
-- Applies conservative system policy for DM -> Control UI and DM -> Canvas handoff, reusing the same `?session=` deep-link instead of introducing a separate task route in v1.
+- Applies conservative, config-driven policy for DM -> Control UI and DM -> Canvas handoff, reusing the same `?session=` deep-link instead of introducing a separate task route in v1.
+- The handoff policy lives under `gateway.controlUi.continuity.policy` and supports ordered rule matching by agent, channel, chat type, and account id so operators can tune cooldowns, thresholds, and disabled surfaces without code changes.
 
 ### Clients (mac app / CLI / web admin)
 

@@ -23,6 +23,64 @@ const TrustedProxySchema = z.string().refine((value) => {
   );
 }, "trusted proxy must be a specific IP address");
 
+const ControlUiContinuityChatTypeSchema = z.enum(["direct", "group", "channel"]);
+
+const ControlUiContinuityHandoffModeSchema = z.enum(["control-ui", "control-ui+canvas"]);
+
+const ControlUiContinuityHandoffSurfaceSchema = z.enum(["control-ui", "canvas"]);
+
+const ControlUiContinuityThresholdsSchema = z
+  .object({
+    assistantChars: z.number().int().nonnegative().optional(),
+    toolEvents: z.number().int().nonnegative().optional(),
+  })
+  .strict()
+  .optional();
+
+const ControlUiContinuitySignalsSchema = z
+  .object({
+    subagent: z.boolean().optional(),
+    comparison: z.boolean().optional(),
+  })
+  .strict()
+  .optional();
+
+const ControlUiContinuityPolicyRuleSchema = z
+  .object({
+    id: z.string().optional(),
+    enabled: z.boolean().optional(),
+    agents: z.array(z.string()).optional(),
+    channels: z.array(z.string()).optional(),
+    chatTypes: z.array(ControlUiContinuityChatTypeSchema).optional(),
+    accountIds: z.array(z.string()).optional(),
+    cooldownMs: z.number().int().nonnegative().optional(),
+    defaultMode: ControlUiContinuityHandoffModeSchema.optional(),
+    disabledSurfaces: z.array(ControlUiContinuityHandoffSurfaceSchema).optional(),
+    thresholds: ControlUiContinuityThresholdsSchema,
+    signals: ControlUiContinuitySignalsSchema,
+  })
+  .strict();
+
+const ControlUiContinuityPolicySchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    defaultMode: ControlUiContinuityHandoffModeSchema.optional(),
+    cooldownMs: z.number().int().nonnegative().optional(),
+    disabledSurfaces: z.array(ControlUiContinuityHandoffSurfaceSchema).optional(),
+    thresholds: ControlUiContinuityThresholdsSchema,
+    signals: ControlUiContinuitySignalsSchema,
+    rules: z.array(ControlUiContinuityPolicyRuleSchema).optional(),
+  })
+  .strict()
+  .optional();
+
+const ControlUiContinuitySchema = z
+  .object({
+    policy: ControlUiContinuityPolicySchema,
+  })
+  .strict()
+  .optional();
+
 const BrowserSnapshotDefaultsSchema = z
   .object({
     mode: z.literal("efficient").optional(),
@@ -397,6 +455,7 @@ export const OpenSoulSchema = z
             allowedOrigins: z.array(z.string()).optional(),
             allowInsecureAuth: z.boolean().optional(),
             dangerouslyDisableDeviceAuth: z.boolean().optional(),
+            continuity: ControlUiContinuitySchema,
           })
           .strict()
           .optional(),

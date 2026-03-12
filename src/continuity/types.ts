@@ -83,12 +83,21 @@ export type ContinuityRepairRecord = {
 
 export type HandoffMode = "none" | "control-ui" | "control-ui+canvas";
 
+export type HandoffTargetSurface = "control-ui" | "canvas";
+
+export type HandoffPolicyMatch = {
+  source: "default" | "rule";
+  ruleId?: string;
+};
+
 export type HandoffDecision = {
   mode: HandoffMode;
   reason: string;
   controlUiUrl?: string;
   canvasNodeId?: string;
   degradedFrom?: Exclude<HandoffMode, "none">;
+  complexitySignals?: string[];
+  policyMatch?: HandoffPolicyMatch;
 };
 
 export type TaskContextEnvelope = {

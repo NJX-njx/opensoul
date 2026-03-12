@@ -43,6 +43,14 @@ export type GatewayHelloOk = {
 
 export type GatewayConnectionPhase = "dialing" | "handshake" | "connected" | "reconnecting";
 
+export function helloHasScope(hello: GatewayHelloOk | null | undefined, scope: string): boolean {
+  return Boolean(hello?.auth?.scopes?.includes(scope));
+}
+
+export function canUseTasksWorkbench(hello: GatewayHelloOk | null | undefined): boolean {
+  return helloHasScope(hello, "operator.admin");
+}
+
 export type GatewayCloseInfo = {
   code: number;
   reason: string;

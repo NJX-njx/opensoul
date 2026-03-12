@@ -206,6 +206,34 @@ const FIELD_LABELS: Record<string, string> = {
   "gateway.controlUi.allowedOrigins": "Control UI Allowed Origins",
   "gateway.controlUi.allowInsecureAuth": "Allow Insecure Control UI Auth",
   "gateway.controlUi.dangerouslyDisableDeviceAuth": "Dangerously Disable Control UI Device Auth",
+  "gateway.controlUi.continuity": "Control UI Continuity",
+  "gateway.controlUi.continuity.policy": "Continuity Handoff Policy",
+  "gateway.controlUi.continuity.policy.enabled": "Enable Continuity Handoff Policy",
+  "gateway.controlUi.continuity.policy.defaultMode": "Default Continuity Handoff Mode",
+  "gateway.controlUi.continuity.policy.cooldownMs": "Continuity Handoff Cooldown (ms)",
+  "gateway.controlUi.continuity.policy.disabledSurfaces": "Disabled Continuity Surfaces",
+  "gateway.controlUi.continuity.policy.thresholds": "Continuity Complexity Thresholds",
+  "gateway.controlUi.continuity.policy.thresholds.assistantChars":
+    "Assistant Chars Complexity Threshold",
+  "gateway.controlUi.continuity.policy.thresholds.toolEvents": "Tool Events Complexity Threshold",
+  "gateway.controlUi.continuity.policy.signals": "Optional Continuity Signals",
+  "gateway.controlUi.continuity.policy.signals.subagent": "Use Subagent Signal",
+  "gateway.controlUi.continuity.policy.signals.comparison": "Use Comparison Signal",
+  "gateway.controlUi.continuity.policy.rules": "Ordered Continuity Policy Rules",
+  "gateway.controlUi.continuity.policy.rules[].id": "Continuity Policy Rule ID",
+  "gateway.controlUi.continuity.policy.rules[].enabled": "Enable Continuity Policy Rule",
+  "gateway.controlUi.continuity.policy.rules[].agents": "Match Agents",
+  "gateway.controlUi.continuity.policy.rules[].channels": "Match Channels",
+  "gateway.controlUi.continuity.policy.rules[].chatTypes": "Match Chat Types",
+  "gateway.controlUi.continuity.policy.rules[].accountIds": "Match Account IDs",
+  "gateway.controlUi.continuity.policy.rules[].defaultMode": "Rule Default Handoff Mode",
+  "gateway.controlUi.continuity.policy.rules[].cooldownMs": "Rule Handoff Cooldown (ms)",
+  "gateway.controlUi.continuity.policy.rules[].disabledSurfaces": "Rule Disabled Surfaces",
+  "gateway.controlUi.continuity.policy.rules[].thresholds.assistantChars":
+    "Rule Assistant Chars Threshold",
+  "gateway.controlUi.continuity.policy.rules[].thresholds.toolEvents": "Rule Tool Events Threshold",
+  "gateway.controlUi.continuity.policy.rules[].signals.subagent": "Rule Uses Subagent Signal",
+  "gateway.controlUi.continuity.policy.rules[].signals.comparison": "Rule Uses Comparison Signal",
   "gateway.http.endpoints.chatCompletions.enabled": "OpenAI Chat Completions Endpoint",
   "gateway.reload.mode": "Config Reload Mode",
   "gateway.reload.debounceMs": "Config Reload Debounce (ms)",
@@ -431,6 +459,47 @@ const FIELD_HELP: Record<string, string> = {
     "Allow Control UI auth over insecure HTTP (token-only; not recommended).",
   "gateway.controlUi.dangerouslyDisableDeviceAuth":
     "DANGEROUS. Disable Control UI device identity checks (token/password only).",
+  "gateway.controlUi.continuity.policy.enabled":
+    "Master switch for automatic direct-chat -> Control UI continuity handoff.",
+  "gateway.controlUi.continuity.policy.defaultMode":
+    'Preferred richer surface when the policy fires ("control-ui" or "control-ui+canvas").',
+  "gateway.controlUi.continuity.policy.cooldownMs":
+    "Suppress repeated handoffs for the same task inside this cooldown window.",
+  "gateway.controlUi.continuity.policy.disabledSurfaces":
+    'Disable specific richer surfaces globally (for example ["canvas"]).',
+  "gateway.controlUi.continuity.policy.thresholds.assistantChars":
+    "Minimum assistant chars before the run counts as complex enough for handoff.",
+  "gateway.controlUi.continuity.policy.thresholds.toolEvents":
+    "Minimum tool events before the run counts as complex enough for handoff.",
+  "gateway.controlUi.continuity.policy.signals.subagent":
+    "Whether subagent usage should count as a complexity signal.",
+  "gateway.controlUi.continuity.policy.signals.comparison":
+    "Whether compare / multi-option assistant output should count as a complexity signal.",
+  "gateway.controlUi.continuity.policy.rules":
+    "Ordered overrides; the first matching rule wins and can change thresholds, cooldown, mode, or disable handoff.",
+  "gateway.controlUi.continuity.policy.rules[].id":
+    "Optional stable rule id used in continuity logs and diagnostics.",
+  "gateway.controlUi.continuity.policy.rules[].agents": "Only match these agent ids.",
+  "gateway.controlUi.continuity.policy.rules[].channels":
+    "Only match these channels (telegram, discord, slack, ...).",
+  "gateway.controlUi.continuity.policy.rules[].chatTypes":
+    'Only match these chat types ("direct", "group", "channel"). Group/channel remain conservative and do not bypass direct-chat safety checks.',
+  "gateway.controlUi.continuity.policy.rules[].accountIds":
+    "Only match these account ids for multi-account channels.",
+  "gateway.controlUi.continuity.policy.rules[].defaultMode":
+    "Override the preferred richer surface for matching traffic.",
+  "gateway.controlUi.continuity.policy.rules[].cooldownMs":
+    "Override handoff cooldown for matching traffic.",
+  "gateway.controlUi.continuity.policy.rules[].disabledSurfaces":
+    "Disable specific richer surfaces for matching traffic.",
+  "gateway.controlUi.continuity.policy.rules[].thresholds.assistantChars":
+    "Override the assistant char threshold for matching traffic.",
+  "gateway.controlUi.continuity.policy.rules[].thresholds.toolEvents":
+    "Override the tool event threshold for matching traffic.",
+  "gateway.controlUi.continuity.policy.rules[].signals.subagent":
+    "Override whether subagent usage counts as a signal for matching traffic.",
+  "gateway.controlUi.continuity.policy.rules[].signals.comparison":
+    "Override whether compare / multi-option output counts as a signal for matching traffic.",
   "gateway.http.endpoints.chatCompletions.enabled":
     "Enable the OpenAI-compatible `POST /v1/chat/completions` endpoint (default: false).",
   "gateway.reload.mode": 'Hot reload strategy for config changes ("hybrid" recommended).',
@@ -775,6 +844,9 @@ const FIELD_PLACEHOLDERS: Record<string, string> = {
   "gateway.controlUi.basePath": "/opensoul",
   "gateway.controlUi.root": "dist/control-ui",
   "gateway.controlUi.allowedOrigins": "https://control.example.com",
+  "gateway.controlUi.continuity.policy.rules[].agents": "main",
+  "gateway.controlUi.continuity.policy.rules[].channels": "telegram",
+  "gateway.controlUi.continuity.policy.rules[].accountIds": "work",
   "channels.mattermost.baseUrl": "https://chat.example.com",
   "agents.list[].identity.avatar": "avatars/opensoul.png",
 };

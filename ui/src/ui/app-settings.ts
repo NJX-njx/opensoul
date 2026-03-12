@@ -25,6 +25,7 @@ import { loadSessions } from "./controllers/sessions.ts";
 import { loadSkills } from "./controllers/skills.ts";
 import { loadTasksWorkbench } from "./controllers/tasks.ts";
 import { sendTabChanged, sendThemeChanged } from "./desktop-bridge.ts";
+import { canUseTasksWorkbench, type GatewayHelloOk } from "./gateway.ts";
 import {
   inferBasePathFromPathname,
   normalizeBasePath,
@@ -50,6 +51,7 @@ type SettingsHost = {
   tab: Tab;
   connected: boolean;
   uiLocale?: Locale;
+  hello: GatewayHelloOk | null;
   chatHasAutoScrolled: boolean;
   logsAtBottom: boolean;
   eventLog: unknown[];
@@ -215,6 +217,10 @@ export async function refreshActiveTab(host: SettingsHost) {
     await loadSessions(host as unknown as OpenSoulApp);
   }
   if (host.tab === "tasks") {
+    if (!canUseTasksWorkbench(host.hello)) {
+      setTab(host, "chat");
+      return;
+    }
     await loadAgents(host as unknown as OpenSoulApp);
     await loadTasksWorkbench(host as unknown as OpenSoulApp);
   }

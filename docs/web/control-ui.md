@@ -70,7 +70,7 @@ you revoke it with `opensoul devices revoke --device <id> --role <role>`. See
 - Channels: WhatsApp/Telegram/Discord/Slack + plugin channels (Mattermost, etc.) status + QR login + per-channel config (`channels.status`, `web.login.*`, `config.patch`)
 - Instances: presence list + refresh (`system-presence`)
 - Sessions: list + per-session thinking/verbose overrides (`sessions.list`, `sessions.patch`)
-- Task continuity cockpit: rich direct-chat runs can deep-link into `chat?session=...`; the chat page right rail shows task status, commitments, event timeline, and surface track for the active session
+- Task continuity cockpit: rich direct-chat runs can deep-link into `chat?session=...`; the chat page right rail shows task status, commitments, event timeline, and surface track for the active session, and the top-level `Tasks` tab exposes the same continuity model across sessions and agents
 - Read-only task continuity APIs: `tasks.list`, `tasks.get`, `tasks.events`, `tasks.commitments`
 - Cron jobs: list/add/run/enable/disable + run history (`cron.*`)
 - Skills: status, enable/disable, install, API key updates (`skills.*`)
@@ -102,6 +102,51 @@ On the `chat` view, the right rail now combines:
 The rail is session-scoped. It first loads tasks with `tasks.list({ sessionKey })`, then loads the selected task's events and commitments with `tasks.events` and `tasks.commitments`.
 
 Deep links from direct-chat handoff land in the same `chat?session=...` view, so transcript history and continuity state stay aligned instead of branching into a separate task page.
+
+## Continuity handoff policy
+
+Automatic direct-chat handoff into the browser is configurable under
+`gateway.controlUi.continuity.policy`.
+
+- Missing or partial config falls back to the current alpha behavior.
+- Rules are evaluated top-down; the first match wins.
+- Rules can match on `agents`, `channels`, `chatTypes`, and `accountIds`.
+- Each rule can override cooldown, complexity thresholds, disabled surfaces,
+  and the preferred handoff mode.
+- `chatTypes` can scope rules, but group/channel traffic still stays behind the
+  v1 direct-chat safety gate.
+
+Example:
+
+```json5
+{
+  gateway: {
+    controlUi: {
+      publicUrl: "https://control.example.com/opensoul",
+      continuity: {
+        policy: {
+          defaultMode: "control-ui+canvas",
+          cooldownMs: 300000,
+          thresholds: {
+            assistantChars: 1200,
+            toolEvents: 6,
+          },
+          rules: [
+            {
+              id: "telegram-work-dm",
+              agents: ["main"],
+              channels: ["telegram"],
+              chatTypes: ["direct"],
+              accountIds: ["work"],
+              disabledSurfaces: ["canvas"],
+            },
+          ],
+        },
+      },
+    },
+  },
+}
+```
 
 ## Chat behavior
 
