@@ -2,7 +2,7 @@
 read_when:
   - 你想通过 Tailscale 访问 Gateway 网关
   - 你想使用浏览器 Control UI 和配置编辑
-summary: Gateway 网关 Web 界面：Control UI、绑定模式和安全
+summary: Gateway 网关 Web 界面：Control UI、任务连续性操作台、绑定模式和安全
 title: Web
 x-i18n:
   generated_at: "2026-02-03T10:13:29Z"
@@ -21,6 +21,7 @@ Gateway 网关从与 Gateway 网关 WebSocket 相同的端口提供一个小型*
 - 可选前缀：设置 `gateway.controlUi.basePath`（例如 `/opensoul`）
 
 功能详见 [Control UI](/web/control-ui)。
+浏览器聊天页现在也是跨表面任务连续性的主要操作台，而不只是一个简单网页聊天窗口。
 本页重点介绍绑定模式、安全和面向 Web 的界面。
 
 ## Webhooks

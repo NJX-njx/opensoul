@@ -2,7 +2,7 @@
 read_when:
   - 你想从浏览器操作 Gateway 网关
   - 你想要无需 SSH 隧道的 Tailnet 访问
-summary: Gateway 网关的浏览器控制 UI（聊天、节点、配置）
+summary: Gateway 网关的浏览器控制 UI（聊天、任务连续性、节点、配置）
 title: 控制 UI
 x-i18n:
   generated_at: "2026-02-03T10:13:20Z"
@@ -21,6 +21,8 @@ x-i18n:
 - 可选前缀：设置 `gateway.controlUi.basePath`（例如 `/opensoul`）
 
 它**直接与同一端口上的 Gateway 网关 WebSocket** 通信。
+
+Control UI 现在也是**跨表面任务连续性**最主要的可见界面。`chat` 视图可以在右侧 rail 中展示当前会话的任务列表、承诺、事件时间线和表面 handoff 轨迹。
 
 ## 快速打开（本地）
 
@@ -68,6 +70,8 @@ opensoul devices approve <requestId>
 - 渠道：WhatsApp/Telegram/Discord/Slack + 插件渠道（Mattermost 等）状态 + QR 登录 + 每渠道配置（`channels.status`、`web.login.*`、`config.patch`）
 - 实例：在线列表 + 刷新（`system-presence`）
 - 会话：列表 + 每会话思考/详细覆盖（`sessions.list`、`sessions.patch`）
+- 任务连续性操作台：复杂的直接聊天运行可以 deep-link 到 `chat?session=...`；聊天页右侧 rail 会展示当前会话的任务状态、承诺、事件时间线和表面轨迹
+- 只读任务连续性 API：`tasks.list`、`tasks.get`、`tasks.events`、`tasks.commitments`
 - 定时任务：列出/添加/运行/启用/禁用 + 运行历史（`cron.*`）
 - Skills：状态、启用/禁用、安装、API 密钥更新（`skills.*`）
 - 节点：列表 + 能力（`node.list`）
@@ -80,11 +84,26 @@ opensoul devices approve <requestId>
 - 日志：Gateway 网关文件日志的实时尾部跟踪，带过滤/导出（`logs.tail`）
 - 更新：运行包/git 更新 + 重启（`update.run`）并显示重启报告
 
+## 任务连续性 rail
+
+在 `chat` 视图中，右侧 rail 现在会组合显示：
+
+- 当前 `sessionKey` 下的任务列表
+- 选中任务的摘要和状态
+- 承诺与后续事项
+- 横跨直接聊天、Control UI、Canvas、cron 和子代理的表面轨迹
+- 事件时间线；点击事件会复用现有侧栏显示详情
+
+这个 rail 是 session-scoped 的。它会先通过 `tasks.list({ sessionKey })` 加载任务，再通过 `tasks.events` 和 `tasks.commitments` 加载选中任务的事件和承诺。
+
+从直接聊天 handoff 过来的 deep-link 会落在同一个 `chat?session=...` 视图，因此 transcript 与连续性状态始终保持对齐，而不会跳到另一套独立任务页面。
+
 ## 聊天行为
 
 - `chat.send` 是**非阻塞的**：它立即以 `{ runId, status: "started" }` 确认，响应通过 `chat` 事件流式传输。
 - 使用相同的 `idempotencyKey` 重新发送在运行时返回 `{ status: "in_flight" }`，完成后返回 `{ status: "ok" }`。
 - `chat.inject` 将助手备注附加到会话转录，并为仅 UI 更新广播 `chat` 事件（无智能体运行，无渠道投递）。
+- 当活动会话里的聊天运行结束后，Control UI 会刷新连续性 rail，让新事件、承诺和 handoff 状态无需离开聊天页就能显示出来。
 - 停止：
   - 点击**停止**（调用 `chat.abort`）
   - 输入 `/stop`（或 `stop|esc|abort|wait|exit|interrupt`）以带外中止

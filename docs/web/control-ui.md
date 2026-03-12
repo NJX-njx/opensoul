@@ -1,5 +1,5 @@
 ---
-summary: "Browser-based control UI for the Gateway (chat, nodes, config)"
+summary: "Browser-based control UI for the Gateway, chat operations, and task continuity"
 read_when:
   - You want to operate the Gateway from a browser
   - You want Tailnet access without SSH tunnels
@@ -15,6 +15,8 @@ The Control UI is a small **Vite + Lit** single-page app served by the Gateway:
 - public deep-link origin: set `gateway.controlUi.publicUrl` when agents should hand users off from chat into the browser UI
 
 It speaks **directly to the Gateway WebSocket** on the same port.
+
+The Control UI is also the main visible surface for **cross-surface task continuity**. The `chat` view can now show the current session's task list, commitments, event timeline, and surface handoff trail in a right-side operator rail.
 
 ## Quick open (local)
 
@@ -68,7 +70,8 @@ you revoke it with `opensoul devices revoke --device <id> --role <role>`. See
 - Channels: WhatsApp/Telegram/Discord/Slack + plugin channels (Mattermost, etc.) status + QR login + per-channel config (`channels.status`, `web.login.*`, `config.patch`)
 - Instances: presence list + refresh (`system-presence`)
 - Sessions: list + per-session thinking/verbose overrides (`sessions.list`, `sessions.patch`)
-- Task continuity handoff target: rich direct-chat runs can deep-link into `chat?session=...`; the Gateway also exposes read-only task continuity APIs (`tasks.list`, `tasks.get`, `tasks.events`)
+- Task continuity cockpit: rich direct-chat runs can deep-link into `chat?session=...`; the chat page right rail shows task status, commitments, event timeline, and surface track for the active session
+- Read-only task continuity APIs: `tasks.list`, `tasks.get`, `tasks.events`, `tasks.commitments`
 - Cron jobs: list/add/run/enable/disable + run history (`cron.*`)
 - Skills: status, enable/disable, install, API key updates (`skills.*`)
 - Nodes: list + caps (`node.list`)
@@ -86,11 +89,26 @@ Cron jobs panel notes:
 - For isolated jobs, delivery defaults to announce summary. You can switch to none if you want internal-only runs.
 - Channel/target fields appear when announce is selected.
 
+## Task continuity rail
+
+On the `chat` view, the right rail now combines:
+
+- task list for the current `sessionKey`
+- selected task summary and status
+- commitments and follow-ups
+- surface track across direct chat, Control UI, Canvas, cron, and subagents
+- event timeline; clicking an event opens the existing sidebar detail view
+
+The rail is session-scoped. It first loads tasks with `tasks.list({ sessionKey })`, then loads the selected task's events and commitments with `tasks.events` and `tasks.commitments`.
+
+Deep links from direct-chat handoff land in the same `chat?session=...` view, so transcript history and continuity state stay aligned instead of branching into a separate task page.
+
 ## Chat behavior
 
 - `chat.send` is **non-blocking**: it acks immediately with `{ runId, status: "started" }` and the response streams via `chat` events.
 - Re-sending with the same `idempotencyKey` returns `{ status: "in_flight" }` while running, and `{ status: "ok" }` after completion.
 - `chat.inject` appends an assistant note to the session transcript and broadcasts a `chat` event for UI-only updates (no agent run, no channel delivery).
+- When a chat run completes for the active session, the Control UI refreshes the continuity rail so new events, commitments, and handoff state become visible without leaving the chat view.
 - Stop:
   - Click **Stop** (calls `chat.abort`)
   - Type `/stop` (or `stop|esc|abort|wait|exit|interrupt`) to abort out-of-band

@@ -1,5 +1,5 @@
 ---
-summary: "Gateway web surfaces: Control UI, bind modes, and security"
+summary: "Gateway web surfaces: Control UI, task continuity cockpit, bind modes, and security"
 read_when:
   - You want to access the Gateway over Tailscale
   - You want the browser Control UI and config editing
@@ -14,6 +14,7 @@ The Gateway serves a small **browser Control UI** (Vite + Lit) from the same por
 - optional prefix: set `gateway.controlUi.basePath` (e.g. `/opensoul`)
 
 Capabilities live in [Control UI](/web/control-ui).
+The browser chat view is also the main operator cockpit for **cross-surface task continuity**, not just a simple web chat.
 This page focuses on bind modes, security, and web-facing surfaces.
 
 ## Webhooks

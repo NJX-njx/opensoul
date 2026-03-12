@@ -14,6 +14,7 @@ Goal: go from zero to a first working chat with minimal setup.
 Fastest chat: open the Control UI (no channel setup needed). Run `opensoul dashboard`
 and chat in the browser, or open `http://127.0.0.1:18789/` on the
 <Tooltip headline="Gateway host" tip="The machine running the OpenSoul gateway service.">gateway host</Tooltip>.
+The chat page is also the main task continuity surface: when work turns into a long-running task, the right rail shows status, commitments, timeline, and handoff history.
 Docs: [Dashboard](/web/dashboard) and [Control UI](/web/control-ui).
 </Info>
 
@@ -30,6 +31,7 @@ For deeper reference, see: [Wizard](/start/wizard), [Setup](/start/setup), [Pair
 For Soulmate flow and recovery actions, see [Create Soulmate](/guides/create-soulmate).
 
 ### Sandbox Note
+
 `agents.defaults.sandbox.mode: "non-main"` uses `session.mainKey` (default `"main"`), so group/channel sessions are sandboxed. If you want a main agent to always run on the host, set an explicit per-agent override:
 
 ```json
@@ -80,6 +82,7 @@ opensoul onboard --install-daemon
 ```
 
 You will choose:
+
 - **Local vs Remote** Gateway.
 - **Auth**: Anthropic API key (recommended) or OAuth.
 - **Providers**: WhatsApp QR login, Telegram/Discord bot tokens, etc.
@@ -97,6 +100,7 @@ opensoul gateway status
 ```
 
 Manual run (foreground):
+
 ```bash
 opensoul gateway --port 18789 --verbose
 ```
@@ -104,13 +108,17 @@ opensoul gateway --port 18789 --verbose
 ## 4) Pair + Connect your first chat
 
 ### WhatsApp (QR login)
+
 ```bash
 opensoul channels login
 ```
+
 Scan via WhatsApp -> Settings -> Linked Devices. See [WhatsApp](/channels/whatsapp).
 
 ### Telegram / Discord / Others
+
 The wizard can write tokens/config for you. If you prefer manual setup:
+
 - [Telegram](/channels/telegram)
 - [Discord](/channels/discord)
 
@@ -124,6 +132,7 @@ Default stance: unknown DMs get a shortcode and messages aren't processed until 
 opensoul pairing list whatsapp
 opensoul pairing approve whatsapp <code>
 ```
+
 See [Pairing](/channels/pairing).
 
 ## From source (Dev)

@@ -1,7 +1,7 @@
 ---
 read_when:
   - 正在开发 Gateway 网关协议、客户端或传输层
-summary: WebSocket Gateway 网关架构、组件和客户端流程
+summary: WebSocket Gateway 网关架构、任务连续性层、组件和客户端流程
 title: Gateway 网关架构
 x-i18n:
   generated_at: "2026-02-03T07:45:55Z"
@@ -14,7 +14,7 @@ x-i18n:
 
 # Gateway 网关架构
 
-最后更新：2026-01-22
+最后更新：2026-03-12
 
 ## 概述
 
@@ -23,6 +23,8 @@ x-i18n:
 - **节点**（macOS/iOS/Android/无头设备）也通过 **WebSocket** 连接，但声明 `role: node` 并带有明确的能力/命令。
 - 每台主机一个 Gateway 网关；它是唯一打开 WhatsApp 会话的位置。
 - **canvas 主机**（默认 `18793`）提供智能体可编辑的 HTML 和 A2UI。
+- 长时间运行的工作现在可以作为任务连续性状态（`tasks`、任务事件、承诺）被跟踪，因此一个智能体可以在私信、Control UI、cron、子代理和 canvas handoff 之间保持同一项任务。
+- 任务连续性使用专门的运行态 SQLite 存储，与 markdown memory 分离，因为它描述的是“当前正在推进的工作”，而不是长期知识。
 
 ## 组件和流程
 
@@ -33,11 +35,20 @@ x-i18n:
 - 根据 JSON Schema 验证入站帧。
 - 发出事件如 `agent`、`chat`、`presence`、`health`、`heartbeat`、`cron`。
 
+### 任务连续性层
+
+- 把多个会话和运行链接到同一个逻辑 `taskId`。
+- 在 `src/continuity/` 下存储任务记录、任务事件、会话关联和承诺。
+- 订阅智能体生命周期事件，从真实执行过程派生连续性状态，而不是依赖模型每轮重新“口头复述”任务。
+- 对 DM -> Control UI 和 DM -> Canvas handoff 应用保守的系统策略，在 v1 中复用同一个 `?session=` deep-link，而不是单独引入任务页面路由。
+
 ### 客户端（mac 应用 / CLI / web 管理）
 
 - 每个客户端一个 WS 连接。
 - 发送请求（`health`、`status`、`send`、`agent`、`system-presence`）。
 - 订阅事件（`tick`、`agent`、`presence`、`shutdown`）。
+- 通过 `tasks.list`、`tasks.get`、`tasks.events` 和 `tasks.commitments` 读取任务连续性状态。
+- Control UI 聊天页现在是面向操作员的主要连续性可视化界面：它会展示当前会话的任务 rail、状态、承诺、事件时间线和表面轨迹。
 
 ### 节点（macOS / iOS / Android / 无头设备）
 

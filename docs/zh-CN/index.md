@@ -1,7 +1,7 @@
 ---
 read_when:
   - 向新用户介绍 OpenSoul
-summary: OpenSoul — 你的 AI 灵魂伴侣。自托管 AI 智能体，支持 30+ 消息渠道。
+summary: OpenSoul — 面向跨表面任务连续性的自托管 AI 智能体运行时。
 title: OpenSoul
 x-i18n:
   generated_at: "2026-02-04T17:53:40Z"
@@ -32,9 +32,9 @@ x-i18n:
 > _"去壳！去壳！"_ — 大概是一只太空龙虾说的
 
 <p align="center">
-  <strong>你的 AI 灵魂伴侣 — 聊天、协作、创造。</strong><br />
-  自托管 AI 智能体，支持 WhatsApp、Telegram、Discord、Slack 等 30+ 渠道。
-  生活与工作中的个人 AI 伴侣。
+  <strong>一个智能体，多种表面，一条连续的任务生命线。</strong><br />
+  面向跨表面任务连续性的自托管 AI 智能体运行时，覆盖聊天应用、Control UI、Canvas、cron 和配对设备。<br />
+  从私信开始，切到浏览器继续，承诺、事件与 handoff 全程可见。
 </p>
 
 <Columns>
@@ -45,11 +45,11 @@ x-i18n:
     通过 `opensoul onboard` 和配对流程进行引导式设置。
   </Card>
   <Card title="打开控制界面" href="/web/control-ui" icon="layout-dashboard">
-    启动浏览器仪表板，管理聊天、配置和会话。
+    打开浏览器操作台，查看聊天、任务连续性、配置和会话。
   </Card>
 </Columns>
 
-OpenSoul 通过单个 Gateway 网关进程将聊天应用连接到 Pi 等 AI 智能体。支持情感陪伴、生产力协作和编程辅助，可本地或远程部署。
+OpenSoul 通过单个 Gateway 网关进程把聊天应用、浏览器界面、Canvas、自动化和设备表面连接到同一个智能体运行时。重点不再只是“多渠道都能聊天”，而是让同一项任务在不同表面之间持续推进而不丢状态。
 
 ## 工作原理
 
@@ -57,19 +57,24 @@ OpenSoul 通过单个 Gateway 网关进程将聊天应用连接到 Pi 等 AI 智
 flowchart LR
   A["Chat apps + plugins"] --> B["Gateway"]
   B --> C["Pi agent"]
-  B --> D["CLI"]
-  B --> E["Web Control UI"]
-  B --> F["macOS app"]
-  B --> G["iOS and Android nodes"]
+  B --> D["Task Continuity Engine"]
+  B --> E["CLI"]
+  B --> F["Web Control UI"]
+  D --> F
+  B --> G["macOS app"]
+  B --> H["iOS and Android nodes"]
 ```
 
-Gateway 网关是会话、路由和渠道连接的唯一事实来源。
+Gateway 网关是会话、路由、渠道连接与任务连续性状态的唯一事实来源。
 
 ## 核心功能
 
 <Columns>
+  <Card title="任务连续性" icon="route">
+    同一项任务可以在私信、Control UI、Canvas、cron 和子代理之间持续推进。
+  </Card>
   <Card title="多渠道 Gateway 网关" icon="network">
-    通过单个 Gateway 网关进程连接 WhatsApp、Telegram、Discord 和 iMessage。
+    WhatsApp、Telegram、Discord、Slack 等只是进入同一运行时的传输层。
   </Card>
   <Card title="插件渠道" icon="plug">
     通过扩展包添加 Mattermost 等更多渠道。
@@ -77,11 +82,11 @@ Gateway 网关是会话、路由和渠道连接的唯一事实来源。
   <Card title="多智能体路由" icon="route">
     按智能体、工作区或发送者隔离会话。
   </Card>
-  <Card title="媒体支持" icon="image">
-    发送和接收图片、音频和文档。
+  <Card title="可见的操作侧栏" icon="monitor">
+    Control UI 聊天页右侧展示任务状态、承诺、事件时间线和表面切换轨迹。
   </Card>
   <Card title="Web 控制界面" icon="monitor">
-    浏览器仪表板，用于聊天、配置、会话和节点管理。
+    浏览器操作台，用于聊天、连续性查看、配置、会话和节点管理。
   </Card>
   <Card title="移动节点" icon="smartphone">
     配对 iOS 和 Android 节点，支持 Canvas。
@@ -117,6 +122,7 @@ Gateway 网关启动后，打开浏览器控制界面。
 
 - 本地默认地址：http://127.0.0.1:18789/
 - 远程访问：[Web 界面](/web)和 [Tailscale](/gateway/tailscale)
+- 聊天页现在也是任务连续性的主界面：右侧 rail 会展示当前任务、承诺、事件时间线和 handoff 轨迹。
 
 ## 配置（可选）
 
@@ -166,7 +172,7 @@ Gateway 网关启动后，打开浏览器控制界面。
 
 <Columns>
   <Card title="完整功能列表" href="/concepts/features" icon="list">
-    全部渠道、路由和媒体功能。
+    任务连续性、渠道、路由和操作界面能力总览。
   </Card>
   <Card title="多智能体路由" href="/concepts/multi-agent" icon="route">
     工作区隔离和按智能体的会话管理。

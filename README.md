@@ -3,9 +3,9 @@
 </p>
 
 <p align="center">
-  <strong>Your AI Soul Companion — Chat, Collaborate, Create</strong><br>
-  Self-hosted AI agent gateway across WhatsApp, Telegram, Discord, Slack, iMessage, and 30+ channels.<br>
-  One gateway, multiple channels, full control over data, routing, and extensibility.
+  <strong>One agent, many surfaces, one continuous task life.</strong><br>
+  Self-hosted AI agent runtime for cross-surface task continuity across chat apps, Control UI, Canvas, cron, and paired devices.<br>
+  Start in a DM, hand off into the browser, keep commitments and event history visible, and let the same task continue running.
 </p>
 
 <p align="center">
@@ -31,20 +31,20 @@
 
 ## Overview
 
-OpenSoul is a **self-hosted AI agent gateway**. Run one gateway process and talk to the same agent across WhatsApp, Telegram, Discord, Slack, iMessage, and many more channels.
+OpenSoul is a **self-hosted AI agent runtime for cross-surface task continuity**. It does more than mirror the same bot into many channels: one agent can start in WhatsApp, Telegram, Discord, Slack, or the Control UI, then keep the same task alive as work moves into Canvas, cron, subagents, and follow-up sessions.
 
-It is a **local-first control plane**: channel adapters connect into one runtime where you control model routing, memory, tools, and security boundaries. The project includes the gateway, Web Control UI, CLI/TUI workflows, and native clients.
+It is a **local-first control plane**: channel adapters, task continuity state, model routing, memory, tools, and security boundaries all live in one runtime that you control. The project includes the gateway, Web Control UI, CLI/TUI workflows, and native clients.
 
 ## What's New
 
 Based on recent updates in [CHANGELOG](CHANGELOG.md):
 
-### Latest maintenance updates (2026-03-09)
+### Latest product direction (2026-03-12)
 
-- **Install & release reliability**: pinned install-smoke CI to Node 22, standardized public install URLs on `opensoul.ai`, and added retry/timeout handling for Docker smoke coverage.
-- **CLI & packaging**: published to public npm, added a friendly Node version check, expanded `opensoul --help` environment docs, and improved plugin shortname resolution.
-- **Runtime safety**: hardened WebSocket limits and keepalive, durable transcript writes, safer embedded runner CWD handling, and plugin auto-disable after repeated runtime failures.
-- **Docs & onboarding**: added beginner deployment and Create Soulmate guides, plus clearer Control UI error messages.
+- **Cross-surface task continuity**: introduced operational task state (`tasks`, task events, commitments) so one agent can keep the same work alive across direct chat, Control UI, Canvas, cron, and subagents.
+- **System-driven handoff**: direct-chat work can now be handed off into a deep-linked Control UI session, with Canvas opening that same session context instead of branching into a separate workflow.
+- **Visible continuity UI**: the Control UI chat page now exposes a right rail with task status, commitments, event timeline, and surface handoff track, so the feature is visible instead of purely architectural.
+- **Read-only task APIs**: clients can inspect continuity state through `tasks.list`, `tasks.get`, `tasks.events`, and `tasks.commitments`.
 
 ### Recent release highlights (0.2.4)
 
@@ -94,6 +94,15 @@ $env:OPENAI_API_KEY = "your-api-key"
 node scripts/run-node.mjs --dev gateway
 ```
 
+### See the flagship experience
+
+After `pnpm gateway:dev`, open `http://127.0.0.1:19001/` and use the Chat page. When a conversation turns into a real task, the right rail shows:
+
+- current task status
+- commitments and follow-ups
+- event timeline
+- surface handoff trail across direct chat, Control UI, Canvas, cron, and subagents
+
 ### Install and run via CLI
 
 ```bash
@@ -142,11 +151,13 @@ pnpm test
 flowchart LR
   A["Channels / Channel Plugins"] --> B["Gateway"]
   B --> C["Agent Runtime (pi-ai)"]
-  B --> D["Memory & Storage"]
-  B --> E["Skills & Tools"]
-  B --> F["Web Control UI"]
-  B --> G["CLI / TUI"]
-  B --> H["Native Apps"]
+  B --> D["Task Continuity Engine"]
+  B --> E["Memory & Storage"]
+  B --> F["Skills & Tools"]
+  B --> G["Web Control UI"]
+  D --> G
+  B --> H["CLI / TUI"]
+  B --> I["Native Apps"]
 ```
 
 ### Core modules
@@ -155,15 +166,17 @@ flowchart LR
 | ------------------ | -------------------------------------- | ------------------------------------------------------- |
 | Gateway            | `src/gateway`                          | HTTP/WS server, orchestration, sidecars                 |
 | Agent Runtime      | `src/agents`                           | Session execution, tool injection, runtime integration  |
+| Task Continuity    | `src/continuity`                       | Tasks, commitments, task events, handoff policy         |
 | Routing            | `src/routing`                          | Message-to-agent/session resolution                     |
 | Plugins & Channels | `src/plugins`, `src/_`, `extensions/_` | Plugin loading, channel adapters, protocol integrations |
 | Memory             | `src/memory`                           | Long-term memory and storage                            |
-| UI & Apps          | `ui/`, `apps/`                         | Web Control UI and native clients                       |
+| UI & Apps          | `ui/`, `apps/`                         | Web Control UI, continuity rail, and native clients     |
 
 ### Repository layout
 
 ```text
 src/           Core gateway, runtime, routing, config, plugins
+src/continuity Operational task state, events, commitments, handoff policy
 extensions/    External channel/provider/hook plugins
 ui/            Web Control UI assets and app
 skills/        Built-in skills

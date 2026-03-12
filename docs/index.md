@@ -1,5 +1,5 @@
 ---
-summary: "OpenSoul — Your AI Soul Companion. Self-hosted AI agent across 30+ messaging channels."
+summary: "OpenSoul — self-hosted AI agent runtime for cross-surface task continuity."
 read_when:
   - Introducing OpenSoul to newcomers
 title: "OpenSoul"
@@ -23,9 +23,9 @@ title: "OpenSoul"
 </p>
 
 <p align="center">
-  <strong>Your AI Soul Companion — Chat, Collaborate, Create.</strong><br />
-  Self-hosted AI agent gateway across WhatsApp, Telegram, Discord, Slack, iMessage, and 30+ more channels.<br />
-  One gateway, multiple channels, full control over data, routing, and extensibility.
+  <strong>One agent, many surfaces, one continuous task life.</strong><br />
+  Self-hosted AI agent runtime for cross-surface task continuity across chat apps, Control UI, Canvas, cron, and paired devices.<br />
+  Start in a DM, hand off into the browser, keep commitments and event history visible, and let the same task continue running.
 </p>
 
 <Columns>
@@ -36,20 +36,21 @@ title: "OpenSoul"
     Guided setup with `opensoul onboard` and pairing flows.
   </Card>
   <Card title="Open the Control UI" href="/web/control-ui" icon="layout-dashboard">
-    Launch the browser dashboard for chat, config, and sessions.
+    Launch the browser cockpit for chat, continuity, config, and sessions.
   </Card>
 </Columns>
 
 ## What is OpenSoul?
 
-OpenSoul is a **self-hosted AI agent gateway** that connects your favorite chat apps — WhatsApp, Telegram, Discord, Slack, iMessage, and 30+ more — to AI agents. You run a single Gateway process on your own machine (or a server), and it becomes the bridge between your messaging apps and an always-available AI companion.
+OpenSoul is a **self-hosted AI agent runtime for cross-surface task continuity**. You run a single Gateway process on your own machine (or a server), and one agent can keep the same task alive as work moves across WhatsApp, Telegram, Discord, Slack, the Web Control UI, Canvas, cron, and paired devices.
 
-**Who is it for?** Anyone who wants a personal AI companion they can message from anywhere — for emotional support, productivity, or coding — without giving up control of their data or relying on a hosted service.
+**Who is it for?** Anyone who wants an agent that can stay on the same task across surfaces — chat, browser, device, automation, and follow-up — without giving up control of their data or relying on a hosted control plane.
 
 **What makes it different?**
 
-- **Self-hosted**: runs on your hardware, your rules — no data leaves your network
-- **Multi-channel**: one Gateway serves WhatsApp, Telegram, Discord, Slack, and 30+ channels simultaneously
+- **Cross-surface task continuity**: one agent, many surfaces, one task state with commitments, events, and handoff history
+- **Self-hosted**: runs on your hardware, your rules — no hosted control plane required
+- **Multi-channel transport**: one Gateway serves WhatsApp, Telegram, Discord, Slack, and 30+ channels simultaneously
 - **Agent-native**: built for AI agents with tool use, sessions, long-term memory, and multi-agent routing
 - **Extensible**: plugin SDK for custom channels, tools, hooks, and providers
 - **Cross-platform**: native apps for macOS, iOS, Android, Windows plus Web Control UI
@@ -63,20 +64,25 @@ OpenSoul is a **self-hosted AI agent gateway** that connects your favorite chat 
 flowchart LR
   A["Chat apps + Channel plugins"] --> B["Gateway"]
   B --> C["Agent Runtime"]
-  B --> D["Memory & Storage"]
-  B --> E["Skills & Tools"]
-  B --> F["Web Control UI"]
-  B --> G["CLI / TUI"]
-  B --> H["Native Apps (macOS/iOS/Android/Windows)"]
+  B --> D["Task Continuity Engine"]
+  B --> E["Memory & Storage"]
+  B --> F["Skills & Tools"]
+  B --> G["Web Control UI"]
+  D --> G
+  B --> H["CLI / TUI"]
+  B --> I["Native Apps (macOS/iOS/Android/Windows)"]
 ```
 
-The Gateway is the single source of truth for sessions, routing, and channel connections. It orchestrates agent execution, memory, tools, and all client interactions.
+The Gateway is the single source of truth for sessions, routing, channel connections, and task continuity state. It orchestrates agent execution, memory, tools, handoff policy, and all client interactions.
 
 ## Key capabilities
 
 <Columns>
+  <Card title="Task continuity" icon="route">
+    Keep the same task alive across direct chat, Control UI, Canvas, cron, and subagents.
+  </Card>
   <Card title="Multi-channel gateway" icon="network">
-    WhatsApp, Telegram, Discord, and iMessage with a single Gateway process.
+    WhatsApp, Telegram, Discord, Slack, and more are the transport layer into the same runtime.
   </Card>
   <Card title="Plugin channels" icon="plug">
     Add Mattermost and more with extension packages.
@@ -84,11 +90,11 @@ The Gateway is the single source of truth for sessions, routing, and channel con
   <Card title="Multi-agent routing" icon="route">
     Isolated sessions per agent, workspace, or sender.
   </Card>
-  <Card title="Media support" icon="image">
-    Send and receive images, audio, and documents.
+  <Card title="Visible operator rail" icon="monitor">
+    The Control UI chat view shows status, commitments, event timeline, and surface handoffs.
   </Card>
   <Card title="Web Control UI" icon="monitor">
-    Browser dashboard for chat, config, sessions, and nodes.
+    Browser cockpit for chat, config, sessions, continuity, and nodes.
   </Card>
   <Card title="Mobile nodes" icon="smartphone">
     Pair iOS and Android nodes with Canvas support.
@@ -124,6 +130,7 @@ Open the browser Control UI after the Gateway starts.
 
 - Local default: [http://127.0.0.1:18789/](http://127.0.0.1:18789/)
 - Remote access: [Web surfaces](/web) and [Tailscale](/gateway/tailscale)
+- The chat page is now the main continuity surface: the right rail shows the current task, commitments, event timeline, and handoff track for the active session.
 
 ## Configuration (optional)
 
@@ -173,7 +180,7 @@ Example:
 
 <Columns>
   <Card title="Full feature list" href="/concepts/features" icon="list">
-    Complete channel, routing, and media capabilities.
+    Task continuity, channels, routing, and operator surfaces.
   </Card>
   <Card title="Multi-agent routing" href="/concepts/multi-agent" icon="route">
     Workspace isolation and per-agent sessions.

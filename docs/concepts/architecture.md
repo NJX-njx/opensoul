@@ -7,7 +7,7 @@ title: "Gateway Architecture"
 
 # Gateway architecture
 
-Last updated: 2026-03-11
+Last updated: 2026-03-12
 
 ## Overview
 
@@ -21,6 +21,7 @@ Last updated: 2026-03-11
 - One Gateway per host; it is the only place that opens a WhatsApp session.
 - A **canvas host** (default `18793`) serves agent‑editable HTML and A2UI.
 - Long-running work can now be tracked as task continuity state (`tasks`, task events, commitments) so one agent can keep the same task alive across direct chat, Control UI, cron, subagents, and canvas handoff.
+- Task continuity lives in a dedicated operational SQLite store, separate from markdown memory, because it models live work state rather than long-term knowledge.
 
 ## Components and flows
 
@@ -31,12 +32,20 @@ Last updated: 2026-03-11
 - Validates inbound frames against JSON Schema.
 - Emits events like `agent`, `chat`, `presence`, `health`, `heartbeat`, `cron`.
 
+### Task continuity layer
+
+- Links many sessions and runs to one logical `taskId`.
+- Stores task records, task events, session links, and commitments under `src/continuity/`.
+- Subscribes to agent lifecycle events and derives continuity state from real execution, rather than relying on the model to remember or re-describe the task every turn.
+- Applies conservative system policy for DM -> Control UI and DM -> Canvas handoff, reusing the same `?session=` deep-link instead of introducing a separate task route in v1.
+
 ### Clients (mac app / CLI / web admin)
 
 - One WS connection per client.
 - Send requests (`health`, `status`, `send`, `agent`, `system-presence`).
 - Subscribe to events (`tick`, `agent`, `presence`, `shutdown`).
-- Read task continuity state through `tasks.list`, `tasks.get`, and `tasks.events`.
+- Read task continuity state through `tasks.list`, `tasks.get`, `tasks.events`, and `tasks.commitments`.
+- The Control UI chat page is now the main visible continuity surface for operators: it shows a task rail with current status, commitments, event timeline, and surface track for the active session.
 
 ### Nodes (macOS / iOS / Android / headless)
 
