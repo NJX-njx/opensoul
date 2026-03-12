@@ -196,12 +196,26 @@ async function cleanupGatewayTestHome(options: { restoreEnv: boolean }) {
     }
   }
   if (options.restoreEnv && tempHome) {
-    await fs.rm(tempHome, {
-      recursive: true,
-      force: true,
-      maxRetries: 20,
-      retryDelay: 25,
-    });
+    const homeToRemove = tempHome;
+    const removePromise = fs
+      .rm(homeToRemove, {
+        recursive: true,
+        force: true,
+        maxRetries: 20,
+        retryDelay: 25,
+      })
+      .catch(() => {});
+    if (process.platform === "win32") {
+      // Windows can keep ephemeral gateway test files locked briefly after the
+      // websocket/server close path finishes. Prefer a bounded best-effort
+      // cleanup so e2e hooks don't hang for minutes on temp-home removal.
+      await Promise.race([
+        removePromise,
+        new Promise<void>((resolve) => setTimeout(resolve, 2_000)),
+      ]);
+    } else {
+      await removePromise;
+    }
     tempHome = undefined;
   }
   tempConfigRoot = undefined;

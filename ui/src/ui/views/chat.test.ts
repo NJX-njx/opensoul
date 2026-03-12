@@ -1,6 +1,12 @@
 import { render } from "lit";
 import { describe, expect, it, vi } from "vitest";
-import type { SessionsListResult } from "../types.ts";
+import type { GatewayBrowserClient } from "../gateway.ts";
+import type { SessionsListResult, TaskCommitment, TaskEvent, TaskRecord } from "../types.ts";
+import {
+  loadTaskContinuity,
+  updateTaskContinuityCommitment,
+  type TaskContinuityState,
+} from "../controllers/tasks.ts";
 import { renderChat, type ChatProps } from "./chat.ts";
 
 function createSessions(): SessionsListResult {
@@ -47,6 +53,98 @@ function createProps(overrides: Partial<ChatProps> = {}): ChatProps {
     onNewSession: () => undefined,
     ...overrides,
   };
+}
+
+function createTask(overrides: Partial<TaskRecord> = {}): TaskRecord {
+  return {
+    taskId: "task-1",
+    agentId: "main",
+    status: "running",
+    title: "Ship task continuity",
+    summary: "Visualize the same task across multiple surfaces",
+    createdAt: 1,
+    updatedAt: 1,
+    ...overrides,
+  };
+}
+
+function createCommitment(overrides: Partial<TaskCommitment> = {}): TaskCommitment {
+  return {
+    commitmentId: "commit-1",
+    taskId: "task-1",
+    agentId: "main",
+    status: "open",
+    title: "Follow up on the browser flow",
+    createdAt: 1,
+    updatedAt: 1,
+    ...overrides,
+  };
+}
+
+function createEvent(overrides: Partial<TaskEvent> = {}): TaskEvent {
+  return {
+    eventId: "evt-1",
+    taskId: "task-1",
+    agentId: "main",
+    kind: "handoff.control-ui",
+    summary: "Delivered Control UI handoff",
+    createdAt: 1,
+    ...overrides,
+  };
+}
+
+function createTaskContinuityState(
+  request: GatewayBrowserClient["request"],
+  overrides: Partial<TaskContinuityState> = {},
+): TaskContinuityState {
+  return {
+    client: { request } as unknown as GatewayBrowserClient,
+    connected: true,
+    sessionKey: "agent:main:main",
+    uiLocale: "en",
+    taskContinuityLoading: false,
+    taskContinuityError: null,
+    taskContinuitySessionKey: null,
+    taskContinuityTasks: [],
+    taskContinuitySelectedTaskId: null,
+    taskContinuityEventsByTaskId: {},
+    taskContinuityCommitmentsByTaskId: {},
+    taskContinuityDetailsLoadingTaskId: null,
+    taskContinuityActionError: null,
+    taskContinuityActionMessage: null,
+    taskContinuityActionBusyKey: null,
+    ...overrides,
+  };
+}
+
+function renderWithTaskContinuityState(
+  container: HTMLElement,
+  state: TaskContinuityState,
+  overrides: Partial<ChatProps> = {},
+) {
+  const selectedTaskId = state.taskContinuitySelectedTaskId;
+  render(
+    renderChat(
+      createProps({
+        taskContinuityTasks: state.taskContinuityTasks,
+        taskContinuitySelectedTaskId: selectedTaskId,
+        taskContinuityEvents: selectedTaskId
+          ? (state.taskContinuityEventsByTaskId[selectedTaskId] ?? [])
+          : [],
+        taskContinuityCommitments: selectedTaskId
+          ? (state.taskContinuityCommitmentsByTaskId[selectedTaskId] ?? [])
+          : [],
+        taskContinuityActionError: state.taskContinuityActionError,
+        taskContinuityActionMessage: state.taskContinuityActionMessage,
+        taskContinuityActionBusyKey: state.taskContinuityActionBusyKey,
+        onSelectTaskContinuityTask: () => undefined,
+        onUpdateTaskContinuityCommitment: () => undefined,
+        onUpdateTaskContinuityTaskStatus: () => undefined,
+        ...overrides,
+      }),
+    ),
+    container,
+  );
 }
 
 describe("chat view", () => {
@@ -276,5 +374,69 @@ describe("chat view", () => {
     );
     expect(doneButton).not.toBeUndefined();
     expect(doneButton?.hasAttribute("disabled")).toBe(true);
+  });
+
+  it("renders controller-driven continuity updates after a commitment action", async () => {
+    const container = document.createElement("div");
+    let commitmentStatus: "open" | "done" = "open";
+    const requestMock = vi.fn((method: string): Promise<unknown> => {
+      switch (method) {
+        case "tasks.list":
+          return Promise.resolve({
+            tasks: [
+              createTask({
+                status: commitmentStatus === "done" ? "waiting-user" : "running",
+                updatedAt: commitmentStatus === "done" ? 2 : 1,
+              }),
+            ],
+          });
+        case "tasks.events":
+          return Promise.resolve({ events: [createEvent()] });
+        case "tasks.commitments":
+          return Promise.resolve({
+            commitments: [
+              createCommitment({
+                status: commitmentStatus,
+                updatedAt: commitmentStatus === "done" ? 2 : 1,
+                closedAt: commitmentStatus === "done" ? 2 : undefined,
+              }),
+            ],
+          });
+        case "tasks.commitments.update":
+          commitmentStatus = "done";
+          return Promise.resolve({
+            commitment: createCommitment({
+              status: "done",
+              updatedAt: 2,
+              closedAt: 2,
+            }),
+          });
+        default:
+          return Promise.reject(new Error(`unexpected method: ${method}`));
+      }
+    });
+    const request = requestMock as unknown as GatewayBrowserClient["request"];
+    const state = createTaskContinuityState(request);
+
+    await loadTaskContinuity(state);
+    renderWithTaskContinuityState(container, state);
+    expect(container.textContent).toContain("Follow up on the browser flow");
+    expect(container.textContent).toContain("Delivered Control UI handoff");
+    expect(container.textContent).toContain("Done");
+
+    await updateTaskContinuityCommitment(state, "task-1", "commit-1", "done");
+    renderWithTaskContinuityState(container, state);
+
+    expect(container.textContent).toContain("Commitment marked done.");
+    expect(container.textContent).toContain("Reopen");
+    expect(requestMock.mock.calls.map(([method]) => method)).toEqual([
+      "tasks.list",
+      "tasks.events",
+      "tasks.commitments",
+      "tasks.commitments.update",
+      "tasks.list",
+      "tasks.events",
+      "tasks.commitments",
+    ]);
   });
 });

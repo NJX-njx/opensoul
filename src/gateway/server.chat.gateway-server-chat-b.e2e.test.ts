@@ -2,7 +2,9 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, test, vi } from "vitest";
-import { emitAgentEvent } from "../infra/agent-events.js";
+import { initSessionState } from "../auto-reply/reply/session.js";
+import { loadConfig } from "../config/config.js";
+import { emitAgentEvent, registerAgentRunContext } from "../infra/agent-events.js";
 import { __setMaxChatHistoryMessagesBytesForTest } from "./server-constants.js";
 import {
   connectOk,
@@ -15,7 +17,7 @@ import {
   testState,
   writeSessionStore,
 } from "./test-helpers.js";
-installGatewayTestHooks({ scope: "suite" });
+installGatewayTestHooks();
 async function waitFor(condition: () => boolean, timeoutMs = 1500) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
@@ -25,6 +27,23 @@ async function waitFor(condition: () => boolean, timeoutMs = 1500) {
     await new Promise((r) => setTimeout(r, 5));
   }
   throw new Error("timeout waiting for condition");
+}
+
+async function waitForAsync<T>(
+  read: () => Promise<T>,
+  matches: (value: T) => boolean,
+  timeoutMs = 4000,
+): Promise<T> {
+  const deadline = Date.now() + timeoutMs;
+  let lastValue: T | undefined;
+  while (Date.now() < deadline) {
+    lastValue = await read();
+    if (matches(lastValue)) {
+      return lastValue;
+    }
+    await new Promise((r) => setTimeout(r, 10));
+  }
+  throw new Error(`timeout waiting for async condition: ${JSON.stringify(lastValue)}`);
 }
 const sendReq = (
   ws: { send: (payload: string) => void },
@@ -513,6 +532,277 @@ describe("gateway server chat", () => {
         ws.close();
         await server.close();
         await Promise.all(tempDirs.map((dir) => fs.rm(dir, { recursive: true, force: true })));
+      }
+    },
+  );
+
+  test(
+    "keeps continuity readable and operable across restart for a direct-chat task",
+    { timeout: timeoutMs },
+    async () => {
+      const sessionDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-gw-continuity-"));
+      const sessionKey = "agent:main:telegram:dm:continuity-user";
+      const handoffUrl = "https://control-ui.example.test/app";
+      let server: Awaited<ReturnType<typeof startServerWithClient>>["server"] | null = null;
+      let ws: Awaited<ReturnType<typeof startServerWithClient>>["ws"] | null = null;
+
+      const closeServer = async () => {
+        if (ws) {
+          const currentWs = ws;
+          ws = null;
+          await new Promise<void>((resolve) => {
+            if (currentWs.readyState === WebSocket.CLOSED) {
+              resolve();
+              return;
+            }
+            const timer = setTimeout(() => {
+              try {
+                currentWs.terminate();
+              } catch {
+                // best effort cleanup for flaky Windows socket shutdowns
+              }
+              resolve();
+            }, 1_000);
+            currentWs.once("close", () => {
+              clearTimeout(timer);
+              resolve();
+            });
+            currentWs.close();
+          });
+        }
+        if (server) {
+          const currentServer = server;
+          server = null;
+          await currentServer.close();
+          await new Promise((resolve) => setTimeout(resolve, 25));
+        }
+      };
+
+      try {
+        testState.sessionStorePath = path.join(sessionDir, "sessions.json");
+        testState.gatewayControlUi = { publicUrl: handoffUrl };
+        testState.channelsConfig = {
+          telegram: {
+            accounts: {
+              default: {},
+            },
+          },
+        };
+        const cfg = loadConfig();
+        const initState = await initSessionState({
+          ctx: {
+            Body: "Keep working on the same task",
+            SessionKey: sessionKey,
+            OriginatingChannel: "telegram",
+          },
+          cfg,
+          commandAuthorized: true,
+        });
+        const initialTaskId = initState.sessionEntry.activeTaskId;
+        expect(typeof initialTaskId).toBe("string");
+        if (!initialTaskId) {
+          throw new Error("missing initialTaskId");
+        }
+        await writeSessionStore({
+          entries: {
+            [sessionKey]: {
+              ...initState.sessionEntry,
+              updatedAt: Date.now(),
+              channel: "telegram",
+              chatType: "direct",
+              lastChannel: "telegram",
+              lastTo: "@continuity-user",
+              activeTaskId: initialTaskId,
+              lastTaskId: initialTaskId,
+            },
+          },
+        });
+
+        {
+          const started = await startServerWithClient();
+          server = started.server;
+          ws = started.ws;
+          await connectOk(ws);
+
+          const task = await waitForAsync(
+            async () => {
+              const tasksRes = await rpcReq<{
+                tasks?: Array<{ taskId?: string; status?: string }>;
+              }>(ws, "tasks.list", {
+                sessionKey,
+                limit: 8,
+              });
+              return (tasksRes.payload?.tasks ?? [])[0];
+            },
+            (candidate) => typeof candidate?.taskId === "string",
+          );
+          const taskId = task?.taskId;
+          expect(typeof taskId).toBe("string");
+          if (!taskId) {
+            throw new Error("missing taskId");
+          }
+          const runId = "run-continuity-main";
+          registerAgentRunContext(runId, {
+            sessionKey,
+            taskId,
+            sourceSurface: "direct-chat",
+            handoffEligible: true,
+          });
+
+          emitAgentEvent({
+            runId,
+            stream: "assistant",
+            data: {
+              text: [
+                "Option 1: keep this thread in chat.",
+                "Option 2: continue in Control UI for the visible task trail.",
+                "Next steps:",
+                "- Follow up on the browser flow",
+              ].join("\n"),
+            },
+          });
+          emitAgentEvent({
+            runId,
+            stream: "lifecycle",
+            data: { phase: "end" },
+          });
+
+          const commitment = await waitForAsync(
+            async () => {
+              const commitmentsRes = await rpcReq<{
+                commitments?: Array<{
+                  commitmentId?: string;
+                  title?: string;
+                  status?: string;
+                }>;
+              }>(ws, "tasks.commitments", {
+                sessionKey,
+                taskId,
+              });
+              return commitmentsRes.payload?.commitments?.find(
+                (candidate) => candidate.title === "Follow up on the browser flow",
+              );
+            },
+            (candidate) =>
+              typeof candidate?.commitmentId === "string" && candidate.status === "open",
+          );
+          const commitmentId = commitment?.commitmentId;
+          expect(typeof commitmentId).toBe("string");
+          if (!commitmentId) {
+            throw new Error("missing commitmentId");
+          }
+
+          const eventsAfterRun = await waitForAsync(
+            async () => {
+              const eventsRes = await rpcReq<{
+                events?: Array<{
+                  kind?: string;
+                }>;
+              }>(ws, "tasks.events", {
+                sessionKey,
+                taskId,
+                limit: 40,
+              });
+              return eventsRes.payload?.events ?? [];
+            },
+            (events) => events.some((event) => event.kind === "commitment.opened"),
+            8000,
+          );
+          expect(eventsAfterRun.map((event) => event.kind)).toContain("lifecycle.end");
+          expect(eventsAfterRun.map((event) => event.kind)).toContain("commitment.opened");
+
+          await closeServer();
+        }
+
+        {
+          const restarted = await startServerWithClient();
+          server = restarted.server;
+          ws = restarted.ws;
+          await connectOk(ws);
+
+          const restartedTask = await waitForAsync(
+            async () => {
+              const tasksRes = await rpcReq<{
+                tasks?: Array<{ taskId?: string; status?: string }>;
+              }>(ws, "tasks.list", {
+                sessionKey,
+                limit: 8,
+              });
+              return (tasksRes.payload?.tasks ?? [])[0];
+            },
+            (candidate) =>
+              typeof candidate?.taskId === "string" && candidate.status === "waiting-user",
+          );
+          const taskId = restartedTask?.taskId;
+          expect(typeof taskId).toBe("string");
+          if (!taskId) {
+            throw new Error("missing restarted taskId");
+          }
+
+          const commitmentsRes = await rpcReq<{
+            commitments?: Array<{ commitmentId?: string; status?: string; title?: string }>;
+          }>(ws, "tasks.commitments", {
+            sessionKey,
+            taskId,
+          });
+          const restartedCommitment = commitmentsRes.payload?.commitments?.find(
+            (candidate) => candidate.title === "Follow up on the browser flow",
+          );
+          expect(restartedCommitment?.status).toBe("open");
+          const commitmentId = restartedCommitment?.commitmentId;
+          expect(typeof commitmentId).toBe("string");
+          if (!commitmentId) {
+            throw new Error("missing restarted commitmentId");
+          }
+
+          const doneRes = await rpcReq<{
+            commitment?: { status?: string };
+          }>(ws, "tasks.commitments.update", {
+            sessionKey,
+            taskId,
+            commitmentId,
+            status: "done",
+          });
+          expect(doneRes.ok).toBe(true);
+          expect(doneRes.payload?.commitment?.status).toBe("done");
+
+          const completeRes = await rpcReq<{
+            task?: { status?: string };
+          }>(ws, "tasks.task.patch", {
+            sessionKey,
+            taskId,
+            status: "completed",
+          });
+          expect(completeRes.ok).toBe(true);
+          expect(completeRes.payload?.task?.status).toBe("completed");
+
+          const eventsAfterWrite = await rpcReq<{
+            events?: Array<{ kind?: string }>;
+          }>(ws, "tasks.events", {
+            sessionKey,
+            taskId,
+            limit: 40,
+          });
+          const kinds = (eventsAfterWrite.payload?.events ?? []).map((event) => event.kind);
+          expect(kinds).toContain("commitment.done");
+          expect(kinds).toContain("task.updated");
+
+          const taskAfterWrite = await rpcReq<{
+            task?: { taskId?: string; status?: string };
+          }>(ws, "tasks.get", {
+            sessionKey,
+            taskId,
+          });
+          expect(taskAfterWrite.ok).toBe(true);
+          expect(taskAfterWrite.payload?.task?.taskId).toBe(taskId);
+          expect(taskAfterWrite.payload?.task?.status).toBe("completed");
+        }
+      } finally {
+        await closeServer();
+        testState.sessionStorePath = undefined;
+        testState.gatewayControlUi = undefined;
+        testState.channelsConfig = undefined;
+        await fs.rm(sessionDir, { recursive: true, force: true });
       }
     },
   );

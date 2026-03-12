@@ -63,6 +63,17 @@ describe("subagent registry persistence", () => {
       task: "do the thing",
       cleanup: "keep",
     });
+    const startKinds = appendTaskEventSpy.mock.calls.map(
+      ([payload]) => (payload as { kind?: string } | undefined)?.kind,
+    );
+    expect(startKinds).toContain("subagent.started");
+    expect(appendTaskEventSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        taskId: "task-1",
+        kind: "subagent.started",
+        sessionKey: "agent:main:main",
+      }),
+    );
 
     const registryPath = path.join(tempStateDir, "subagents", "runs.json");
     const raw = await fs.readFile(registryPath, "utf8");
@@ -92,6 +103,11 @@ describe("subagent registry persistence", () => {
     await new Promise((r) => setTimeout(r, 0));
 
     expect(announceSpy).toHaveBeenCalled();
+    const continuityKinds = appendTaskEventSpy.mock.calls.map(
+      ([payload]) => (payload as { kind?: string } | undefined)?.kind,
+    );
+    expect(continuityKinds).toContain("subagent.started");
+    expect(continuityKinds).toContain("subagent.completed");
 
     type AnnounceParams = {
       childSessionKey: string;

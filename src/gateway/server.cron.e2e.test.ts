@@ -2,8 +2,11 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, test } from "vitest";
+import { loadConfig } from "../config/config.js";
+import { resolveOrCreateTaskForInbound, appendTaskEvent } from "../continuity/service.js";
 import {
   connectOk,
+  cronIsolatedRun,
   installGatewayTestHooks,
   rpcReq,
   startServerWithClient,
@@ -45,6 +48,26 @@ async function waitForNonEmptyFile(pathname: string, timeoutMs = 2000) {
     const elapsedMs = Number(process.hrtime.bigint() - startedAt) / 1e6;
     if (elapsedMs >= timeoutMs) {
       throw new Error(`timeout waiting for file ${pathname}`);
+    }
+    await yieldToEventLoop();
+  }
+}
+
+async function waitForAsync<T>(
+  read: () => Promise<T>,
+  matches: (value: T) => boolean,
+  timeoutMs = 4000,
+): Promise<T> {
+  const startedAt = process.hrtime.bigint();
+  let lastValue: T | undefined;
+  for (;;) {
+    lastValue = await read();
+    if (matches(lastValue)) {
+      return lastValue;
+    }
+    const elapsedMs = Number(process.hrtime.bigint() - startedAt) / 1e6;
+    if (elapsedMs >= timeoutMs) {
+      throw new Error(`timeout waiting for async condition: ${JSON.stringify(lastValue)}`);
     }
     await yieldToEventLoop();
   }
@@ -373,6 +396,108 @@ describe("gateway server cron", () => {
       await server.close();
       await rmTempDir(dir);
       testState.cronStorePath = undefined;
+      testState.cronEnabled = undefined;
+      if (prevSkipCron === undefined) {
+        delete process.env.OPENSOUL_SKIP_CRON;
+      } else {
+        process.env.OPENSOUL_SKIP_CRON = prevSkipCron;
+      }
+    }
+  }, 45_000);
+
+  test("attaches cron agent runs to an existing continuity task", async () => {
+    const prevSkipCron = process.env.OPENSOUL_SKIP_CRON;
+    process.env.OPENSOUL_SKIP_CRON = "0";
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-gw-cron-task-"));
+    testState.cronStorePath = path.join(dir, "cron", "jobs.json");
+    testState.sessionStorePath = path.join(dir, "sessions.json");
+    testState.cronEnabled = false;
+    await fs.mkdir(path.dirname(testState.cronStorePath), { recursive: true });
+    await fs.writeFile(testState.cronStorePath, JSON.stringify({ version: 1, jobs: [] }));
+
+    const cfg = loadConfig();
+    const sessionKey = "agent:main:telegram:dm:cron-user";
+    const task = resolveOrCreateTaskForInbound({
+      cfg,
+      agentId: "main",
+      sessionKey,
+      inboundText: "Review the nightly digest",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    }).task;
+
+    cronIsolatedRun.mockImplementationOnce(async (params: unknown) => {
+      const runParams = params as {
+        cfg: typeof cfg;
+        job: { taskId?: string; id: string; name: string };
+        sessionKey: string;
+        agentId?: string;
+      };
+      if (runParams.job.taskId) {
+        appendTaskEvent({
+          cfg: runParams.cfg,
+          agentId: runParams.agentId ?? "main",
+          taskId: runParams.job.taskId,
+          kind: "cron-fired",
+          sessionKey: runParams.sessionKey,
+          runId: "cron-run-1",
+          summary: `Cron job ${runParams.job.name} fired`,
+          surface: { kind: "cron", label: runParams.job.name },
+          payload: { jobId: runParams.job.id },
+        });
+      }
+      return { status: "ok", summary: "nightly digest sent" };
+    });
+
+    const { server, ws } = await startServerWithClient();
+    await connectOk(ws);
+
+    try {
+      const addRes = await rpcReq(ws, "cron.add", {
+        name: "nightly digest",
+        enabled: true,
+        schedule: { kind: "every", everyMs: 60_000 },
+        sessionTarget: "isolated",
+        wakeMode: "next-heartbeat",
+        taskId: task.taskId,
+        payload: { kind: "agentTurn", message: "Summarize the nightly digest" },
+      });
+      expect(addRes.ok).toBe(true);
+      const jobIdValue = (addRes.payload as { id?: unknown } | null)?.id;
+      const jobId = typeof jobIdValue === "string" ? jobIdValue : "";
+      expect(jobId.length > 0).toBe(true);
+
+      const runRes = await rpcReq(ws, "cron.run", { id: jobId, mode: "force" }, 20_000);
+      expect(runRes.ok).toBe(true);
+
+      const taskEvents = await waitForAsync(
+        async () => {
+          const eventsRes = await rpcReq<{
+            events?: Array<{
+              kind?: string;
+              surface?: { kind?: string; label?: string };
+              summary?: string;
+            }>;
+          }>(ws, "tasks.events", {
+            sessionKey,
+            taskId: task.taskId,
+            limit: 20,
+          });
+          return eventsRes.payload?.events ?? [];
+        },
+        (events) => events.some((event) => event.kind === "cron-fired"),
+        8000,
+      );
+      const cronEvent = taskEvents.find((event) => event.kind === "cron-fired");
+      expect(cronEvent?.surface?.kind).toBe("cron");
+      expect(cronEvent?.summary).toContain("nightly digest");
+    } finally {
+      ws.close();
+      await server.close();
+      cronIsolatedRun.mockReset();
+      cronIsolatedRun.mockResolvedValue({ status: "ok", summary: "ok" });
+      await rmTempDir(dir);
+      testState.cronStorePath = undefined;
+      testState.sessionStorePath = undefined;
       testState.cronEnabled = undefined;
       if (prevSkipCron === undefined) {
         delete process.env.OPENSOUL_SKIP_CRON;
