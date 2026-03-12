@@ -761,7 +761,7 @@ export function renderApp(state: AppViewState) {
         }
 
         ${
-          state.tab === "tasks"
+          state.tab === "tasks" && canUseTasksWorkbench(state.hello)
             ? renderTasksWorkbench({
                 locale: state.uiLocale,
                 loading: state.tasksWorkbenchLoading,

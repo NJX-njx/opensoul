@@ -93,6 +93,81 @@ describe("continuity store", () => {
     expect(store.listRepairs()[0]?.kind).toBe("test-repair");
   });
 
+  it("exports and imports a continuity snapshot round-trip", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-export-"));
+    const sourcePath = path.join(tempDir, "source.sqlite");
+    const restoredPath = path.join(tempDir, "restored.sqlite");
+    const source = openContinuityStore(sourcePath);
+
+    source.upsertTask({
+      taskId: "task-export",
+      agentId: "main",
+      status: "completed",
+      title: "Export me",
+      summary: "Round-trip test",
+      latestSessionKey: "agent:main:export",
+      createdAt: 10,
+      updatedAt: 20,
+      closedAt: 20,
+    });
+    source.upsertTaskSessionLink({
+      taskId: "task-export",
+      agentId: "main",
+      sessionKey: "agent:main:export",
+      relation: "linked",
+      createdAt: 10,
+      updatedAt: 20,
+    });
+    source.appendTaskEvent({
+      eventId: "evt-export",
+      taskId: "task-export",
+      agentId: "main",
+      kind: "handoff.control-ui",
+      summary: "opened workbench",
+      createdAt: 21,
+    });
+    source.upsertCommitment({
+      commitmentId: "commit-export",
+      taskId: "task-export",
+      agentId: "main",
+      status: "done",
+      title: "Follow up",
+      createdAt: 12,
+      updatedAt: 22,
+      closedAt: 22,
+    });
+    source.appendRepair({
+      repairId: "repair-export",
+      agentId: "main",
+      taskId: "task-export",
+      kind: "manual-check",
+      detail: "round-trip",
+      createdAt: 23,
+    });
+
+    const snapshot = source.exportSnapshot(100);
+    const restored = openContinuityStore(restoredPath);
+    const result = restored.importSnapshot(snapshot);
+
+    expect(result.imported).toEqual({
+      tasks: 1,
+      taskSessionLinks: 1,
+      events: 1,
+      commitments: 1,
+      repairs: 1,
+      metaEntries: 0,
+    });
+    expect(restored.getTask("task-export")).toMatchObject({
+      title: "Export me",
+      status: "completed",
+      latestSessionKey: "agent:main:export",
+    });
+    expect(restored.getTaskSessionLinks("task-export")).toHaveLength(1);
+    expect(restored.listTaskEvents({ taskId: "task-export" })).toHaveLength(1);
+    expect(restored.listCommitments({ taskId: "task-export" })).toHaveLength(1);
+    expect(restored.listRepairs()).toHaveLength(1);
+  });
+
   it("migrates an older schema version in place", async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-migrate-"));
     const dbPath = path.join(tempDir, "continuity.sqlite");
@@ -146,5 +221,127 @@ describe("continuity store", () => {
     });
 
     expect(store.getTaskSessionLinks("task-2")[0]?.relation).toBe("active");
+  });
+
+  it("prunes archived continuity data while keeping active tasks queryable", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-prune-"));
+    const dbPath = path.join(tempDir, "continuity.sqlite");
+    const store = openContinuityStore(dbPath);
+
+    store.upsertTask({
+      taskId: "task-archived",
+      agentId: "main",
+      status: "completed",
+      title: "Archived task",
+      createdAt: 1,
+      updatedAt: 10,
+      closedAt: 10,
+    });
+    store.upsertTaskSessionLink({
+      taskId: "task-archived",
+      agentId: "main",
+      sessionKey: "agent:main:archived",
+      relation: "linked",
+      createdAt: 1,
+      updatedAt: 10,
+    });
+    store.appendTaskEvent({
+      eventId: "evt-archived",
+      taskId: "task-archived",
+      agentId: "main",
+      kind: "lifecycle.end",
+      createdAt: 10,
+    });
+    store.upsertCommitment({
+      commitmentId: "commit-archived",
+      taskId: "task-archived",
+      agentId: "main",
+      status: "done",
+      title: "Archived commitment",
+      createdAt: 5,
+      updatedAt: 10,
+      closedAt: 10,
+    });
+
+    store.upsertTask({
+      taskId: "task-active",
+      agentId: "main",
+      status: "running",
+      title: "Active task",
+      createdAt: 1,
+      updatedAt: 100,
+    });
+    store.upsertTaskSessionLink({
+      taskId: "task-active",
+      agentId: "main",
+      sessionKey: "agent:main:active",
+      relation: "active",
+      createdAt: 1,
+      updatedAt: 100,
+    });
+    store.appendTaskEvent({
+      eventId: "evt-open-old",
+      taskId: "task-active",
+      agentId: "main",
+      kind: "assistant-message",
+      createdAt: 20,
+    });
+    store.appendTaskEvent({
+      eventId: "evt-open-new",
+      taskId: "task-active",
+      agentId: "main",
+      kind: "assistant-message",
+      createdAt: 100,
+    });
+    store.upsertCommitment({
+      commitmentId: "commit-open-old",
+      taskId: "task-active",
+      agentId: "main",
+      status: "done",
+      title: "Closed on active task",
+      createdAt: 20,
+      updatedAt: 20,
+      closedAt: 20,
+    });
+    store.upsertCommitment({
+      commitmentId: "commit-open-live",
+      taskId: "task-active",
+      agentId: "main",
+      status: "open",
+      title: "Still live",
+      createdAt: 80,
+      updatedAt: 100,
+    });
+    store.appendRepair({
+      repairId: "repair-old",
+      agentId: "main",
+      kind: "cleanup",
+      createdAt: 20,
+    });
+
+    const result = store.prune({
+      taskClosedBefore: 50,
+      eventBefore: 50,
+      closedCommitmentBefore: 50,
+      repairBefore: 50,
+    });
+
+    expect(result.deleted).toEqual({
+      tasks: 1,
+      taskSessionLinks: 1,
+      events: 2,
+      commitments: 2,
+      repairs: 1,
+    });
+    expect(store.getTask("task-archived")).toBeNull();
+    expect(store.listTasks({ sessionKey: "agent:main:archived" })).toEqual([]);
+    expect(store.getTask("task-active")?.status).toBe("running");
+    expect(store.listTaskEvents({ taskId: "task-active" }).map((event) => event.eventId)).toEqual([
+      "evt-open-new",
+    ]);
+    expect(
+      store.listCommitments({ taskId: "task-active" }).map((commitment) => commitment.commitmentId),
+    ).toEqual(["commit-open-live"]);
+    expect(store.listRepairs()).toEqual([]);
   });
 });

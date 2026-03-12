@@ -2,6 +2,7 @@ import type { Command } from "commander";
 import { healthCommand } from "../../commands/health.js";
 import { sessionsCommand } from "../../commands/sessions.js";
 import { statusCommand } from "../../commands/status.js";
+import { tasksExportCommand, tasksImportCommand, tasksPruneCommand } from "../../commands/tasks.js";
 import { setVerbose } from "../../globals.js";
 import { defaultRuntime } from "../../runtime.js";
 import { formatDocsLink } from "../../terminal/links.js";
@@ -139,6 +140,73 @@ export function registerStatusHealthSessionsCommands(program: Command) {
           json: Boolean(opts.json),
           store: opts.store as string | undefined,
           active: opts.active as string | undefined,
+        },
+        defaultRuntime,
+      );
+    });
+
+  const tasks = program
+    .command("tasks")
+    .description("Export, import, and prune task continuity data");
+
+  tasks
+    .command("export")
+    .description("Export the current continuity snapshot for one agent")
+    .option("--agent <id>", "Agent id (default: resolved default agent)")
+    .option("--out <path>", "Write the snapshot to a specific JSON file")
+    .option("--json", "Output JSON summary", false)
+    .action(async (opts) => {
+      await tasksExportCommand(
+        {
+          agentId: opts.agent as string | undefined,
+          out: opts.out as string | undefined,
+          json: Boolean(opts.json),
+        },
+        defaultRuntime,
+      );
+    });
+
+  tasks
+    .command("import")
+    .description("Restore a continuity snapshot into one agent store")
+    .requiredOption("--in <path>", "Path to a previously exported continuity JSON file")
+    .option("--agent <id>", "Agent id (default: resolved default agent)")
+    .option("--replace", "Replace existing continuity data before import", false)
+    .option("--json", "Output JSON summary", false)
+    .action(async (opts) => {
+      await tasksImportCommand(
+        {
+          agentId: opts.agent as string | undefined,
+          input: opts.in as string,
+          replace: Boolean(opts.replace),
+          json: Boolean(opts.json),
+        },
+        defaultRuntime,
+      );
+    });
+
+  tasks
+    .command("prune")
+    .description("Prune old continuity data after writing a backup snapshot")
+    .option("--agent <id>", "Agent id (default: resolved default agent)")
+    .option("--closed-tasks-days <days>", "Delete closed tasks older than N days")
+    .option("--events-days <days>", "Delete task events older than N days")
+    .option("--commitments-days <days>", "Delete closed commitments older than N days")
+    .option("--repairs-days <days>", "Delete repair records older than N days")
+    .option("--out <path>", "Write the pre-prune backup snapshot to a specific JSON file")
+    .option("--dry-run", "Preview prune counts without deleting data", false)
+    .option("--json", "Output JSON summary", false)
+    .action(async (opts) => {
+      await tasksPruneCommand(
+        {
+          agentId: opts.agent as string | undefined,
+          closedTasksDays: opts.closedTasksDays as string | undefined,
+          eventsDays: opts.eventsDays as string | undefined,
+          commitmentsDays: opts.commitmentsDays as string | undefined,
+          repairsDays: opts.repairsDays as string | undefined,
+          out: opts.out as string | undefined,
+          dryRun: Boolean(opts.dryRun),
+          json: Boolean(opts.json),
         },
         defaultRuntime,
       );

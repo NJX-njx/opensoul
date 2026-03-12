@@ -165,3 +165,24 @@ If `opensoul health` shows "Auth not configured", go back to the wizard—agents
 - Advanced workflows and from source: [Setup](/start/setup)
 - Mobile nodes (iOS/Android): [Nodes](/nodes)
 - Remote access: [Remote Access](/gateway/remote)
+
+## Continuity backup and retention
+
+Task continuity is stored per agent in a local SQLite database. Before large repairs,
+migrations, or long-running load tests, export a snapshot:
+
+```bash
+opensoul tasks export --agent main
+```
+
+To restore a snapshot into a clean store:
+
+```bash
+opensoul tasks import --agent main --in ./continuity.json --replace
+```
+
+To prune old closed tasks and oversized timelines while keeping a backup:
+
+```bash
+opensoul tasks prune --agent main --closed-tasks-days 30 --events-days 30
+```

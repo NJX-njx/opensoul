@@ -9,3 +9,16 @@ export function resolveContinuityDir(cfg: OpenSoulConfig, agentId: string): stri
 export function resolveContinuityDbPath(cfg: OpenSoulConfig, agentId: string): string {
   return path.join(resolveContinuityDir(cfg, agentId), "continuity.sqlite");
 }
+
+export function resolveContinuityBackupsDir(cfg: OpenSoulConfig, agentId: string): string {
+  return path.join(resolveContinuityDir(cfg, agentId), "backups");
+}
+
+export function resolveContinuityBackupPath(
+  cfg: OpenSoulConfig,
+  agentId: string,
+  exportedAt = Date.now(),
+): string {
+  const stamp = new Date(exportedAt).toISOString().replaceAll(":", "-");
+  return path.join(resolveContinuityBackupsDir(cfg, agentId), `continuity-${stamp}.json`);
+}

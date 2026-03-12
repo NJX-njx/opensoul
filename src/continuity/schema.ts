@@ -1,6 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
 
-export const CONTINUITY_SCHEMA_VERSION = 2;
+export const CONTINUITY_SCHEMA_VERSION = 3;
 
 export type ContinuitySchemaState = {
   version: number;
@@ -90,6 +90,9 @@ CREATE TABLE IF NOT EXISTS continuity_repairs (
 CREATE INDEX IF NOT EXISTS idx_tasks_agent_updated
   ON tasks(agent_id, updated_at DESC);
 
+CREATE INDEX IF NOT EXISTS idx_tasks_status_closed
+  ON tasks(status, closed_at, updated_at DESC);
+
 CREATE INDEX IF NOT EXISTS idx_task_links_session_updated
   ON task_session_links(session_key, updated_at DESC);
 
@@ -99,14 +102,23 @@ CREATE INDEX IF NOT EXISTS idx_task_events_task_created
 CREATE INDEX IF NOT EXISTS idx_task_events_run_created
   ON task_events(run_id, created_at DESC);
 
+CREATE INDEX IF NOT EXISTS idx_task_events_created
+  ON task_events(created_at DESC);
+
 CREATE INDEX IF NOT EXISTS idx_commitments_task_status
   ON commitments(task_id, status, updated_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_commitments_status_closed
+  ON commitments(status, closed_at, updated_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_continuity_repairs_agent_created
   ON continuity_repairs(agent_id, created_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_continuity_repairs_task_created
   ON continuity_repairs(task_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_continuity_repairs_created
+  ON continuity_repairs(created_at DESC);
 `;
 
 function readStoredSchemaVersion(db: DatabaseSync): number {

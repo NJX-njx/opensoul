@@ -68,6 +68,13 @@ type SettingsHost = {
   openSettings: (section?: SettingsTab | "general") => void;
 };
 
+function resolveAccessibleTab(host: SettingsHost, next: Tab): Tab {
+  if (next === "tasks" && !canUseTasksWorkbench(host.hello)) {
+    return "chat";
+  }
+  return next;
+}
+
 export function applySettings(host: SettingsHost, next: UiSettings) {
   const normalized = {
     ...next,
@@ -159,34 +166,35 @@ export function applySettingsFromUrl(host: SettingsHost) {
 }
 
 export function setTab(host: SettingsHost, next: Tab) {
+  const accessibleNext = resolveAccessibleTab(host, next);
   // Config / Logs / Debug now live inside the Settings panel
-  if ((SETTINGS_TABS as readonly string[]).includes(next)) {
-    host.openSettings(next as SettingsTab);
+  if ((SETTINGS_TABS as readonly string[]).includes(accessibleNext)) {
+    host.openSettings(accessibleNext as SettingsTab);
     // Still trigger data loading for the settings tab
-    void refreshActiveTab({ ...host, tab: next } as unknown as SettingsHost);
+    void refreshActiveTab({ ...host, tab: accessibleNext } as unknown as SettingsHost);
     return;
   }
 
-  if (host.tab !== next) {
-    host.tab = next;
+  if (host.tab !== accessibleNext) {
+    host.tab = accessibleNext;
   }
   // Notify desktop shell about tab change for window title update
-  sendTabChanged(next, titleForTab(next, host.uiLocale));
-  if (next === "chat") {
+  sendTabChanged(accessibleNext, titleForTab(accessibleNext, host.uiLocale));
+  if (accessibleNext === "chat") {
     host.chatHasAutoScrolled = false;
   }
-  if (next === "logs") {
+  if (accessibleNext === "logs") {
     startLogsPolling(host as unknown as Parameters<typeof startLogsPolling>[0]);
   } else {
     stopLogsPolling(host as unknown as Parameters<typeof stopLogsPolling>[0]);
   }
-  if (next === "debug") {
+  if (accessibleNext === "debug") {
     startDebugPolling(host as unknown as Parameters<typeof startDebugPolling>[0]);
   } else {
     stopDebugPolling(host as unknown as Parameters<typeof stopDebugPolling>[0]);
   }
   void refreshActiveTab(host);
-  syncUrlWithTab(host, next, false);
+  syncUrlWithTab(host, accessibleNext, false);
 }
 
 export function setTheme(host: SettingsHost, next: ThemeMode, context?: ThemeTransitionContext) {
@@ -378,27 +386,28 @@ export function onPopState(host: SettingsHost) {
 }
 
 export function setTabFromRoute(host: SettingsHost, next: Tab) {
+  const accessibleNext = resolveAccessibleTab(host, next);
   // Config / Logs / Debug now live inside the Settings panel
-  if ((SETTINGS_TABS as readonly string[]).includes(next)) {
-    host.openSettings(next as SettingsTab);
+  if ((SETTINGS_TABS as readonly string[]).includes(accessibleNext)) {
+    host.openSettings(accessibleNext as SettingsTab);
     if (host.connected) {
-      void refreshActiveTab({ ...host, tab: next } as unknown as SettingsHost);
+      void refreshActiveTab({ ...host, tab: accessibleNext } as unknown as SettingsHost);
     }
     return;
   }
 
-  if (host.tab !== next) {
-    host.tab = next;
+  if (host.tab !== accessibleNext) {
+    host.tab = accessibleNext;
   }
-  if (next === "chat") {
+  if (accessibleNext === "chat") {
     host.chatHasAutoScrolled = false;
   }
-  if (next === "logs") {
+  if (accessibleNext === "logs") {
     startLogsPolling(host as unknown as Parameters<typeof startLogsPolling>[0]);
   } else {
     stopLogsPolling(host as unknown as Parameters<typeof stopLogsPolling>[0]);
   }
-  if (next === "debug") {
+  if (accessibleNext === "debug") {
     startDebugPolling(host as unknown as Parameters<typeof startDebugPolling>[0]);
   } else {
     stopDebugPolling(host as unknown as Parameters<typeof stopDebugPolling>[0]);

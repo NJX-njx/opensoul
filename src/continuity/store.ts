@@ -1,4 +1,4 @@
-import type { DatabaseSync } from "node:sqlite";
+import type { DatabaseSync, SQLInputValue } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
 import type { OpenSoulConfig } from "../config/config.js";
@@ -119,6 +119,67 @@ type ListCommitmentsOptions = {
   status?: CommitmentStatus;
 };
 
+type MetaEntryRow = {
+  key: string;
+  value: string;
+};
+
+type CountRow = {
+  count?: number;
+};
+
+export type ContinuitySnapshot = {
+  schemaVersion: number;
+  exportedAt: number;
+  meta: Record<string, string>;
+  tasks: Array<TaskRecord>;
+  taskSessionLinks: Array<TaskSessionLink>;
+  events: Array<TaskEvent>;
+  commitments: Array<CommitmentRecord>;
+  repairs: Array<ContinuityRepairRecord>;
+};
+
+export type ContinuityImportOptions = {
+  replace?: boolean;
+};
+
+export type ContinuityImportResult = {
+  replaced: boolean;
+  imported: {
+    tasks: number;
+    taskSessionLinks: number;
+    events: number;
+    commitments: number;
+    repairs: number;
+    metaEntries: number;
+  };
+};
+
+export type ContinuityPruneOptions = {
+  taskClosedBefore?: number;
+  eventBefore?: number;
+  closedCommitmentBefore?: number;
+  repairBefore?: number;
+  dryRun?: boolean;
+};
+
+export type ContinuityPruneResult = {
+  dryRun: boolean;
+  cutoffs: {
+    taskClosedBefore?: number;
+    eventBefore?: number;
+    closedCommitmentBefore?: number;
+    repairBefore?: number;
+  };
+  deleted: {
+    tasks: number;
+    taskSessionLinks: number;
+    events: number;
+    commitments: number;
+    repairs: number;
+  };
+};
+
 const STORE_CACHE = new Map<string, ContinuityStore>();
 
 function parseJsonValue<T>(value: unknown): T | undefined {
@@ -224,6 +285,13 @@ function resolveLimit(limit: number | undefined, defaultValue: number): number {
     return defaultValue;
   }
   return Math.max(1, Math.min(500, Math.floor(limit)));
+}
+
+function resolveTimestampCutoff(value: number | undefined): number | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return undefined;
+  }
+  return Math.max(0, Math.floor(value));
 }
 
 export class ContinuityStore {
@@ -767,6 +835,357 @@ export class ContinuityStore {
       )
       .all(resolveLimit(limit, 100)) as Array<ContinuityRepairRow>;
     return rows.map(readContinuityRepairRow);
+  }
+
+  writeMeta(key: string, value: string): void {
+    this.db
+      .prepare(
+        `INSERT INTO continuity_meta (key, value)
+         VALUES (?, ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+      )
+      .run(key, value);
+  }
+
+  listMeta(): Record<string, string> {
+    const rows = this.db
+      .prepare(
+        `SELECT key, value
+         FROM continuity_meta
+         ORDER BY key ASC`,
+      )
+      .all() as Array<MetaEntryRow>;
+    const meta: Record<string, string> = {};
+    for (const row of rows) {
+      meta[row.key] = row.value;
+    }
+    return meta;
+  }
+
+  hasAnyData(): boolean {
+    const tables = [
+      "tasks",
+      "task_session_links",
+      "task_events",
+      "commitments",
+      "continuity_repairs",
+    ] as const;
+    for (const table of tables) {
+      const row = this.db.prepare(`SELECT 1 AS count FROM ${table} LIMIT 1`).get() as
+        | CountRow
+        | undefined;
+      if (row) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  exportSnapshot(exportedAt = Date.now()): ContinuitySnapshot {
+    const tasks = this.db
+      .prepare(
+        `SELECT
+           task_id,
+           agent_id,
+           status,
+           title,
+           summary,
+           source_surface_json,
+           current_surface_json,
+           latest_session_key,
+           latest_run_id,
+           metadata_json,
+           created_at,
+           updated_at,
+           closed_at
+         FROM tasks
+         ORDER BY updated_at DESC, created_at DESC`,
+      )
+      .all() as Array<TaskRow>;
+    const taskSessionLinks = this.db
+      .prepare(
+        `SELECT
+           task_id,
+           agent_id,
+           session_key,
+           relation,
+           created_at,
+           updated_at
+         FROM task_session_links
+         ORDER BY updated_at DESC, created_at DESC`,
+      )
+      .all() as Array<TaskSessionLinkRow>;
+    const events = this.db
+      .prepare(
+        `SELECT
+           event_id,
+           task_id,
+           agent_id,
+           kind,
+           stream,
+           phase,
+           session_key,
+           run_id,
+           summary,
+           surface_json,
+           payload_json,
+           created_at
+         FROM task_events
+         ORDER BY created_at ASC`,
+      )
+      .all() as Array<TaskEventRow>;
+    const commitments = this.db
+      .prepare(
+        `SELECT
+           commitment_id,
+           task_id,
+           agent_id,
+           status,
+           kind,
+           title,
+           detail,
+           due_at,
+           cron_job_id,
+           metadata_json,
+           created_at,
+           updated_at,
+           closed_at
+         FROM commitments
+         ORDER BY updated_at DESC, created_at DESC`,
+      )
+      .all() as Array<CommitmentRow>;
+    const repairs = this.db
+      .prepare(
+        `SELECT
+           repair_id,
+           agent_id,
+           task_id,
+           session_key,
+           kind,
+           detail,
+           payload_json,
+           created_at
+         FROM continuity_repairs
+         ORDER BY created_at ASC`,
+      )
+      .all() as Array<ContinuityRepairRow>;
+    return {
+      schemaVersion: this.schemaState.version,
+      exportedAt,
+      meta: this.listMeta(),
+      tasks: tasks.map(readTaskRow).filter((task): task is TaskRecord => task !== null),
+      taskSessionLinks: taskSessionLinks.map(readTaskSessionLinkRow),
+      events: events.map(readTaskEventRow),
+      commitments: commitments.map(readCommitmentRow),
+      repairs: repairs.map(readContinuityRepairRow),
+    };
+  }
+
+  importSnapshot(
+    snapshot: ContinuitySnapshot,
+    options: ContinuityImportOptions = {},
+  ): ContinuityImportResult {
+    const schemaVersion =
+      typeof snapshot.schemaVersion === "number" && Number.isFinite(snapshot.schemaVersion)
+        ? Math.floor(snapshot.schemaVersion)
+        : 0;
+    if (schemaVersion > this.schemaState.version) {
+      throw new Error(
+        `continuity snapshot schema ${schemaVersion} is newer than runtime ${this.schemaState.version}`,
+      );
+    }
+    const replace = options.replace === true;
+    if (!replace && this.hasAnyData()) {
+      throw new Error("continuity store is not empty; rerun import with replace=true");
+    }
+    const tasks = Array.isArray(snapshot.tasks) ? snapshot.tasks : [];
+    const taskSessionLinks = Array.isArray(snapshot.taskSessionLinks)
+      ? snapshot.taskSessionLinks
+      : [];
+    const events = Array.isArray(snapshot.events) ? snapshot.events : [];
+    const commitments = Array.isArray(snapshot.commitments) ? snapshot.commitments : [];
+    const repairs = Array.isArray(snapshot.repairs) ? snapshot.repairs : [];
+    const metaEntries = Object.entries(snapshot.meta ?? {}).filter(
+      ([key]) => key.trim().length > 0 && key !== "schema_version",
+    );
+
+    this.transaction(() => {
+      if (replace) {
+        this.db.exec(`DELETE FROM continuity_repairs; DELETE FROM tasks;`);
+      }
+      for (const task of tasks) {
+        this.upsertTask(task);
+      }
+      for (const link of taskSessionLinks) {
+        this.upsertTaskSessionLink(link);
+      }
+      for (const event of events) {
+        this.appendTaskEvent(event);
+      }
+      for (const commitment of commitments) {
+        this.upsertCommitment(commitment);
+      }
+      for (const repair of repairs) {
+        this.appendRepair(repair);
+      }
+      for (const [key, value] of metaEntries) {
+        this.writeMeta(key, value);
+      }
+      this.writeMeta("schema_version", String(this.schemaState.version));
+    });
+
+    return {
+      replaced: replace,
+      imported: {
+        tasks: tasks.length,
+        taskSessionLinks: taskSessionLinks.length,
+        events: events.length,
+        commitments: commitments.length,
+        repairs: repairs.length,
+        metaEntries: metaEntries.length,
+      },
+    };
+  }
+
+  prune(options: ContinuityPruneOptions): ContinuityPruneResult {
+    const taskClosedBefore = resolveTimestampCutoff(options.taskClosedBefore);
+    const eventBefore = resolveTimestampCutoff(options.eventBefore);
+    const closedCommitmentBefore = resolveTimestampCutoff(options.closedCommitmentBefore);
+    const repairBefore = resolveTimestampCutoff(options.repairBefore);
+    const dryRun = options.dryRun === true;
+
+    const countRows = (sql: string, params: Array<SQLInputValue> = []): number => {
+      const row = this.db.prepare(sql).get(...params) as CountRow | undefined;
+      return Number(row?.count ?? 0);
+    };
+
+    const taskIds =
+      taskClosedBefore === undefined
+        ? []
+        : (
+            this.db
+              .prepare(
+                `SELECT task_id
+               FROM tasks
+               WHERE status IN ('completed', 'cancelled', 'failed')
+                 AND COALESCE(closed_at, updated_at) <= ?
+               ORDER BY updated_at ASC`,
+              )
+              .all(taskClosedBefore) as Array<{ task_id: string }>
+          ).map((row) => row.task_id);
+    const taskPlaceholders = taskIds.map(() => "?").join(", ");
+    const taskIdParams = taskIds as Array<SQLInputValue>;
+    const notDeletedTasksClause =
+      taskIds.length > 0 ? ` AND task_id NOT IN (${taskPlaceholders})` : "";
+
+    const deletedTasks = taskIds.length;
+    const deletedTaskSessionLinks =
+      taskIds.length === 0
+        ? 0
+        : countRows(
+            `SELECT COUNT(*) AS count
+             FROM task_session_links
+             WHERE task_id IN (${taskPlaceholders})`,
+            taskIdParams,
+          );
+    const cascadedEvents =
+      taskIds.length === 0
+        ? 0
+        : countRows(
+            `SELECT COUNT(*) AS count
+             FROM task_events
+             WHERE task_id IN (${taskPlaceholders})`,
+            taskIdParams,
+          );
+    const directEvents =
+      eventBefore === undefined
+        ? 0
+        : countRows(
+            `SELECT COUNT(*) AS count
+             FROM task_events
+             WHERE created_at <= ?${notDeletedTasksClause}`,
+            [eventBefore, ...taskIdParams],
+          );
+    const cascadedCommitments =
+      taskIds.length === 0
+        ? 0
+        : countRows(
+            `SELECT COUNT(*) AS count
+             FROM commitments
+             WHERE task_id IN (${taskPlaceholders})`,
+            taskIdParams,
+          );
+    const directCommitments =
+      closedCommitmentBefore === undefined
+        ? 0
+        : countRows(
+            `SELECT COUNT(*) AS count
+             FROM commitments
+             WHERE status IN ('done', 'cancelled')
+               AND COALESCE(closed_at, updated_at) <= ?${notDeletedTasksClause}`,
+            [closedCommitmentBefore, ...taskIdParams],
+          );
+    const deletedRepairs =
+      repairBefore === undefined
+        ? 0
+        : countRows(
+            `SELECT COUNT(*) AS count
+             FROM continuity_repairs
+             WHERE created_at <= ?`,
+            [repairBefore],
+          );
+
+    if (!dryRun) {
+      this.transaction(() => {
+        if (taskIds.length > 0) {
+          this.db
+            .prepare(`DELETE FROM tasks WHERE task_id IN (${taskPlaceholders})`)
+            .run(...taskIdParams);
+        }
+        if (eventBefore !== undefined) {
+          this.db
+            .prepare(
+              `DELETE FROM task_events
+               WHERE created_at <= ?${notDeletedTasksClause}`,
+            )
+            .run(eventBefore, ...taskIdParams);
+        }
+        if (closedCommitmentBefore !== undefined) {
+          this.db
+            .prepare(
+              `DELETE FROM commitments
+               WHERE status IN ('done', 'cancelled')
+                 AND COALESCE(closed_at, updated_at) <= ?${notDeletedTasksClause}`,
+            )
+            .run(closedCommitmentBefore, ...taskIdParams);
+        }
+        if (repairBefore !== undefined) {
+          this.db
+            .prepare(
+              `DELETE FROM continuity_repairs
+               WHERE created_at <= ?`,
+            )
+            .run(repairBefore);
+        }
+      });
+    }
+
+    return {
+      dryRun,
+      cutoffs: {
+        taskClosedBefore,
+        eventBefore,
+        closedCommitmentBefore,
+        repairBefore,
+      },
+      deleted: {
+        tasks: deletedTasks,
+        taskSessionLinks: deletedTaskSessionLinks,
+        events: cascadedEvents + directEvents,
+        commitments: cascadedCommitments + directCommitments,
+        repairs: deletedRepairs,
+      },
+    };
   }
 
   readMeta(key: string): string | undefined {

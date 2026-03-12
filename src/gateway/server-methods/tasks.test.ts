@@ -72,6 +72,15 @@ vi.mock("../../continuity/service.js", () => ({
   patchTask: mocks.patchTask,
 }));
 
+function operatorClient(scopes: Array<string>) {
+  return {
+    connect: {
+      role: "operator",
+      scopes,
+    },
+  };
+}
+
 describe("tasks handlers", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -84,6 +93,7 @@ describe("tasks handlers", () => {
         sessionKey: "agent:main:telegram:dm:user-1",
         limit: 10,
       },
+      client: operatorClient(["operator.read"]),
       respond,
     } as never);
 
@@ -126,6 +136,7 @@ describe("tasks handlers", () => {
         allAgents: true,
         limit: 1,
       },
+      client: operatorClient(["operator.admin"]),
       respond,
     } as never);
 
@@ -159,6 +170,7 @@ describe("tasks handlers", () => {
         agentId: "ops",
         taskId: "task-1",
       },
+      client: operatorClient(["operator.admin"]),
       respond,
     } as never);
 
@@ -183,6 +195,7 @@ describe("tasks handlers", () => {
         sessionKey: "agent:main:telegram:dm:user-1",
         limit: 5,
       },
+      client: operatorClient(["operator.read"]),
       respond,
     } as never);
 
@@ -204,6 +217,7 @@ describe("tasks handlers", () => {
         sessionKey: "agent:main:telegram:dm:user-1",
         status: "open",
       },
+      client: operatorClient(["operator.read"]),
       respond,
     } as never);
 
@@ -227,6 +241,7 @@ describe("tasks handlers", () => {
         status: "done",
         detail: "Closed from Control UI",
       },
+      client: operatorClient(["operator.write"]),
       respond,
     } as never);
 
@@ -256,6 +271,7 @@ describe("tasks handlers", () => {
         commitmentId: "missing",
         status: "cancelled",
       },
+      client: operatorClient(["operator.admin"]),
       respond,
     } as never);
 
@@ -279,6 +295,7 @@ describe("tasks handlers", () => {
         title: "Patched title",
         summary: "Patched summary",
       },
+      client: operatorClient(["operator.admin"]),
       respond,
     } as never);
 
@@ -311,6 +328,7 @@ describe("tasks handlers", () => {
         agentId: "ops",
         taskId: "task-1",
       },
+      client: operatorClient(["operator.admin"]),
       respond,
     } as never);
 
@@ -334,6 +352,7 @@ describe("tasks handlers", () => {
         taskId: "missing-task",
         status: "open",
       },
+      client: operatorClient(["operator.admin"]),
       respond,
     } as never);
 
@@ -357,6 +376,7 @@ describe("tasks handlers", () => {
         taskId: "task-1",
         status: "failed",
       },
+      client: operatorClient(["operator.admin"]),
       respond,
     } as never);
 
@@ -366,6 +386,58 @@ describe("tasks handlers", () => {
       expect.objectContaining({
         code: "INVALID_REQUEST",
         message: "illegal task status transition: open -> failed",
+      }),
+    );
+  });
+
+  it("rejects allAgents task listing without operator.admin", () => {
+    const respond = vi.fn();
+    void tasksHandlers["tasks.list"]({
+      params: {
+        allAgents: true,
+        sessionKey: "agent:main:telegram:dm:user-1",
+      },
+      client: operatorClient(["operator.read"]),
+      respond,
+    } as never);
+
+    expect(mocks.queryTasks).not.toHaveBeenCalled();
+    expect(respond).toHaveBeenCalledWith(
+      false,
+      undefined,
+      expect.objectContaining({
+        code: "INVALID_REQUEST",
+        message: "tasks.list allAgents requires operator.admin",
+      }),
+    );
+  });
+
+  it("rejects task reads outside the caller session scope", () => {
+    mocks.getTask.mockReturnValueOnce({
+      taskId: "task-1",
+      agentId: "main-from-session",
+      status: "open",
+      latestSessionKey: "agent:main:telegram:dm:other-user",
+      createdAt: 1,
+      updatedAt: 1,
+    });
+    mocks.queryTasks.mockReturnValueOnce({ tasks: [], total: 0 });
+    const respond = vi.fn();
+    void tasksHandlers["tasks.get"]({
+      params: {
+        taskId: "task-1",
+        sessionKey: "agent:main:telegram:dm:user-1",
+      },
+      client: operatorClient(["operator.read"]),
+      respond,
+    } as never);
+
+    expect(respond).toHaveBeenCalledWith(
+      false,
+      undefined,
+      expect.objectContaining({
+        code: "INVALID_REQUEST",
+        message: "task access denied for this session",
       }),
     );
   });
