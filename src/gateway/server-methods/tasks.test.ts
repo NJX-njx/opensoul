@@ -52,6 +52,53 @@ const mocks = vi.hoisted(() => ({
     updatedAt: 2,
     closedAt: 2,
   })),
+  repairRelinkTaskToSession: vi.fn(() => ({
+    taskId: "task-1",
+    agentId: "main",
+    status: "open",
+    latestSessionKey: "agent:main:telegram:dm:user-2",
+    createdAt: 1,
+    updatedAt: 2,
+  })),
+  repairMergeTasks: vi.fn(() => ({
+    task: {
+      taskId: "task-1",
+      agentId: "main",
+      status: "running",
+      createdAt: 1,
+      updatedAt: 2,
+    },
+    mergedTaskId: "task-1",
+    deletedTaskId: "task-2",
+    moved: {
+      sessionLinks: 1,
+      events: 2,
+      commitments: 1,
+      dedupedCommitments: 1,
+    },
+  })),
+  repairMarkTaskOrphan: vi.fn(() => ({
+    taskId: "task-1",
+    agentId: "main",
+    status: "open",
+    createdAt: 1,
+    updatedAt: 2,
+    metadata: {
+      continuityRepairState: "orphan",
+    },
+  })),
+  repairMarkCommitmentOrphan: vi.fn(() => ({
+    commitmentId: "commit-1",
+    taskId: "task-1",
+    agentId: "main",
+    status: "open",
+    title: "Follow up",
+    createdAt: 1,
+    updatedAt: 2,
+    metadata: {
+      continuityRepairState: "orphan",
+    },
+  })),
 }));
 
 vi.mock("../../config/config.js", () => ({
@@ -70,6 +117,10 @@ vi.mock("../../continuity/service.js", () => ({
   listCommitments: mocks.listCommitments,
   patchCommitment: mocks.patchCommitment,
   patchTask: mocks.patchTask,
+  repairRelinkTaskToSession: mocks.repairRelinkTaskToSession,
+  repairMergeTasks: mocks.repairMergeTasks,
+  repairMarkTaskOrphan: mocks.repairMarkTaskOrphan,
+  repairMarkCommitmentOrphan: mocks.repairMarkCommitmentOrphan,
 }));
 
 function operatorClient(scopes: Array<string>) {
@@ -111,6 +162,39 @@ describe("tasks handlers", () => {
         total: 1,
         nextOffset: null,
       }),
+      undefined,
+    );
+  });
+
+  it("degrades continuity reads to empty results when read flags are disabled", () => {
+    mocks.loadConfig.mockReturnValueOnce({
+      gateway: {
+        controlUi: {
+          continuity: {
+            features: {
+              reads: false,
+            },
+          },
+        },
+      },
+    });
+    const respond = vi.fn();
+    void tasksHandlers["tasks.list"]({
+      params: {
+        sessionKey: "agent:main:telegram:dm:user-1",
+      },
+      client: operatorClient(["operator.read"]),
+      respond,
+    } as never);
+
+    expect(mocks.queryTasks).not.toHaveBeenCalled();
+    expect(respond).toHaveBeenCalledWith(
+      true,
+      {
+        tasks: [],
+        total: 0,
+        nextOffset: null,
+      },
       undefined,
     );
   });
@@ -216,6 +300,7 @@ describe("tasks handlers", () => {
         taskId: "task-1",
         sessionKey: "agent:main:telegram:dm:user-1",
         status: "open",
+        limit: 40,
       },
       client: operatorClient(["operator.read"]),
       respond,
@@ -226,6 +311,7 @@ describe("tasks handlers", () => {
         agentId: "main-from-session",
         taskId: "task-1",
         status: "open",
+        limit: 40,
       }),
     );
     expect(respond).toHaveBeenCalledWith(true, { commitments: expect.any(Array) }, undefined);
@@ -317,6 +403,124 @@ describe("tasks handlers", () => {
     expect(respond).toHaveBeenCalledWith(
       true,
       { task: expect.objectContaining({ taskId: "task-1", status: "completed" }) },
+      undefined,
+    );
+  });
+
+  it("rejects continuity writes when write flags are disabled", () => {
+    mocks.loadConfig.mockReturnValueOnce({
+      gateway: {
+        controlUi: {
+          continuity: {
+            features: {
+              writes: false,
+            },
+          },
+        },
+      },
+    });
+    const respond = vi.fn();
+    void tasksHandlers["tasks.task.patch"]({
+      params: {
+        agentId: "ops",
+        taskId: "task-1",
+        status: "completed",
+      },
+      client: operatorClient(["operator.admin"]),
+      respond,
+    } as never);
+
+    expect(mocks.patchTask).not.toHaveBeenCalled();
+    expect(respond).toHaveBeenCalledWith(
+      false,
+      undefined,
+      expect.objectContaining({
+        code: "INVALID_REQUEST",
+        message: "continuity writes are disabled by config",
+      }),
+    );
+  });
+
+  it("repairs task relinks through the write API", () => {
+    const respond = vi.fn();
+    void tasksHandlers["tasks.repair.relink"]({
+      params: {
+        agentId: "ops",
+        taskId: "task-1",
+        sessionKey: "agent:main:telegram:dm:user-2",
+        detail: "move back to the user thread",
+      },
+      client: operatorClient(["operator.admin"]),
+      respond,
+    } as never);
+
+    expect(mocks.repairRelinkTaskToSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentId: "ops",
+        taskId: "task-1",
+        sessionKey: "agent:main:telegram:dm:user-2",
+      }),
+    );
+    expect(respond).toHaveBeenCalledWith(
+      true,
+      { task: expect.objectContaining({ latestSessionKey: "agent:main:telegram:dm:user-2" }) },
+      undefined,
+    );
+  });
+
+  it("requires operator.admin for repair APIs", () => {
+    const respond = vi.fn();
+    void tasksHandlers["tasks.repair.merge"]({
+      params: {
+        agentId: "ops",
+        sourceTaskId: "task-2",
+        targetTaskId: "task-1",
+      },
+      client: operatorClient(["operator.write"]),
+      respond,
+    } as never);
+
+    expect(mocks.repairMergeTasks).not.toHaveBeenCalled();
+    expect(respond).toHaveBeenCalledWith(
+      false,
+      undefined,
+      expect.objectContaining({
+        code: "INVALID_REQUEST",
+        message: "tasks.repair.merge requires operator.admin",
+      }),
+    );
+  });
+
+  it("marks orphan commitments through the repair API", () => {
+    const respond = vi.fn();
+    void tasksHandlers["tasks.repair.markCommitmentOrphan"]({
+      params: {
+        agentId: "ops",
+        taskId: "task-1",
+        commitmentId: "commit-1",
+        detail: "task deleted elsewhere",
+      },
+      client: operatorClient(["operator.admin"]),
+      respond,
+    } as never);
+
+    expect(mocks.repairMarkCommitmentOrphan).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentId: "ops",
+        taskId: "task-1",
+        commitmentId: "commit-1",
+      }),
+    );
+    expect(respond).toHaveBeenCalledWith(
+      true,
+      {
+        commitment: expect.objectContaining({
+          commitmentId: "commit-1",
+          metadata: expect.objectContaining({
+            continuityRepairState: "orphan",
+          }),
+        }),
+      },
       undefined,
     );
   });

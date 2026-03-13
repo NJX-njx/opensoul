@@ -47,8 +47,35 @@ export function helloHasScope(hello: GatewayHelloOk | null | undefined, scope: s
   return Boolean(hello?.auth?.scopes?.includes(scope));
 }
 
+export function helloHasMethod(hello: GatewayHelloOk | null | undefined, method: string): boolean {
+  return Boolean(hello?.features?.methods?.includes(method));
+}
+
 export function canUseTasksWorkbench(hello: GatewayHelloOk | null | undefined): boolean {
   return helloHasScope(hello, "operator.admin");
+}
+
+export function canReadTaskContinuity(hello: GatewayHelloOk | null | undefined): boolean {
+  return (
+    helloHasMethod(hello, "tasks.list") &&
+    helloHasMethod(hello, "tasks.events") &&
+    helloHasMethod(hello, "tasks.commitments")
+  );
+}
+
+export function canUseContinuityUiActions(hello: GatewayHelloOk | null | undefined): boolean {
+  return (
+    helloHasMethod(hello, "tasks.task.patch") && helloHasMethod(hello, "tasks.commitments.update")
+  );
+}
+
+export function canUseContinuityRepairActions(hello: GatewayHelloOk | null | undefined): boolean {
+  return (
+    helloHasMethod(hello, "tasks.repair.relink") &&
+    helloHasMethod(hello, "tasks.repair.merge") &&
+    helloHasMethod(hello, "tasks.repair.markTaskOrphan") &&
+    helloHasMethod(hello, "tasks.repair.markCommitmentOrphan")
+  );
 }
 
 export type GatewayCloseInfo = {

@@ -100,6 +100,17 @@ export type GatewayControlUiContinuitySignalsConfig = {
   comparison?: boolean;
 };
 
+export type GatewayControlUiContinuityFeaturesConfig = {
+  /** If false, `tasks.list/get/events/commitments` degrade to empty continuity reads. */
+  reads?: boolean;
+  /** If false, continuity mutation APIs reject task / commitment writes. */
+  writes?: boolean;
+  /** If false, automatic continuity handoff is suppressed. */
+  handoff?: boolean;
+  /** If false, Control UI hides continuity action buttons while keeping reads available. */
+  uiActions?: boolean;
+};
+
 export type GatewayControlUiContinuityPolicyRuleConfig = {
   /** Optional stable identifier for logs and diagnostics. */
   id?: string;
@@ -143,6 +154,7 @@ export type GatewayControlUiContinuityPolicyConfig = {
 };
 
 export type GatewayControlUiContinuityConfig = {
+  features?: GatewayControlUiContinuityFeaturesConfig;
   policy?: GatewayControlUiContinuityPolicyConfig;
 };
 

@@ -103,6 +103,10 @@ import {
   loadTaskContinuity as loadTaskContinuityInternal,
   loadTasksWorkbench as loadTasksWorkbenchInternal,
   loadMoreTasksWorkbench as loadMoreTasksWorkbenchInternal,
+  repairTasksWorkbenchMarkCommitmentOrphan as repairTasksWorkbenchMarkCommitmentOrphanInternal,
+  repairTasksWorkbenchMarkTaskOrphan as repairTasksWorkbenchMarkTaskOrphanInternal,
+  repairTasksWorkbenchMergeTask as repairTasksWorkbenchMergeTaskInternal,
+  repairTasksWorkbenchRelinkTask as repairTasksWorkbenchRelinkTaskInternal,
   selectTasksWorkbenchTask as selectTasksWorkbenchTaskInternal,
   selectTaskContinuityTask as selectTaskContinuityTaskInternal,
   updateTasksWorkbenchCommitment as updateTasksWorkbenchCommitmentInternal,
@@ -297,6 +301,9 @@ export class OpenSoulApp extends LitElement {
   @state() tasksWorkbenchNextOffset: number | null = null;
   @state() tasksWorkbenchTotal = 0;
   @state() tasksWorkbenchFilters = { ...DEFAULT_TASKS_WORKBENCH_FILTERS };
+  @state() tasksWorkbenchRepairSessionKey = "";
+  @state() tasksWorkbenchRepairMergeSourceTaskId = "";
+  @state() tasksWorkbenchRepairDetail = "";
   @state() viewingSessionId: string | null = null;
   @state() sessionsFilterActive = "";
   @state() sessionsFilterLimit = "120";
@@ -565,6 +572,26 @@ export class OpenSoulApp extends LitElement {
 
   async updateTasksWorkbenchTaskStatus(taskId: string, status: TaskStatus) {
     await updateTasksWorkbenchTaskStatusInternal(this, taskId, status);
+  }
+
+  async repairTasksWorkbenchRelinkTask(taskId: string, sessionKey: string, detail?: string) {
+    await repairTasksWorkbenchRelinkTaskInternal(this, taskId, sessionKey, detail);
+  }
+
+  async repairTasksWorkbenchMergeTask(sourceTaskId: string, targetTaskId: string, detail?: string) {
+    await repairTasksWorkbenchMergeTaskInternal(this, sourceTaskId, targetTaskId, detail);
+  }
+
+  async repairTasksWorkbenchMarkTaskOrphan(taskId: string, detail?: string) {
+    await repairTasksWorkbenchMarkTaskOrphanInternal(this, taskId, detail);
+  }
+
+  async repairTasksWorkbenchMarkCommitmentOrphan(
+    taskId: string,
+    commitmentId: string,
+    detail?: string,
+  ) {
+    await repairTasksWorkbenchMarkCommitmentOrphanInternal(this, taskId, commitmentId, detail);
   }
 
   applySettings(next: UiSettings) {

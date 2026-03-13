@@ -82,6 +82,7 @@ export type ChatProps = {
   taskContinuityActionError?: string | null;
   taskContinuityActionMessage?: string | null;
   taskContinuityActionBusyKey?: string | null;
+  taskContinuityActionsEnabled?: boolean;
   onRefreshTaskContinuity?: () => void;
   onSelectTaskContinuityTask?: (taskId: string) => void;
   onUpdateTaskContinuityCommitment?: (
@@ -374,6 +375,7 @@ export function renderChat(props: ChatProps) {
             actionError: props.taskContinuityActionError ?? null,
             actionMessage: props.taskContinuityActionMessage ?? null,
             actionBusyKey: props.taskContinuityActionBusyKey ?? null,
+            actionsEnabled: props.taskContinuityActionsEnabled ?? true,
             onRefresh: props.onRefreshTaskContinuity ?? props.onRefresh,
             onSelectTask: props.onSelectTaskContinuityTask ?? (() => {}),
             onUpdateCommitment:

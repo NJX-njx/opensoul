@@ -64,7 +64,11 @@ import {
   updateSkillEnabled,
 } from "./controllers/skills.ts";
 import { loadUsage, loadSessionTimeSeries, loadSessionLogs } from "./controllers/usage.ts";
-import { canUseTasksWorkbench } from "./gateway.ts";
+import {
+  canUseContinuityRepairActions,
+  canUseContinuityUiActions,
+  canUseTasksWorkbench,
+} from "./gateway.ts";
 import { uiText } from "./i18n.ts";
 import { icons } from "./icons.ts";
 import {
@@ -782,6 +786,11 @@ export function renderApp(state: AppViewState) {
                 actionError: state.tasksWorkbenchActionError,
                 actionMessage: state.tasksWorkbenchActionMessage,
                 actionBusyKey: state.tasksWorkbenchActionBusyKey,
+                actionsEnabled: canUseContinuityUiActions(state.hello),
+                repairEnabled: canUseContinuityRepairActions(state.hello),
+                repairSessionKey: state.tasksWorkbenchRepairSessionKey,
+                repairMergeSourceTaskId: state.tasksWorkbenchRepairMergeSourceTaskId,
+                repairDetail: state.tasksWorkbenchRepairDetail,
                 agentOptions: workbenchAgentOptions,
                 onRefresh: () => state.loadTasksWorkbench(),
                 onLoadMore: () => state.loadMoreTasksWorkbench(),
@@ -791,6 +800,37 @@ export function renderApp(state: AppViewState) {
                   void state.updateTasksWorkbenchCommitment(taskId, commitmentId, status),
                 onUpdateTaskStatus: (taskId, status) =>
                   void state.updateTasksWorkbenchTaskStatus(taskId, status),
+                onRepairSessionKeyChange: (value) => {
+                  state.tasksWorkbenchRepairSessionKey = value;
+                },
+                onRepairMergeSourceTaskIdChange: (value) => {
+                  state.tasksWorkbenchRepairMergeSourceTaskId = value;
+                },
+                onRepairDetailChange: (value) => {
+                  state.tasksWorkbenchRepairDetail = value;
+                },
+                onRepairRelinkTask: (taskId, sessionKey, detail) => {
+                  void state.repairTasksWorkbenchRelinkTask(taskId, sessionKey, detail).then(() => {
+                    if (!state.tasksWorkbenchActionError) {
+                      state.tasksWorkbenchRepairSessionKey = "";
+                    }
+                  });
+                },
+                onRepairMergeTask: (sourceTaskId, targetTaskId, detail) => {
+                  void state
+                    .repairTasksWorkbenchMergeTask(sourceTaskId, targetTaskId, detail)
+                    .then(() => {
+                      if (!state.tasksWorkbenchActionError) {
+                        state.tasksWorkbenchRepairMergeSourceTaskId = "";
+                      }
+                    });
+                },
+                onRepairMarkTaskOrphan: (taskId, detail) => {
+                  void state.repairTasksWorkbenchMarkTaskOrphan(taskId, detail);
+                },
+                onRepairMarkCommitmentOrphan: (taskId, commitmentId, detail) => {
+                  void state.repairTasksWorkbenchMarkCommitmentOrphan(taskId, commitmentId, detail);
+                },
                 onOpenEventDetails: (content, options) => state.handleOpenSidebar(content, options),
                 onOpenSession: (sessionKey) => openChatSessionFromWorkbench(sessionKey),
               })
@@ -1500,6 +1540,7 @@ export function renderApp(state: AppViewState) {
                             taskContinuityActionError: state.taskContinuityActionError,
                             taskContinuityActionMessage: state.taskContinuityActionMessage,
                             taskContinuityActionBusyKey: state.taskContinuityActionBusyKey,
+                            taskContinuityActionsEnabled: canUseContinuityUiActions(state.hello),
                             onRefreshTaskContinuity: () => void state.loadTaskContinuity(),
                             onSelectTaskContinuityTask: (taskId) =>
                               void state.selectTaskContinuityTask(taskId),

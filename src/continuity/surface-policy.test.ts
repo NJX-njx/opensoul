@@ -108,6 +108,62 @@ describe("continuity surface policy", () => {
     });
   });
 
+  it("disables automatic handoff when continuity handoff flags are off", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-surface-policy-handoff-flag-"));
+    const cfg = {
+      ...makeConfig(tempDir),
+      gateway: {
+        controlUi: {
+          continuity: {
+            features: {
+              handoff: false,
+            },
+          },
+        },
+      },
+    } as OpenSoulConfig;
+    const sessionKey = "agent:main:telegram:dm:user-flag";
+    activeSessionEntry = {
+      sessionId: "session-flag",
+      updatedAt: Date.now(),
+      chatType: "direct",
+      lastChannel: "telegram",
+    };
+    resolveCanvasCapableNodeIdMock.mockResolvedValue("node-flag");
+
+    const task = resolveOrCreateTaskForInbound({
+      cfg,
+      agentId: "main",
+      sessionKey,
+      inboundText: "Try a rich continuity handoff",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    }).task;
+
+    const decision = await evaluateSurfacePolicy({
+      cfg,
+      agentId: "main",
+      task,
+      sessionKey,
+      runContext: makeRunContext(task.taskId, sessionKey),
+      stats: {
+        taskId: task.taskId,
+        runId: "run-flag-1",
+        toolEventCount: 8,
+        usedSubagent: true,
+        assistantChars: 2_000,
+      },
+    });
+
+    expect(decision).toMatchObject({
+      mode: "none",
+      reason: "continuity handoff disabled by config",
+      policyMatch: {
+        source: "default",
+      },
+    });
+    expect(resolveCanvasCapableNodeIdMock).not.toHaveBeenCalled();
+  });
+
   it("uses the first matching rule to override surfaces and thresholds", async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-surface-policy-rules-"));
     const cfg = {

@@ -45,6 +45,16 @@ const ControlUiContinuitySignalsSchema = z
   .strict()
   .optional();
 
+const ControlUiContinuityFeaturesSchema = z
+  .object({
+    reads: z.boolean().optional(),
+    writes: z.boolean().optional(),
+    handoff: z.boolean().optional(),
+    uiActions: z.boolean().optional(),
+  })
+  .strict()
+  .optional();
+
 const ControlUiContinuityPolicyRuleSchema = z
   .object({
     id: z.string().optional(),
@@ -76,6 +86,7 @@ const ControlUiContinuityPolicySchema = z
 
 const ControlUiContinuitySchema = z
   .object({
+    features: ControlUiContinuityFeaturesSchema,
     policy: ControlUiContinuityPolicySchema,
   })
   .strict()

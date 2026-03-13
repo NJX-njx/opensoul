@@ -1,4 +1,4 @@
-import type { GatewayBrowserClient } from "../gateway.ts";
+import type { GatewayBrowserClient, GatewayHelloOk } from "../gateway.ts";
 import type {
   CommitmentStatus,
   TaskCommitment,
@@ -9,14 +9,24 @@ import type {
   TasksCommitmentsUpdateResult,
   TasksEventsResult,
   TasksListResult,
+  TasksRepairCommitmentOrphanResult,
+  TasksRepairMergeResult,
+  TasksRepairRelinkResult,
+  TasksRepairTaskOrphanResult,
   TasksTaskPatchResult,
 } from "../types.ts";
 import type { Locale } from "../views/onboarding/i18n.ts";
+import {
+  canReadTaskContinuity,
+  canUseContinuityRepairActions,
+  canUseContinuityUiActions,
+} from "../gateway.ts";
 import { uiText } from "../i18n.ts";
 
 export type TaskContinuityState = {
   client: GatewayBrowserClient | null;
   connected: boolean;
+  hello: GatewayHelloOk | null;
   sessionKey: string;
   uiLocale: Locale;
   taskContinuityLoading: boolean;
@@ -59,6 +69,7 @@ export const DEFAULT_TASKS_WORKBENCH_FILTERS: TasksWorkbenchFilters = {
 export type TasksWorkbenchState = {
   client: GatewayBrowserClient | null;
   connected: boolean;
+  hello: GatewayHelloOk | null;
   uiLocale: Locale;
   tasksWorkbenchLoading: boolean;
   tasksWorkbenchError: string | null;
@@ -76,6 +87,32 @@ export type TasksWorkbenchState = {
 };
 
 const TASKS_WORKBENCH_PAGE_SIZE = 24;
+const TASK_CONTINUITY_EVENTS_LIMIT = 40;
+const TASK_CONTINUITY_COMMITMENTS_LIMIT = 40;
+
+function formatContinuityUnavailableMessage(locale: Locale): string {
+  return uiText(
+    locale,
+    "Task continuity is disabled by the current gateway config.",
+    "当前网关配置已关闭任务连续性能力。",
+  );
+}
+
+function formatContinuityActionsUnavailableMessage(locale: Locale): string {
+  return uiText(
+    locale,
+    "Task continuity actions are disabled by the current gateway config.",
+    "当前网关配置已关闭任务连续性操作。",
+  );
+}
+
+function formatContinuityRepairUnavailableMessage(locale: Locale): string {
+  return uiText(
+    locale,
+    "Task continuity repair tools are disabled by the current gateway config.",
+    "当前网关配置已关闭任务连续性修复工具。",
+  );
+}
 
 function normalizeSessionKey(value: string): string {
   return value.trim();
@@ -121,6 +158,10 @@ function buildCommitmentBusyKey(commitmentId: string, status: CommitmentStatus):
 
 function buildTaskBusyKey(taskId: string, status: TaskStatus): string {
   return `task:${taskId}:${status}`;
+}
+
+function buildRepairBusyKey(kind: string, value: string): string {
+  return `repair:${kind}:${value}`;
 }
 
 function isTaskClosedStatus(status: TaskStatus): boolean {
@@ -266,6 +307,11 @@ export async function loadTaskContinuity(
     clearTaskContinuity(state);
     return;
   }
+  if (!canReadTaskContinuity(state.hello)) {
+    clearTaskContinuity(state);
+    state.taskContinuityError = formatContinuityUnavailableMessage(state.uiLocale);
+    return;
+  }
   if (state.taskContinuityLoading && !opts?.force) {
     return;
   }
@@ -323,7 +369,13 @@ export async function loadTaskContinuityDetails(
 ): Promise<void> {
   const sessionKeyAtStart = normalizeSessionKey(opts?.sessionKey ?? state.sessionKey);
   const normalizedTaskId = taskId.trim();
-  if (!state.client || !state.connected || !sessionKeyAtStart || !normalizedTaskId) {
+  if (
+    !state.client ||
+    !state.connected ||
+    !sessionKeyAtStart ||
+    !normalizedTaskId ||
+    !canReadTaskContinuity(state.hello)
+  ) {
     return;
   }
   if (!shouldLoadTaskDetails(state, normalizedTaskId, opts?.force)) {
@@ -336,11 +388,12 @@ export async function loadTaskContinuityDetails(
       state.client.request<TasksEventsResult | undefined>("tasks.events", {
         taskId: normalizedTaskId,
         sessionKey: sessionKeyAtStart,
-        limit: 40,
+        limit: TASK_CONTINUITY_EVENTS_LIMIT,
       }),
       state.client.request<TasksCommitmentsResult | undefined>("tasks.commitments", {
         taskId: normalizedTaskId,
         sessionKey: sessionKeyAtStart,
+        limit: TASK_CONTINUITY_COMMITMENTS_LIMIT,
       }),
     ]);
     if (normalizeSessionKey(state.sessionKey) !== sessionKeyAtStart) {
@@ -398,6 +451,11 @@ export async function updateTaskContinuityCommitment(
     !normalizedTaskId ||
     !normalizedCommitmentId
   ) {
+    return;
+  }
+  if (!canUseContinuityUiActions(state.hello)) {
+    state.taskContinuityActionError = formatContinuityActionsUnavailableMessage(state.uiLocale);
+    state.taskContinuityActionMessage = null;
     return;
   }
   if (state.taskContinuityActionBusyKey) {
@@ -502,6 +560,11 @@ export async function updateTaskContinuityTaskStatus(
   if (!state.client || !state.connected || !sessionKeyAtStart || !normalizedTaskId) {
     return;
   }
+  if (!canUseContinuityUiActions(state.hello)) {
+    state.taskContinuityActionError = formatContinuityActionsUnavailableMessage(state.uiLocale);
+    state.taskContinuityActionMessage = null;
+    return;
+  }
   if (state.taskContinuityActionBusyKey) {
     return;
   }
@@ -597,6 +660,11 @@ export async function loadTasksWorkbench(
     clearTasksWorkbench(state);
     return;
   }
+  if (!canReadTaskContinuity(state.hello)) {
+    clearTasksWorkbench(state);
+    state.tasksWorkbenchError = formatContinuityUnavailableMessage(state.uiLocale);
+    return;
+  }
   if (state.tasksWorkbenchLoading && !opts?.force) {
     return;
   }
@@ -676,7 +744,12 @@ export async function loadTasksWorkbenchDetails(
   },
 ): Promise<void> {
   const normalizedTaskId = taskId.trim();
-  if (!state.client || !state.connected || !normalizedTaskId) {
+  if (
+    !state.client ||
+    !state.connected ||
+    !normalizedTaskId ||
+    !canReadTaskContinuity(state.hello)
+  ) {
     return;
   }
   if (
@@ -698,11 +771,12 @@ export async function loadTasksWorkbenchDetails(
       state.client.request<TasksEventsResult | undefined>("tasks.events", {
         taskId: normalizedTaskId,
         agentId: task.agentId,
-        limit: 40,
+        limit: TASK_CONTINUITY_EVENTS_LIMIT,
       }),
       state.client.request<TasksCommitmentsResult | undefined>("tasks.commitments", {
         taskId: normalizedTaskId,
         agentId: task.agentId,
+        limit: TASK_CONTINUITY_COMMITMENTS_LIMIT,
       }),
     ]);
     state.tasksWorkbenchEventsByTaskId = {
@@ -768,6 +842,11 @@ export async function updateTasksWorkbenchCommitment(
   const normalizedTaskId = taskId.trim();
   const normalizedCommitmentId = commitmentId.trim();
   if (!state.client || !state.connected || !normalizedTaskId || !normalizedCommitmentId) {
+    return;
+  }
+  if (!canUseContinuityUiActions(state.hello)) {
+    state.tasksWorkbenchActionError = formatContinuityActionsUnavailableMessage(state.uiLocale);
+    state.tasksWorkbenchActionMessage = null;
     return;
   }
   if (state.tasksWorkbenchActionBusyKey) {
@@ -863,6 +942,11 @@ export async function updateTasksWorkbenchTaskStatus(
   if (!state.client || !state.connected || !normalizedTaskId) {
     return;
   }
+  if (!canUseContinuityUiActions(state.hello)) {
+    state.tasksWorkbenchActionError = formatContinuityActionsUnavailableMessage(state.uiLocale);
+    state.tasksWorkbenchActionMessage = null;
+    return;
+  }
   if (state.tasksWorkbenchActionBusyKey) {
     return;
   }
@@ -910,6 +994,332 @@ export async function updateTasksWorkbenchTaskStatus(
     });
   } catch (error) {
     state.tasksWorkbenchTasks = previousTasks;
+    state.tasksWorkbenchActionMessage = null;
+    state.tasksWorkbenchActionError =
+      error instanceof Error
+        ? error.message
+        : uiText(state.uiLocale, "Request failed.", "请求失败。");
+  } finally {
+    if (state.tasksWorkbenchActionBusyKey === busyKey) {
+      state.tasksWorkbenchActionBusyKey = null;
+    }
+  }
+}
+
+export async function repairTasksWorkbenchRelinkTask(
+  state: TasksWorkbenchState,
+  taskId: string,
+  sessionKey: string,
+  detail?: string,
+): Promise<void> {
+  const normalizedTaskId = taskId.trim();
+  const normalizedSessionKey = normalizeSessionKey(sessionKey);
+  if (!state.client || !state.connected || !normalizedTaskId || !normalizedSessionKey) {
+    return;
+  }
+  if (!canUseContinuityRepairActions(state.hello)) {
+    state.tasksWorkbenchActionError = formatContinuityRepairUnavailableMessage(state.uiLocale);
+    state.tasksWorkbenchActionMessage = null;
+    return;
+  }
+  if (state.tasksWorkbenchActionBusyKey) {
+    return;
+  }
+
+  const currentTask = state.tasksWorkbenchTasks.find((task) => task.taskId === normalizedTaskId);
+  if (!currentTask) {
+    state.tasksWorkbenchActionError = uiText(state.uiLocale, "Task not found.", "未找到任务。");
+    return;
+  }
+
+  const busyKey = buildRepairBusyKey("relink", normalizedTaskId);
+  state.tasksWorkbenchActionBusyKey = busyKey;
+  state.tasksWorkbenchActionError = null;
+  state.tasksWorkbenchActionMessage = uiText(
+    state.uiLocale,
+    "Relinking task to session...",
+    "正在将任务重新关联到会话...",
+  );
+
+  try {
+    const result = await state.client.request<TasksRepairRelinkResult | undefined>(
+      "tasks.repair.relink",
+      {
+        taskId: normalizedTaskId,
+        agentId: currentTask.agentId,
+        sessionKey: normalizedSessionKey,
+        detail: detail?.trim() || undefined,
+      },
+    );
+    if (!result?.task) {
+      throw new Error(
+        uiText(
+          state.uiLocale,
+          "Gateway did not return the relinked task.",
+          "网关没有返回重新关联后的任务。",
+        ),
+      );
+    }
+    state.tasksWorkbenchActionMessage = uiText(
+      state.uiLocale,
+      "Task relinked to the new session.",
+      "任务已重新关联到新会话。",
+    );
+    await loadTasksWorkbench(state, {
+      force: true,
+      selectTaskId: normalizedTaskId,
+    });
+  } catch (error) {
+    state.tasksWorkbenchActionMessage = null;
+    state.tasksWorkbenchActionError =
+      error instanceof Error
+        ? error.message
+        : uiText(state.uiLocale, "Request failed.", "请求失败。");
+  } finally {
+    if (state.tasksWorkbenchActionBusyKey === busyKey) {
+      state.tasksWorkbenchActionBusyKey = null;
+    }
+  }
+}
+
+export async function repairTasksWorkbenchMergeTask(
+  state: TasksWorkbenchState,
+  sourceTaskId: string,
+  targetTaskId: string,
+  detail?: string,
+): Promise<void> {
+  const normalizedSourceTaskId = sourceTaskId.trim();
+  const normalizedTargetTaskId = targetTaskId.trim();
+  if (!state.client || !state.connected || !normalizedSourceTaskId || !normalizedTargetTaskId) {
+    return;
+  }
+  if (!canUseContinuityRepairActions(state.hello)) {
+    state.tasksWorkbenchActionError = formatContinuityRepairUnavailableMessage(state.uiLocale);
+    state.tasksWorkbenchActionMessage = null;
+    return;
+  }
+  if (state.tasksWorkbenchActionBusyKey) {
+    return;
+  }
+  if (normalizedSourceTaskId === normalizedTargetTaskId) {
+    state.tasksWorkbenchActionError = uiText(
+      state.uiLocale,
+      "Source and target tasks must be different.",
+      "源任务和目标任务必须不同。",
+    );
+    state.tasksWorkbenchActionMessage = null;
+    return;
+  }
+
+  const targetTask = state.tasksWorkbenchTasks.find(
+    (task) => task.taskId === normalizedTargetTaskId,
+  );
+  if (!targetTask) {
+    state.tasksWorkbenchActionError = uiText(
+      state.uiLocale,
+      "Target task not found.",
+      "未找到目标任务。",
+    );
+    return;
+  }
+
+  const busyKey = buildRepairBusyKey(
+    "merge",
+    `${normalizedSourceTaskId}->${normalizedTargetTaskId}`,
+  );
+  state.tasksWorkbenchActionBusyKey = busyKey;
+  state.tasksWorkbenchActionError = null;
+  state.tasksWorkbenchActionMessage = uiText(
+    state.uiLocale,
+    "Merging duplicate task...",
+    "正在合并重复任务...",
+  );
+
+  try {
+    const result = await state.client.request<TasksRepairMergeResult | undefined>(
+      "tasks.repair.merge",
+      {
+        sourceTaskId: normalizedSourceTaskId,
+        targetTaskId: normalizedTargetTaskId,
+        agentId: targetTask.agentId,
+        detail: detail?.trim() || undefined,
+      },
+    );
+    if (!result?.task) {
+      throw new Error(
+        uiText(
+          state.uiLocale,
+          "Gateway did not return the merged task.",
+          "网关没有返回合并后的任务。",
+        ),
+      );
+    }
+    state.tasksWorkbenchActionMessage = uiText(
+      state.uiLocale,
+      "Duplicate task merged into the selected task.",
+      "重复任务已合并到当前任务。",
+    );
+    await loadTasksWorkbench(state, {
+      force: true,
+      selectTaskId: normalizedTargetTaskId,
+    });
+  } catch (error) {
+    state.tasksWorkbenchActionMessage = null;
+    state.tasksWorkbenchActionError =
+      error instanceof Error
+        ? error.message
+        : uiText(state.uiLocale, "Request failed.", "请求失败。");
+  } finally {
+    if (state.tasksWorkbenchActionBusyKey === busyKey) {
+      state.tasksWorkbenchActionBusyKey = null;
+    }
+  }
+}
+
+export async function repairTasksWorkbenchMarkTaskOrphan(
+  state: TasksWorkbenchState,
+  taskId: string,
+  detail?: string,
+): Promise<void> {
+  const normalizedTaskId = taskId.trim();
+  if (!state.client || !state.connected || !normalizedTaskId) {
+    return;
+  }
+  if (!canUseContinuityRepairActions(state.hello)) {
+    state.tasksWorkbenchActionError = formatContinuityRepairUnavailableMessage(state.uiLocale);
+    state.tasksWorkbenchActionMessage = null;
+    return;
+  }
+  if (state.tasksWorkbenchActionBusyKey) {
+    return;
+  }
+
+  const task = state.tasksWorkbenchTasks.find((entry) => entry.taskId === normalizedTaskId);
+  if (!task) {
+    state.tasksWorkbenchActionError = uiText(state.uiLocale, "Task not found.", "未找到任务。");
+    return;
+  }
+
+  const busyKey = buildRepairBusyKey("task-orphan", normalizedTaskId);
+  state.tasksWorkbenchActionBusyKey = busyKey;
+  state.tasksWorkbenchActionError = null;
+  state.tasksWorkbenchActionMessage = uiText(
+    state.uiLocale,
+    "Marking task as orphan...",
+    "正在将任务标记为 orphan...",
+  );
+
+  try {
+    const result = await state.client.request<TasksRepairTaskOrphanResult | undefined>(
+      "tasks.repair.markTaskOrphan",
+      {
+        taskId: normalizedTaskId,
+        agentId: task.agentId,
+        detail: detail?.trim() || undefined,
+      },
+    );
+    if (!result?.task) {
+      throw new Error(
+        uiText(
+          state.uiLocale,
+          "Gateway did not return the repaired task.",
+          "网关没有返回修复后的任务。",
+        ),
+      );
+    }
+    state.tasksWorkbenchActionMessage = uiText(
+      state.uiLocale,
+      "Task marked as orphan.",
+      "任务已标记为 orphan。",
+    );
+    await loadTasksWorkbench(state, {
+      force: true,
+      selectTaskId: normalizedTaskId,
+    });
+  } catch (error) {
+    state.tasksWorkbenchActionMessage = null;
+    state.tasksWorkbenchActionError =
+      error instanceof Error
+        ? error.message
+        : uiText(state.uiLocale, "Request failed.", "请求失败。");
+  } finally {
+    if (state.tasksWorkbenchActionBusyKey === busyKey) {
+      state.tasksWorkbenchActionBusyKey = null;
+    }
+  }
+}
+
+export async function repairTasksWorkbenchMarkCommitmentOrphan(
+  state: TasksWorkbenchState,
+  taskId: string,
+  commitmentId: string,
+  detail?: string,
+): Promise<void> {
+  const normalizedTaskId = taskId.trim();
+  const normalizedCommitmentId = commitmentId.trim();
+  if (!state.client || !state.connected || !normalizedTaskId || !normalizedCommitmentId) {
+    return;
+  }
+  if (!canUseContinuityRepairActions(state.hello)) {
+    state.tasksWorkbenchActionError = formatContinuityRepairUnavailableMessage(state.uiLocale);
+    state.tasksWorkbenchActionMessage = null;
+    return;
+  }
+  if (state.tasksWorkbenchActionBusyKey) {
+    return;
+  }
+
+  const task = state.tasksWorkbenchTasks.find((entry) => entry.taskId === normalizedTaskId);
+  const commitment = (state.tasksWorkbenchCommitmentsByTaskId[normalizedTaskId] ?? []).find(
+    (entry) => entry.commitmentId === normalizedCommitmentId,
+  );
+  if (!task || !commitment) {
+    state.tasksWorkbenchActionError = uiText(
+      state.uiLocale,
+      "Commitment not found.",
+      "未找到承诺。",
+    );
+    return;
+  }
+
+  const busyKey = buildRepairBusyKey("commitment-orphan", normalizedCommitmentId);
+  state.tasksWorkbenchActionBusyKey = busyKey;
+  state.tasksWorkbenchActionError = null;
+  state.tasksWorkbenchActionMessage = uiText(
+    state.uiLocale,
+    "Marking commitment as orphan...",
+    "正在将承诺标记为 orphan...",
+  );
+
+  try {
+    const result = await state.client.request<TasksRepairCommitmentOrphanResult | undefined>(
+      "tasks.repair.markCommitmentOrphan",
+      {
+        taskId: normalizedTaskId,
+        commitmentId: normalizedCommitmentId,
+        agentId: task.agentId,
+        detail: detail?.trim() || undefined,
+      },
+    );
+    if (!result?.commitment) {
+      throw new Error(
+        uiText(
+          state.uiLocale,
+          "Gateway did not return the repaired commitment.",
+          "网关没有返回修复后的承诺。",
+        ),
+      );
+    }
+    state.tasksWorkbenchActionMessage = uiText(
+      state.uiLocale,
+      "Commitment marked as orphan.",
+      "承诺已标记为 orphan。",
+    );
+    await loadTasksWorkbench(state, {
+      force: true,
+      selectTaskId: normalizedTaskId,
+    });
+  } catch (error) {
     state.tasksWorkbenchActionMessage = null;
     state.tasksWorkbenchActionError =
       error instanceof Error

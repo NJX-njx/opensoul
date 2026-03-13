@@ -8,6 +8,10 @@ import {
   patchCommitment,
   patchTask,
   queryTasks,
+  repairMarkCommitmentOrphan,
+  repairMarkTaskOrphan,
+  repairMergeTasks,
+  repairRelinkTaskToSession,
   type TasksListSort,
 } from "../../continuity/service.js";
 import {
@@ -19,10 +23,32 @@ import {
   validateTasksEventsParams,
   validateTasksGetParams,
   validateTasksListParams,
+  validateTasksRepairCommitmentOrphanParams,
+  validateTasksRepairMergeParams,
+  validateTasksRepairRelinkParams,
+  validateTasksRepairTaskOrphanParams,
   validateTasksTaskPatchParams,
 } from "../protocol/index.js";
 
 const ADMIN_SCOPE = "operator.admin";
+const EMPTY_TASKS_LIST_RESULT = { tasks: [], total: 0, nextOffset: null } as const;
+const EMPTY_TASKS_EVENTS_RESULT = { events: [] } as const;
+const EMPTY_TASKS_COMMITMENTS_RESULT = { commitments: [] } as const;
+
+function resolveContinuityFeatures(cfg: ReturnType<typeof loadConfig>): {
+  reads: boolean;
+  writes: boolean;
+  handoff: boolean;
+  uiActions: boolean;
+} {
+  const features = cfg.gateway?.controlUi?.continuity?.features;
+  return {
+    reads: features?.reads !== false,
+    writes: features?.writes !== false,
+    handoff: features?.handoff !== false,
+    uiActions: features?.uiActions !== false,
+  };
+}
 
 function resolveTaskAgentId(params: {
   cfg: ReturnType<typeof loadConfig>;
@@ -82,6 +108,17 @@ function hasAdminScope(client: GatewayClient | null | undefined): boolean {
 function respondTasksPermissionError(respond: RespondFn, message: string): false {
   respond(false, undefined, errorShape(ErrorCodes.INVALID_REQUEST, message));
   return false;
+}
+
+function ensureAdminRepairAccess(
+  client: GatewayClient | null | undefined,
+  respond: RespondFn,
+  method: string,
+): boolean {
+  if (hasAdminScope(client)) {
+    return true;
+  }
+  return respondTasksPermissionError(respond, `${method} requires operator.admin`);
 }
 
 function ensureTasksListAccess(params: {
@@ -190,6 +227,14 @@ function hasTaskPatchFields(params: {
   );
 }
 
+function respondContinuityWritesDisabled(respond: RespondFn): void {
+  respond(
+    false,
+    undefined,
+    errorShape(ErrorCodes.INVALID_REQUEST, "continuity writes are disabled by config"),
+  );
+}
+
 export const tasksHandlers: GatewayRequestHandlers = {
   "tasks.list": ({ params, respond, client }) => {
     if (!validateTasksListParams(params)) {
@@ -204,6 +249,11 @@ export const tasksHandlers: GatewayRequestHandlers = {
       return;
     }
     const cfg = loadConfig();
+    const continuity = resolveContinuityFeatures(cfg);
+    if (!continuity.reads) {
+      respond(true, EMPTY_TASKS_LIST_RESULT, undefined);
+      return;
+    }
     const p = params as {
       allAgents?: boolean;
       agentId?: string;
@@ -278,6 +328,11 @@ export const tasksHandlers: GatewayRequestHandlers = {
       return;
     }
     const cfg = loadConfig();
+    const continuity = resolveContinuityFeatures(cfg);
+    if (!continuity.reads) {
+      respond(true, { task: null }, undefined);
+      return;
+    }
     const p = params as { taskId: string; agentId?: string; sessionKey?: string };
     const agentId = resolveTaskAgentId({
       cfg,
@@ -317,6 +372,11 @@ export const tasksHandlers: GatewayRequestHandlers = {
       return;
     }
     const cfg = loadConfig();
+    const continuity = resolveContinuityFeatures(cfg);
+    if (!continuity.reads) {
+      respond(true, EMPTY_TASKS_EVENTS_RESULT, undefined);
+      return;
+    }
     const p = params as { taskId: string; agentId?: string; sessionKey?: string; limit?: number };
     const agentId = resolveTaskAgentId({
       cfg,
@@ -362,11 +422,17 @@ export const tasksHandlers: GatewayRequestHandlers = {
       return;
     }
     const cfg = loadConfig();
+    const continuity = resolveContinuityFeatures(cfg);
+    if (!continuity.reads) {
+      respond(true, EMPTY_TASKS_COMMITMENTS_RESULT, undefined);
+      return;
+    }
     const p = params as {
       taskId: string;
       agentId?: string;
       sessionKey?: string;
       status?: "open" | "done" | "cancelled";
+      limit?: number;
     };
     const agentId = resolveTaskAgentId({
       cfg,
@@ -396,6 +462,7 @@ export const tasksHandlers: GatewayRequestHandlers = {
       agentId,
       taskId: p.taskId,
       status: p.status,
+      limit: p.limit,
     });
     respond(true, { commitments }, undefined);
   },
@@ -412,6 +479,11 @@ export const tasksHandlers: GatewayRequestHandlers = {
       return;
     }
     const cfg = loadConfig();
+    const continuity = resolveContinuityFeatures(cfg);
+    if (!continuity.writes) {
+      respondContinuityWritesDisabled(respond);
+      return;
+    }
     const p = params as {
       taskId: string;
       commitmentId: string;
@@ -494,6 +566,11 @@ export const tasksHandlers: GatewayRequestHandlers = {
       return;
     }
     const cfg = loadConfig();
+    const continuity = resolveContinuityFeatures(cfg);
+    if (!continuity.writes) {
+      respondContinuityWritesDisabled(respond);
+      return;
+    }
     const agentId = resolveTaskAgentId({
       cfg,
       agentId: p.agentId,
@@ -546,5 +623,225 @@ export const tasksHandlers: GatewayRequestHandlers = {
       return;
     }
     respond(true, { task }, undefined);
+  },
+  "tasks.repair.relink": ({ params, respond, client }) => {
+    if (!validateTasksRepairRelinkParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid tasks.repair.relink params: ${formatValidationErrors(validateTasksRepairRelinkParams.errors)}`,
+        ),
+      );
+      return;
+    }
+    if (!ensureAdminRepairAccess(client, respond, "tasks.repair.relink")) {
+      return;
+    }
+    const cfg = loadConfig();
+    const continuity = resolveContinuityFeatures(cfg);
+    if (!continuity.writes) {
+      respondContinuityWritesDisabled(respond);
+      return;
+    }
+    const p = params as {
+      taskId: string;
+      agentId?: string;
+      sessionKey: string;
+      detail?: string | null;
+    };
+    const agentId = resolveTaskAgentId({
+      cfg,
+      agentId: p.agentId,
+    });
+    const task = repairRelinkTaskToSession({
+      cfg,
+      agentId,
+      taskId: p.taskId,
+      sessionKey: p.sessionKey,
+      detail: p.detail,
+      surface: { kind: "control-ui", label: "tasks workbench" },
+    });
+    if (!task) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, `unknown task or session: ${p.taskId}`),
+      );
+      return;
+    }
+    respond(true, { task }, undefined);
+  },
+  "tasks.repair.merge": ({ params, respond, client }) => {
+    if (!validateTasksRepairMergeParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid tasks.repair.merge params: ${formatValidationErrors(validateTasksRepairMergeParams.errors)}`,
+        ),
+      );
+      return;
+    }
+    if (!ensureAdminRepairAccess(client, respond, "tasks.repair.merge")) {
+      return;
+    }
+    const cfg = loadConfig();
+    const continuity = resolveContinuityFeatures(cfg);
+    if (!continuity.writes) {
+      respondContinuityWritesDisabled(respond);
+      return;
+    }
+    const p = params as {
+      sourceTaskId: string;
+      targetTaskId: string;
+      agentId?: string;
+      detail?: string | null;
+    };
+    if (p.sourceTaskId === p.targetTaskId) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          "tasks.repair.merge requires different sourceTaskId and targetTaskId",
+        ),
+      );
+      return;
+    }
+    const agentId = resolveTaskAgentId({
+      cfg,
+      agentId: p.agentId,
+    });
+    const result = repairMergeTasks({
+      cfg,
+      agentId,
+      sourceTaskId: p.sourceTaskId,
+      targetTaskId: p.targetTaskId,
+      detail: p.detail,
+      surface: { kind: "control-ui", label: "tasks workbench" },
+    });
+    if (!result) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `unknown tasks for merge: ${p.sourceTaskId} -> ${p.targetTaskId}`,
+        ),
+      );
+      return;
+    }
+    respond(
+      true,
+      {
+        task: result.task,
+        mergedTaskId: result.mergedTaskId,
+        deletedTaskId: result.deletedTaskId,
+        moved: result.moved,
+      },
+      undefined,
+    );
+  },
+  "tasks.repair.markTaskOrphan": ({ params, respond, client }) => {
+    if (!validateTasksRepairTaskOrphanParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid tasks.repair.markTaskOrphan params: ${formatValidationErrors(validateTasksRepairTaskOrphanParams.errors)}`,
+        ),
+      );
+      return;
+    }
+    if (!ensureAdminRepairAccess(client, respond, "tasks.repair.markTaskOrphan")) {
+      return;
+    }
+    const cfg = loadConfig();
+    const continuity = resolveContinuityFeatures(cfg);
+    if (!continuity.writes) {
+      respondContinuityWritesDisabled(respond);
+      return;
+    }
+    const p = params as {
+      taskId: string;
+      agentId?: string;
+      detail?: string | null;
+    };
+    const agentId = resolveTaskAgentId({
+      cfg,
+      agentId: p.agentId,
+    });
+    const task = repairMarkTaskOrphan({
+      cfg,
+      agentId,
+      taskId: p.taskId,
+      detail: p.detail,
+      surface: { kind: "control-ui", label: "tasks workbench" },
+    });
+    if (!task) {
+      respond(
+        false,
+        undefined,
+        errorShape(ErrorCodes.INVALID_REQUEST, `unknown task: ${p.taskId}`),
+      );
+      return;
+    }
+    respond(true, { task }, undefined);
+  },
+  "tasks.repair.markCommitmentOrphan": ({ params, respond, client }) => {
+    if (!validateTasksRepairCommitmentOrphanParams(params)) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `invalid tasks.repair.markCommitmentOrphan params: ${formatValidationErrors(validateTasksRepairCommitmentOrphanParams.errors)}`,
+        ),
+      );
+      return;
+    }
+    if (!ensureAdminRepairAccess(client, respond, "tasks.repair.markCommitmentOrphan")) {
+      return;
+    }
+    const cfg = loadConfig();
+    const continuity = resolveContinuityFeatures(cfg);
+    if (!continuity.writes) {
+      respondContinuityWritesDisabled(respond);
+      return;
+    }
+    const p = params as {
+      taskId: string;
+      commitmentId: string;
+      agentId?: string;
+      detail?: string | null;
+    };
+    const agentId = resolveTaskAgentId({
+      cfg,
+      agentId: p.agentId,
+    });
+    const commitment = repairMarkCommitmentOrphan({
+      cfg,
+      agentId,
+      taskId: p.taskId,
+      commitmentId: p.commitmentId,
+      detail: p.detail,
+      surface: { kind: "control-ui", label: "tasks workbench" },
+    });
+    if (!commitment) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.INVALID_REQUEST,
+          `unknown task or commitment: ${p.taskId}/${p.commitmentId}`,
+        ),
+      );
+      return;
+    }
+    respond(true, { commitment }, undefined);
   },
 };

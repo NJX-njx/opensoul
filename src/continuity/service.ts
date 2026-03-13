@@ -30,6 +30,9 @@ const COMMITMENT_SOURCE_METADATA_FIELD = "continuitySource";
 const TASK_STATUS_REASON_METADATA_FIELD = "continuityStatusReason";
 const TASK_STATUS_SOURCE_EVENT_METADATA_FIELD = "continuityStatusEvent";
 const TASK_STATUS_CHANGED_AT_METADATA_FIELD = "continuityStatusChangedAt";
+const REPAIR_STATE_METADATA_FIELD = "continuityRepairState";
+const REPAIR_DETAIL_METADATA_FIELD = "continuityRepairDetail";
+const REPAIR_UPDATED_AT_METADATA_FIELD = "continuityRepairUpdatedAt";
 const DEFAULT_STALE_RUNNING_MS = 30 * 60_000;
 const DEFAULT_STALE_WAITING_USER_MS = 24 * 60 * 60_000;
 const DEFAULT_STALE_TASK_SAMPLE_LIMIT = 5;
@@ -139,6 +142,18 @@ type AppendTaskEventParams = {
   summary?: string;
   surface?: SurfaceRef;
   payload?: Record<string, unknown>;
+};
+
+export type ContinuityTaskMergeResult = {
+  task: TaskRecord;
+  mergedTaskId: string;
+  deletedTaskId: string;
+  moved: {
+    sessionLinks: number;
+    events: number;
+    commitments: number;
+    dedupedCommitments: number;
+  };
 };
 
 function createEmptyTaskLifecycleCounts(): ContinuityAggregateCounts["taskLifecycle"] {
@@ -1431,38 +1446,17 @@ export function queryTasks(params: {
   sort?: TasksListSort;
 }): { tasks: Array<TaskRecord>; total: number } {
   const store = getContinuityStore({ cfg: params.cfg, agentId: params.agentId });
-  const baseTasks = params.sessionKey
-    ? store.listTasksBySession({
-        sessionKey: params.sessionKey,
-        status: params.status,
-      })
-    : store.listAllTasks();
-  const filteredTasks = baseTasks
-    .filter((task) => !params.status || task.status === params.status)
-    .filter((task) => taskMatchesSurfaceKind(task, params.surfaceKind))
-    .filter((task) => taskMatchesChannel(task, params.channel))
-    .filter((task) => taskMatchesQuery(task, params.query))
-    .filter(
-      (task) =>
-        typeof params.updatedAfter !== "number" ||
-        !Number.isFinite(params.updatedAfter) ||
-        task.updatedAt >= params.updatedAfter,
-    )
-    .toSorted((left, right) => compareTaskRecords(left, right, params.sort ?? "updated-desc"));
-  const total = filteredTasks.length;
-  const offset =
-    typeof params.offset === "number" && Number.isFinite(params.offset)
-      ? Math.max(0, Math.floor(params.offset))
-      : 0;
-  const limit =
-    typeof params.limit === "number" && Number.isFinite(params.limit)
-      ? Math.max(1, Math.floor(params.limit))
-      : undefined;
-  const tasks =
-    typeof limit === "number"
-      ? filteredTasks.slice(offset, offset + limit)
-      : filteredTasks.slice(offset);
-  return { tasks, total };
+  return store.queryTasks({
+    sessionKey: params.sessionKey,
+    status: params.status,
+    surfaceKind: params.surfaceKind,
+    channel: params.channel,
+    query: params.query,
+    updatedAfter: params.updatedAfter,
+    sort: params.sort,
+    limit: params.limit,
+    offset: params.offset,
+  });
 }
 
 export function listTasks(params: {
@@ -1762,11 +1756,13 @@ export function listCommitments(params: {
   agentId: string;
   taskId: string;
   status?: CommitmentStatus;
+  limit?: number;
 }): Array<CommitmentRecord> {
   const store = getContinuityStore({ cfg: params.cfg, agentId: params.agentId });
   return store.listCommitments({
     taskId: params.taskId,
     status: params.status,
+    limit: params.limit,
   });
 }
 
@@ -1854,6 +1850,501 @@ export function patchCommitment(params: {
     summary: buildCommitmentSummary(eventLabel, saved),
     commitment: saved,
     reason: "tasks.commitments.update",
+  });
+  return saved;
+}
+
+function resolveRepairSurface(surface?: SurfaceRef): SurfaceRef {
+  return surface ?? { kind: "unknown", label: "tasks repair" };
+}
+
+function trimRepairDetail(detail: string | null | undefined): string | undefined {
+  return normalizeOptionalPatchText(detail, SUMMARY_MAX_CHARS);
+}
+
+function mergeMetadataRecords(
+  preferred?: Record<string, unknown>,
+  fallback?: Record<string, unknown>,
+): Record<string, unknown> | undefined {
+  const merged = {
+    ...fallback,
+    ...preferred,
+  };
+  return Object.keys(merged).length > 0 ? merged : undefined;
+}
+
+function removeOrphanRepairMetadata(
+  metadata?: Record<string, unknown>,
+): Record<string, unknown> | undefined {
+  if (!metadata) {
+    return undefined;
+  }
+  const nextMetadata = { ...metadata };
+  if (nextMetadata[REPAIR_STATE_METADATA_FIELD] !== "orphan") {
+    return nextMetadata;
+  }
+  delete nextMetadata[REPAIR_STATE_METADATA_FIELD];
+  delete nextMetadata[REPAIR_DETAIL_METADATA_FIELD];
+  delete nextMetadata[REPAIR_UPDATED_AT_METADATA_FIELD];
+  return Object.keys(nextMetadata).length > 0 ? nextMetadata : undefined;
+}
+
+function buildOrphanRepairMetadata(params: {
+  metadata?: Record<string, unknown>;
+  detail?: string;
+  updatedAt: number;
+}): Record<string, unknown> {
+  const nextMetadata: Record<string, unknown> = {
+    ...params.metadata,
+    [REPAIR_STATE_METADATA_FIELD]: "orphan",
+    [REPAIR_UPDATED_AT_METADATA_FIELD]: params.updatedAt,
+  };
+  if (params.detail) {
+    nextMetadata[REPAIR_DETAIL_METADATA_FIELD] = params.detail;
+  } else {
+    delete nextMetadata[REPAIR_DETAIL_METADATA_FIELD];
+  }
+  return nextMetadata;
+}
+
+function appendRepairRecord(params: {
+  store: ReturnType<typeof getContinuityStore>;
+  agentId: string;
+  kind: string;
+  detail?: string;
+  taskId?: string;
+  sessionKey?: string;
+  payload?: Record<string, unknown>;
+}): void {
+  params.store.appendRepair({
+    repairId: crypto.randomUUID(),
+    agentId: params.agentId,
+    taskId: params.taskId,
+    sessionKey: params.sessionKey,
+    kind: params.kind,
+    detail: params.detail,
+    payload: params.payload,
+    createdAt: Date.now(),
+  });
+  continuityLogger.info("continuity repair recorded", {
+    event: "continuity.repair",
+    agentId: params.agentId,
+    taskId: params.taskId,
+    sessionKey: params.sessionKey,
+    repairKind: params.kind,
+    detail: params.detail,
+    payload: params.payload,
+  });
+}
+
+function selectMoreActiveTaskStatus(left: TaskStatus, right: TaskStatus): TaskStatus {
+  const priority: Record<TaskStatus, number> = {
+    running: 5,
+    "waiting-user": 4,
+    open: 3,
+    failed: 2,
+    completed: 1,
+    cancelled: 0,
+  };
+  return priority[left] >= priority[right] ? left : right;
+}
+
+function selectMoreOpenCommitmentStatus(
+  left: CommitmentStatus,
+  right: CommitmentStatus,
+): CommitmentStatus {
+  const priority: Record<CommitmentStatus, number> = {
+    open: 2,
+    done: 1,
+    cancelled: 0,
+  };
+  return priority[left] >= priority[right] ? left : right;
+}
+
+function mergeTaskRecordsForRepair(params: {
+  targetTask: TaskRecord;
+  sourceTask: TaskRecord;
+  latestSessionKey?: string;
+  now: number;
+}): TaskRecord {
+  const latestTask =
+    params.targetTask.updatedAt >= params.sourceTask.updatedAt
+      ? params.targetTask
+      : params.sourceTask;
+  const mergedStatus = selectMoreActiveTaskStatus(
+    params.targetTask.status,
+    params.sourceTask.status,
+  );
+  return {
+    ...params.targetTask,
+    status: mergedStatus,
+    title:
+      normalizeOptionalPatchText(params.targetTask.title, TITLE_MAX_CHARS) ??
+      normalizeOptionalPatchText(params.sourceTask.title, TITLE_MAX_CHARS),
+    summary:
+      normalizeOptionalPatchText(params.targetTask.summary, SUMMARY_MAX_CHARS) ??
+      normalizeOptionalPatchText(params.sourceTask.summary, SUMMARY_MAX_CHARS),
+    sourceSurface: params.targetTask.sourceSurface ?? params.sourceTask.sourceSurface,
+    currentSurface:
+      latestTask.currentSurface ??
+      params.targetTask.currentSurface ??
+      params.sourceTask.currentSurface,
+    latestSessionKey:
+      params.latestSessionKey ??
+      latestTask.latestSessionKey ??
+      params.targetTask.latestSessionKey ??
+      params.sourceTask.latestSessionKey,
+    latestRunId:
+      latestTask.latestRunId ?? params.targetTask.latestRunId ?? params.sourceTask.latestRunId,
+    createdAt: Math.min(params.targetTask.createdAt, params.sourceTask.createdAt),
+    updatedAt: params.now,
+    closedAt: CLOSED_TASK_STATUSES.has(mergedStatus)
+      ? Math.max(params.targetTask.closedAt ?? 0, params.sourceTask.closedAt ?? 0) || params.now
+      : undefined,
+    metadata: removeOrphanRepairMetadata(
+      mergeMetadataRecords(params.targetTask.metadata, params.sourceTask.metadata),
+    ),
+  };
+}
+
+function findDuplicateCommitment(
+  commitments: Array<CommitmentRecord>,
+  candidate: CommitmentRecord,
+): CommitmentRecord | undefined {
+  const candidateKey = readCommitmentKey(candidate);
+  return (
+    commitments.find(
+      (commitment) =>
+        commitment.commitmentId !== candidate.commitmentId &&
+        readCommitmentKey(commitment) === candidateKey,
+    ) ??
+    commitments.find(
+      (commitment) =>
+        commitment.commitmentId !== candidate.commitmentId &&
+        buildCommitmentKey(commitment.title) === buildCommitmentKey(candidate.title),
+    )
+  );
+}
+
+function mergeCommitmentRecordsForRepair(params: {
+  targetCommitment: CommitmentRecord;
+  sourceCommitment: CommitmentRecord;
+  now: number;
+}): CommitmentRecord {
+  const mergedStatus = selectMoreOpenCommitmentStatus(
+    params.targetCommitment.status,
+    params.sourceCommitment.status,
+  );
+  return {
+    ...params.targetCommitment,
+    status: mergedStatus,
+    kind: params.targetCommitment.kind ?? params.sourceCommitment.kind,
+    title:
+      normalizeOptionalPatchText(params.targetCommitment.title, TITLE_MAX_CHARS) ??
+      params.sourceCommitment.title,
+    detail:
+      trimRepairDetail(params.targetCommitment.detail) ??
+      trimRepairDetail(params.sourceCommitment.detail),
+    dueAt: params.targetCommitment.dueAt ?? params.sourceCommitment.dueAt,
+    cronJobId: params.targetCommitment.cronJobId ?? params.sourceCommitment.cronJobId,
+    updatedAt: params.now,
+    closedAt:
+      mergedStatus === "open"
+        ? undefined
+        : Math.max(params.targetCommitment.closedAt ?? 0, params.sourceCommitment.closedAt ?? 0) ||
+          params.now,
+    metadata: removeOrphanRepairMetadata(
+      mergeMetadataRecords(params.targetCommitment.metadata, params.sourceCommitment.metadata),
+    ),
+  };
+}
+
+function countRows(
+  store: ReturnType<typeof getContinuityStore>,
+  sql: string,
+  params: Array<string>,
+): number {
+  const row = store.db.prepare(sql).get(...params) as { count?: number } | undefined;
+  return row?.count ?? 0;
+}
+
+export function repairRelinkTaskToSession(params: {
+  cfg: OpenSoulConfig;
+  agentId: string;
+  taskId: string;
+  sessionKey: string;
+  detail?: string | null;
+  surface?: SurfaceRef;
+}): TaskRecord | null {
+  const store = getContinuityStore({ cfg: params.cfg, agentId: params.agentId });
+  const task = store.getTask(params.taskId);
+  const sessionKey = params.sessionKey.trim();
+  if (!task || !sessionKey) {
+    return null;
+  }
+  const detail = trimRepairDetail(params.detail) ?? `${params.taskId} -> ${sessionKey}`;
+  const now = Date.now();
+  store.upsertTask({
+    ...task,
+    latestSessionKey: sessionKey,
+    metadata: removeOrphanRepairMetadata(task.metadata),
+    updatedAt: now,
+  });
+  appendRepairRecord({
+    store,
+    agentId: params.agentId,
+    taskId: params.taskId,
+    sessionKey,
+    kind: "task-relinked",
+    detail,
+    payload: {
+      previousLatestSessionKey: task.latestSessionKey,
+    },
+  });
+  appendTaskEvent({
+    cfg: params.cfg,
+    agentId: params.agentId,
+    taskId: params.taskId,
+    kind: "repair.task-relinked",
+    sessionKey,
+    summary: buildTaskPatchSummary({
+      previousTask: task,
+      nextTask: {
+        ...task,
+        latestSessionKey: sessionKey,
+      },
+      updatedFields: ["latestSessionKey"],
+    }),
+    surface: resolveRepairSurface(params.surface),
+    payload: {
+      detail,
+      previousLatestSessionKey: task.latestSessionKey,
+      sessionKey,
+    },
+  });
+  return store.getTask(params.taskId);
+}
+
+export function repairMergeTasks(params: {
+  cfg: OpenSoulConfig;
+  agentId: string;
+  sourceTaskId: string;
+  targetTaskId: string;
+  detail?: string | null;
+  surface?: SurfaceRef;
+}): ContinuityTaskMergeResult | null {
+  if (params.sourceTaskId === params.targetTaskId) {
+    return null;
+  }
+  const store = getContinuityStore({ cfg: params.cfg, agentId: params.agentId });
+  const sourceTask = store.getTask(params.sourceTaskId);
+  const targetTask = store.getTask(params.targetTaskId);
+  if (!sourceTask || !targetTask) {
+    return null;
+  }
+
+  const now = Date.now();
+  const sourceLinks = store.getTaskSessionLinks(params.sourceTaskId);
+  const sourceCommitments = store.listCommitments({ taskId: params.sourceTaskId });
+  let targetCommitments = store.listCommitments({ taskId: params.targetTaskId });
+  const latestSessionKey =
+    targetTask.latestSessionKey ?? sourceTask.latestSessionKey ?? sourceLinks[0]?.sessionKey;
+  const nextTask = mergeTaskRecordsForRepair({
+    targetTask,
+    sourceTask,
+    latestSessionKey,
+    now,
+  });
+  const movedEvents = countRows(
+    store,
+    "SELECT COUNT(*) AS count FROM task_events WHERE task_id = ?",
+    [params.sourceTaskId],
+  );
+  let movedLinks = 0;
+  let movedCommitments = 0;
+  let dedupedCommitments = 0;
+
+  store.transaction(() => {
+    for (const link of sourceLinks) {
+      store.upsertTaskSessionLink({
+        ...link,
+        taskId: params.targetTaskId,
+      });
+      movedLinks += 1;
+    }
+
+    for (const sourceCommitment of sourceCommitments) {
+      const duplicate = findDuplicateCommitment(targetCommitments, sourceCommitment);
+      if (duplicate) {
+        const mergedCommitment = mergeCommitmentRecordsForRepair({
+          targetCommitment: duplicate,
+          sourceCommitment,
+          now,
+        });
+        store.upsertCommitment(mergedCommitment);
+        targetCommitments = replaceCommitmentInList(targetCommitments, mergedCommitment);
+        dedupedCommitments += 1;
+        continue;
+      }
+      const movedCommitment = store.upsertCommitment({
+        ...sourceCommitment,
+        taskId: params.targetTaskId,
+        updatedAt: now,
+        metadata: removeOrphanRepairMetadata(sourceCommitment.metadata),
+      });
+      targetCommitments = replaceCommitmentInList(targetCommitments, movedCommitment);
+      movedCommitments += 1;
+    }
+
+    if (movedEvents > 0) {
+      store.db
+        .prepare("UPDATE task_events SET task_id = ? WHERE task_id = ?")
+        .run(params.targetTaskId, params.sourceTaskId);
+    }
+
+    store.upsertTask(nextTask);
+    store.db.prepare("DELETE FROM tasks WHERE task_id = ?").run(params.sourceTaskId);
+  });
+
+  const detail =
+    trimRepairDetail(params.detail) ?? `${params.sourceTaskId} -> ${params.targetTaskId}`;
+  const moved = {
+    sessionLinks: movedLinks,
+    events: movedEvents,
+    commitments: movedCommitments,
+    dedupedCommitments,
+  };
+  appendRepairRecord({
+    store,
+    agentId: params.agentId,
+    taskId: params.targetTaskId,
+    sessionKey: nextTask.latestSessionKey,
+    kind: "duplicate-task-merged",
+    detail,
+    payload: {
+      sourceTaskId: params.sourceTaskId,
+      targetTaskId: params.targetTaskId,
+      moved,
+    },
+  });
+  appendTaskEvent({
+    cfg: params.cfg,
+    agentId: params.agentId,
+    taskId: params.targetTaskId,
+    kind: "repair.tasks-merged",
+    sessionKey: nextTask.latestSessionKey,
+    summary: `Merged duplicate task ${params.sourceTaskId.slice(0, 8)} into this task`,
+    surface: resolveRepairSurface(params.surface),
+    payload: {
+      detail,
+      sourceTaskId: params.sourceTaskId,
+      targetTaskId: params.targetTaskId,
+      moved,
+    },
+  });
+  return {
+    task: store.getTask(params.targetTaskId) ?? nextTask,
+    mergedTaskId: params.targetTaskId,
+    deletedTaskId: params.sourceTaskId,
+    moved,
+  };
+}
+
+export function repairMarkTaskOrphan(params: {
+  cfg: OpenSoulConfig;
+  agentId: string;
+  taskId: string;
+  detail?: string | null;
+  surface?: SurfaceRef;
+}): TaskRecord | null {
+  const store = getContinuityStore({ cfg: params.cfg, agentId: params.agentId });
+  const task = store.getTask(params.taskId);
+  if (!task) {
+    return null;
+  }
+  const now = Date.now();
+  const detail = trimRepairDetail(params.detail);
+  const nextTask = store.upsertTask({
+    ...task,
+    metadata: buildOrphanRepairMetadata({
+      metadata: task.metadata,
+      detail,
+      updatedAt: now,
+    }),
+    updatedAt: now,
+  });
+  appendRepairRecord({
+    store,
+    agentId: params.agentId,
+    taskId: params.taskId,
+    sessionKey: nextTask.latestSessionKey,
+    kind: "task-marked-orphan",
+    detail,
+  });
+  appendTaskEvent({
+    cfg: params.cfg,
+    agentId: params.agentId,
+    taskId: params.taskId,
+    kind: "repair.task-marked-orphan",
+    sessionKey: nextTask.latestSessionKey,
+    summary: detail ? `Marked task as orphan: ${detail}` : "Marked task as orphan",
+    surface: resolveRepairSurface(params.surface),
+    payload: {
+      detail,
+      orphaned: true,
+    },
+  });
+  return store.getTask(params.taskId);
+}
+
+export function repairMarkCommitmentOrphan(params: {
+  cfg: OpenSoulConfig;
+  agentId: string;
+  taskId: string;
+  commitmentId: string;
+  detail?: string | null;
+  surface?: SurfaceRef;
+}): CommitmentRecord | null {
+  const store = getContinuityStore({ cfg: params.cfg, agentId: params.agentId });
+  const commitment = store
+    .listCommitments({ taskId: params.taskId })
+    .find((item) => item.commitmentId === params.commitmentId);
+  if (!commitment) {
+    return null;
+  }
+  const now = Date.now();
+  const detail = trimRepairDetail(params.detail);
+  const saved = store.upsertCommitment({
+    ...commitment,
+    metadata: buildOrphanRepairMetadata({
+      metadata: commitment.metadata,
+      detail,
+      updatedAt: now,
+    }),
+    updatedAt: now,
+  });
+  appendRepairRecord({
+    store,
+    agentId: params.agentId,
+    taskId: params.taskId,
+    sessionKey: store.getTask(params.taskId)?.latestSessionKey,
+    kind: "commitment-marked-orphan",
+    detail,
+    payload: {
+      commitmentId: params.commitmentId,
+    },
+  });
+  appendCommitmentEvent({
+    cfg: params.cfg,
+    agentId: params.agentId,
+    taskId: params.taskId,
+    kind: "repair.commitment-marked-orphan",
+    summary: detail
+      ? `Marked orphan commitment: ${saved.title} (${detail})`
+      : `Marked orphan commitment: ${saved.title}`,
+    commitment: saved,
+    reason: "tasks.repair.mark-commitment-orphan",
+    surface: resolveRepairSurface(params.surface),
   });
   return saved;
 }

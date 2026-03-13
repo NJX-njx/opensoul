@@ -5,6 +5,12 @@ import { resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { loadConfig } from "../config/config.js";
 import { resolveContinuityBackupPath } from "../continuity/paths.js";
 import {
+  repairMarkCommitmentOrphan,
+  repairMarkTaskOrphan,
+  repairMergeTasks,
+  repairRelinkTaskToSession,
+} from "../continuity/service.js";
+import {
   getContinuityStore,
   type ContinuityImportResult,
   type ContinuityPruneResult,
@@ -33,6 +39,37 @@ export type TasksPruneOptions = {
   repairsDays?: number | string;
   out?: string;
   dryRun?: boolean;
+  json?: boolean;
+};
+
+export type TasksRepairRelinkOptions = {
+  agentId?: string;
+  taskId: string;
+  sessionKey: string;
+  detail?: string;
+  json?: boolean;
+};
+
+export type TasksRepairMergeOptions = {
+  agentId?: string;
+  sourceTaskId: string;
+  targetTaskId: string;
+  detail?: string;
+  json?: boolean;
+};
+
+export type TasksRepairTaskOrphanOptions = {
+  agentId?: string;
+  taskId: string;
+  detail?: string;
+  json?: boolean;
+};
+
+export type TasksRepairCommitmentOrphanOptions = {
+  agentId?: string;
+  taskId: string;
+  commitmentId: string;
+  detail?: string;
   json?: boolean;
 };
 
@@ -65,6 +102,37 @@ type TasksPruneSummary = {
   result: ContinuityPruneResult;
 };
 
+type TasksRepairRelinkSummary = {
+  agentId: string;
+  taskId: string;
+  sessionKey: string;
+  detail?: string;
+  task: NonNullable<ReturnType<typeof repairRelinkTaskToSession>>;
+};
+
+type TasksRepairMergeSummary = {
+  agentId: string;
+  sourceTaskId: string;
+  targetTaskId: string;
+  detail?: string;
+  result: NonNullable<ReturnType<typeof repairMergeTasks>>;
+};
+
+type TasksRepairTaskOrphanSummary = {
+  agentId: string;
+  taskId: string;
+  detail?: string;
+  task: NonNullable<ReturnType<typeof repairMarkTaskOrphan>>;
+};
+
+type TasksRepairCommitmentOrphanSummary = {
+  agentId: string;
+  taskId: string;
+  commitmentId: string;
+  detail?: string;
+  commitment: NonNullable<ReturnType<typeof repairMarkCommitmentOrphan>>;
+};
+
 function resolveTasksAgentId(agentId: string | undefined): {
   cfg: ReturnType<typeof loadConfig>;
   agentId: string;
@@ -80,7 +148,14 @@ function resolveTasksAgentId(agentId: string | undefined): {
 function emitSummary(
   runtime: RuntimeEnv,
   json: boolean | undefined,
-  payload: TasksExportSummary | TasksImportSummary | TasksPruneSummary,
+  payload:
+    | TasksExportSummary
+    | TasksImportSummary
+    | TasksPruneSummary
+    | TasksRepairRelinkSummary
+    | TasksRepairMergeSummary
+    | TasksRepairTaskOrphanSummary
+    | TasksRepairCommitmentOrphanSummary,
   lines: Array<string>,
 ): void {
   if (json) {
@@ -90,6 +165,12 @@ function emitSummary(
   for (const line of lines) {
     runtime.log(line);
   }
+}
+
+function exitWithRuntimeError(runtime: RuntimeEnv, message: string): never {
+  runtime.error(message);
+  runtime.exit(1);
+  throw new Error(message);
 }
 
 function parsePositiveDays(
@@ -270,6 +351,161 @@ export async function tasksPruneCommand(
     `${opts.dryRun ? "Dry-run prune complete" : "Pruned continuity data"} for ${agentId}.`,
     ...(backupPath ? [`Backup: ${backupPath}`] : []),
     `Deleted tasks: ${result.deleted.tasks}, events: ${result.deleted.events}, commitments: ${result.deleted.commitments}, repairs: ${result.deleted.repairs}`,
+  ]);
+  return summary;
+}
+
+export async function tasksRepairRelinkCommand(
+  opts: TasksRepairRelinkOptions,
+  runtime: RuntimeEnv,
+): Promise<TasksRepairRelinkSummary> {
+  const { cfg, agentId } = resolveTasksAgentId(opts.agentId);
+  const taskId = opts.taskId.trim();
+  const sessionKey = opts.sessionKey.trim();
+  if (!taskId || !sessionKey) {
+    return exitWithRuntimeError(runtime, "tasks repair relink requires --task and --session");
+  }
+  const task = repairRelinkTaskToSession({
+    cfg,
+    agentId,
+    taskId,
+    sessionKey,
+    detail: opts.detail,
+  });
+  if (!task) {
+    return exitWithRuntimeError(runtime, `Unable to relink task: ${taskId}`);
+  }
+  const summary: TasksRepairRelinkSummary = {
+    agentId,
+    taskId,
+    sessionKey,
+    detail: opts.detail?.trim() || undefined,
+    task,
+  };
+  emitSummary(runtime, opts.json, summary, [
+    `Relinked task ${taskId} to session ${sessionKey}.`,
+    `Agent: ${agentId}`,
+    `Status: ${task.status}`,
+  ]);
+  return summary;
+}
+
+export async function tasksRepairMergeCommand(
+  opts: TasksRepairMergeOptions,
+  runtime: RuntimeEnv,
+): Promise<TasksRepairMergeSummary> {
+  const { cfg, agentId } = resolveTasksAgentId(opts.agentId);
+  const sourceTaskId = opts.sourceTaskId.trim();
+  const targetTaskId = opts.targetTaskId.trim();
+  if (!sourceTaskId || !targetTaskId) {
+    return exitWithRuntimeError(
+      runtime,
+      "tasks repair merge requires --source-task and --target-task",
+    );
+  }
+  if (sourceTaskId === targetTaskId) {
+    return exitWithRuntimeError(
+      runtime,
+      "tasks repair merge requires different --source-task and --target-task values",
+    );
+  }
+  const result = repairMergeTasks({
+    cfg,
+    agentId,
+    sourceTaskId,
+    targetTaskId,
+    detail: opts.detail,
+  });
+  if (!result) {
+    return exitWithRuntimeError(
+      runtime,
+      `Unable to merge tasks: ${sourceTaskId} -> ${targetTaskId}`,
+    );
+  }
+  const summary: TasksRepairMergeSummary = {
+    agentId,
+    sourceTaskId,
+    targetTaskId,
+    detail: opts.detail?.trim() || undefined,
+    result,
+  };
+  emitSummary(runtime, opts.json, summary, [
+    `Merged duplicate task ${sourceTaskId} into ${targetTaskId}.`,
+    `Moved links/events/commitments: ${result.moved.sessionLinks}/${result.moved.events}/${result.moved.commitments}`,
+    `Deduped commitments: ${result.moved.dedupedCommitments}`,
+  ]);
+  return summary;
+}
+
+export async function tasksRepairTaskOrphanCommand(
+  opts: TasksRepairTaskOrphanOptions,
+  runtime: RuntimeEnv,
+): Promise<TasksRepairTaskOrphanSummary> {
+  const { cfg, agentId } = resolveTasksAgentId(opts.agentId);
+  const taskId = opts.taskId.trim();
+  if (!taskId) {
+    return exitWithRuntimeError(runtime, "tasks repair mark-task-orphan requires --task");
+  }
+  const task = repairMarkTaskOrphan({
+    cfg,
+    agentId,
+    taskId,
+    detail: opts.detail,
+  });
+  if (!task) {
+    return exitWithRuntimeError(runtime, `Unable to mark orphan task: ${taskId}`);
+  }
+  const summary: TasksRepairTaskOrphanSummary = {
+    agentId,
+    taskId,
+    detail: opts.detail?.trim() || undefined,
+    task,
+  };
+  emitSummary(runtime, opts.json, summary, [
+    `Marked task ${taskId} as orphan.`,
+    `Agent: ${agentId}`,
+    `Repair state: ${String(task.metadata?.continuityRepairState ?? "unknown")}`,
+  ]);
+  return summary;
+}
+
+export async function tasksRepairCommitmentOrphanCommand(
+  opts: TasksRepairCommitmentOrphanOptions,
+  runtime: RuntimeEnv,
+): Promise<TasksRepairCommitmentOrphanSummary> {
+  const { cfg, agentId } = resolveTasksAgentId(opts.agentId);
+  const taskId = opts.taskId.trim();
+  const commitmentId = opts.commitmentId.trim();
+  if (!taskId || !commitmentId) {
+    return exitWithRuntimeError(
+      runtime,
+      "tasks repair mark-commitment-orphan requires --task and --commitment",
+    );
+  }
+  const commitment = repairMarkCommitmentOrphan({
+    cfg,
+    agentId,
+    taskId,
+    commitmentId,
+    detail: opts.detail,
+  });
+  if (!commitment) {
+    return exitWithRuntimeError(
+      runtime,
+      `Unable to mark orphan commitment: ${taskId}/${commitmentId}`,
+    );
+  }
+  const summary: TasksRepairCommitmentOrphanSummary = {
+    agentId,
+    taskId,
+    commitmentId,
+    detail: opts.detail?.trim() || undefined,
+    commitment,
+  };
+  emitSummary(runtime, opts.json, summary, [
+    `Marked commitment ${commitmentId} on task ${taskId} as orphan.`,
+    `Agent: ${agentId}`,
+    `Repair state: ${String(commitment.metadata?.continuityRepairState ?? "unknown")}`,
   ]);
   return summary;
 }

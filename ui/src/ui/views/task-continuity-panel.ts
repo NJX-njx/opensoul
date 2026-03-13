@@ -225,6 +225,10 @@ function buildTaskBusyKey(taskId: string, status: TaskStatus): string {
   return `task:${taskId}:${status}`;
 }
 
+function buildRepairBusyKey(kind: string, value: string): string {
+  return `repair:${kind}:${value}`;
+}
+
 function resolveTaskAction(
   task: TaskRecord,
   locale: Locale,
@@ -277,15 +281,20 @@ export type TaskContinuityPanelProps = {
   actionError: string | null;
   actionMessage: string | null;
   actionBusyKey: string | null;
+  actionsEnabled?: boolean;
+  repairEnabled?: boolean;
   onRefresh: () => void;
   onSelectTask: (taskId: string) => void;
   onUpdateCommitment: (taskId: string, commitmentId: string, status: CommitmentStatus) => void;
   onUpdateTaskStatus: (taskId: string, status: TaskStatus) => void;
+  onMarkCommitmentOrphan?: (taskId: string, commitmentId: string) => void;
   onOpenEventDetails: (content: string, options?: { title?: string }) => void;
 };
 
 export function renderTaskContinuityPanel(props: TaskContinuityPanelProps) {
   const t = (english: string, chinese: string) => uiText(props.locale, english, chinese);
+  const actionsEnabled = props.actionsEnabled !== false;
+  const repairEnabled = props.repairEnabled === true;
   const selectedTask =
     props.tasks.find((task) => task.taskId === props.selectedTaskId) ?? props.tasks[0] ?? null;
   const selectedEvents = props.events.slice(0, 12);
@@ -425,7 +434,7 @@ export function renderTaskContinuityPanel(props: TaskContinuityPanelProps) {
                   </div>
                 </div>
                 ${
-                  taskAction
+                  taskAction && actionsEnabled
                     ? html`
                         <div class="task-continuity-panel__summary-actions">
                           <button
@@ -537,6 +546,18 @@ export function renderTaskContinuityPanel(props: TaskContinuityPanelProps) {
               <div class="task-continuity-panel__section">
                 <div class="task-continuity-panel__section-title">${t("Commitments", "承诺")}</div>
                 ${
+                  props.commitments.length > selectedCommitments.length
+                    ? html`
+                        <div class="callout muted" style="margin-bottom: 12px;">
+                          ${t(
+                            `Showing the latest ${selectedCommitments.length} commitments to keep the rail responsive.`,
+                            `为保证侧栏流畅，仅展示最新 ${selectedCommitments.length} 条承诺。`,
+                          )}
+                        </div>
+                      `
+                    : nothing
+                }
+                ${
                   props.detailsLoading && selectedCommitments.length === 0
                     ? html`<div class="callout muted">${t("Loading commitments...", "正在加载承诺...")}</div>`
                     : selectedCommitments.length > 0
@@ -574,7 +595,7 @@ export function renderTaskContinuityPanel(props: TaskContinuityPanelProps) {
                                   </div>
                                   <div class="task-continuity-commitment__actions">
                                     ${
-                                      commitment.status === "open"
+                                      actionsEnabled && commitment.status === "open"
                                         ? html`
                                             <button
                                               class="btn btn--sm"
@@ -641,7 +662,8 @@ export function renderTaskContinuityPanel(props: TaskContinuityPanelProps) {
                                               </span>
                                             </button>
                                           `
-                                        : html`
+                                        : actionsEnabled
+                                          ? html`
                                             <button
                                               class="btn btn--sm"
                                               type="button"
@@ -675,6 +697,34 @@ export function renderTaskContinuityPanel(props: TaskContinuityPanelProps) {
                                               </span>
                                             </button>
                                           `
+                                          : nothing
+                                    }
+                                    ${
+                                      repairEnabled && props.onMarkCommitmentOrphan
+                                        ? html`
+                                            <button
+                                              class="btn btn--sm"
+                                              type="button"
+                                              ?disabled=${Boolean(props.actionBusyKey)}
+                                              @click=${() =>
+                                                props.onMarkCommitmentOrphan?.(
+                                                  commitment.taskId,
+                                                  commitment.commitmentId,
+                                                )}
+                                            >
+                                              ${
+                                                props.actionBusyKey ===
+                                                buildRepairBusyKey(
+                                                  "commitment-orphan",
+                                                  commitment.commitmentId,
+                                                )
+                                                  ? icons.loader
+                                                  : nothing
+                                              }
+                                              <span>${t("Mark orphan", "标记 orphan")}</span>
+                                            </button>
+                                          `
+                                        : nothing
                                     }
                                   </div>
                                 </div>
@@ -695,6 +745,18 @@ export function renderTaskContinuityPanel(props: TaskContinuityPanelProps) {
 
               <div class="task-continuity-panel__section">
                 <div class="task-continuity-panel__section-title">${t("Event timeline", "事件时间线")}</div>
+                ${
+                  props.events.length > selectedEvents.length
+                    ? html`
+                        <div class="callout muted" style="margin-bottom: 12px;">
+                          ${t(
+                            `Showing the latest ${selectedEvents.length} events to keep the timeline readable.`,
+                            `为保证时间线可读性，仅展示最新 ${selectedEvents.length} 条事件。`,
+                          )}
+                        </div>
+                      `
+                    : nothing
+                }
                 ${
                   props.detailsLoading && selectedEvents.length === 0
                     ? html`<div class="callout muted">${t("Loading events...", "正在加载事件...")}</div>`

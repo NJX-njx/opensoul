@@ -96,6 +96,10 @@ const WRITE_METHODS = new Set([
   "browser.request",
   "tasks.commitments.update",
   "tasks.task.patch",
+  "tasks.repair.relink",
+  "tasks.repair.merge",
+  "tasks.repair.markTaskOrphan",
+  "tasks.repair.markCommitmentOrphan",
 ]);
 
 function authorizeGatewayMethod(method: string, client: GatewayRequestOptions["client"]) {

@@ -195,6 +195,18 @@ import {
   type TasksListParams,
   TasksListParamsSchema,
   type TasksListResult,
+  type TasksRepairCommitmentOrphanParams,
+  TasksRepairCommitmentOrphanParamsSchema,
+  type TasksRepairCommitmentOrphanResult,
+  type TasksRepairMergeParams,
+  TasksRepairMergeParamsSchema,
+  type TasksRepairMergeResult,
+  type TasksRepairRelinkParams,
+  TasksRepairRelinkParamsSchema,
+  type TasksRepairRelinkResult,
+  type TasksRepairTaskOrphanParams,
+  TasksRepairTaskOrphanParamsSchema,
+  type TasksRepairTaskOrphanResult,
   type TasksTaskPatchParams,
   TasksTaskPatchParamsSchema,
   type TasksTaskPatchResult,
@@ -325,6 +337,17 @@ export const validateTasksCommitmentsParams = ajv.compile<TasksCommitmentsParams
 export const validateTasksCommitmentsUpdateParams = ajv.compile<TasksCommitmentsUpdateParams>(
   TasksCommitmentsUpdateParamsSchema,
 );
+export const validateTasksRepairRelinkParams = ajv.compile<TasksRepairRelinkParams>(
+  TasksRepairRelinkParamsSchema,
+);
+export const validateTasksRepairMergeParams = ajv.compile<TasksRepairMergeParams>(
+  TasksRepairMergeParamsSchema,
+);
+export const validateTasksRepairTaskOrphanParams = ajv.compile<TasksRepairTaskOrphanParams>(
+  TasksRepairTaskOrphanParamsSchema,
+);
+export const validateTasksRepairCommitmentOrphanParams =
+  ajv.compile<TasksRepairCommitmentOrphanParams>(TasksRepairCommitmentOrphanParamsSchema);
 export const validateTasksTaskPatchParams = ajv.compile<TasksTaskPatchParams>(
   TasksTaskPatchParamsSchema,
 );
@@ -625,6 +648,14 @@ export type {
   TasksCommitmentsResult,
   TasksCommitmentsUpdateParams,
   TasksCommitmentsUpdateResult,
+  TasksRepairRelinkParams,
+  TasksRepairRelinkResult,
+  TasksRepairMergeParams,
+  TasksRepairMergeResult,
+  TasksRepairTaskOrphanParams,
+  TasksRepairTaskOrphanResult,
+  TasksRepairCommitmentOrphanParams,
+  TasksRepairCommitmentOrphanResult,
   TasksTaskPatchParams,
   TasksTaskPatchResult,
   CronJob,

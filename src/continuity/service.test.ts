@@ -15,12 +15,16 @@ import {
   patchCommitment,
   patchTask,
   queryTasks,
+  repairMarkCommitmentOrphan,
+  repairMarkTaskOrphan,
+  repairMergeTasks,
+  repairRelinkTaskToSession,
   resetContinuityObservabilityForTest,
   resolveOrCreateTaskForInbound,
   setSessionActiveTask,
   updateTaskStatus,
 } from "./service.js";
-import { resetContinuityStoreCacheForTest } from "./store.js";
+import { getContinuityStore, resetContinuityStoreCacheForTest } from "./store.js";
 
 function makeConfig(root: string): OpenSoulConfig {
   return {
@@ -520,6 +524,192 @@ describe("continuity service", () => {
     ).toBe(true);
   });
 
+  it("records repair actions for orphan marking and relinking", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-repair-"));
+    const cfg = makeConfig(tempDir);
+    const logs: Array<Record<string, unknown>> = [];
+    const unregister = registerLogTransport((record) => logs.push(record));
+
+    try {
+      const task = resolveOrCreateTaskForInbound({
+        cfg,
+        agentId: "main",
+        sessionKey: "agent:main:telegram:dm:old-user",
+        inboundText: "Repair this task",
+        surface: { kind: "direct-chat", channel: "telegram" },
+      }).task;
+
+      const orphaned = repairMarkTaskOrphan({
+        cfg,
+        agentId: "main",
+        taskId: task.taskId,
+        detail: "lost its canonical session",
+        surface: { kind: "control-ui", label: "workbench" },
+      });
+      expect(orphaned?.metadata?.continuityRepairState).toBe("orphan");
+
+      const relinked = repairRelinkTaskToSession({
+        cfg,
+        agentId: "main",
+        taskId: task.taskId,
+        sessionKey: "agent:main:telegram:dm:new-user",
+        detail: "restore the correct user thread",
+        surface: { kind: "control-ui", label: "workbench" },
+      });
+      expect(relinked?.latestSessionKey).toBe("agent:main:telegram:dm:new-user");
+      expect(relinked?.metadata?.continuityRepairState).toBeUndefined();
+
+      appendTaskEvent({
+        cfg,
+        agentId: "main",
+        taskId: task.taskId,
+        kind: "lifecycle.end",
+        stream: "lifecycle",
+        phase: "end",
+        sessionKey: "agent:main:telegram:dm:new-user",
+        summary: "TODO: Follow up with the customer",
+        surface: { kind: "direct-chat", channel: "telegram" },
+      });
+      const commitment = listCommitments({
+        cfg,
+        agentId: "main",
+        taskId: task.taskId,
+      })[0];
+      expect(commitment).toBeTruthy();
+
+      const orphanCommitment = repairMarkCommitmentOrphan({
+        cfg,
+        agentId: "main",
+        taskId: task.taskId,
+        commitmentId: commitment!.commitmentId,
+        detail: "task split across duplicate records",
+        surface: { kind: "control-ui", label: "workbench" },
+      });
+      expect(orphanCommitment?.metadata?.continuityRepairState).toBe("orphan");
+
+      const repairs = getContinuityStore({ cfg, agentId: "main" }).listRepairs();
+      expect(repairs.map((entry) => entry.kind)).toEqual(
+        expect.arrayContaining(["task-marked-orphan", "task-relinked", "commitment-marked-orphan"]),
+      );
+      expect(
+        listTaskEvents({
+          cfg,
+          agentId: "main",
+          taskId: task.taskId,
+          limit: 20,
+        }).map((event) => event.kind),
+      ).toEqual(
+        expect.arrayContaining([
+          "repair.task-marked-orphan",
+          "repair.task-relinked",
+          "repair.commitment-marked-orphan",
+        ]),
+      );
+      expect(
+        logs.filter(
+          (record) =>
+            (record["1"] as { event?: unknown } | undefined)?.event === "continuity.repair",
+        ),
+      ).toHaveLength(3);
+    } finally {
+      unregister();
+    }
+  });
+
+  it("merges duplicate tasks and deduplicates commitments", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-repair-merge-"));
+    const cfg = makeConfig(tempDir);
+
+    const targetTask = resolveOrCreateTaskForInbound({
+      cfg,
+      agentId: "main",
+      sessionKey: "agent:main:telegram:dm:alpha",
+      inboundText: "Canonical task",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    }).task;
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: targetTask.taskId,
+      kind: "lifecycle.end",
+      stream: "lifecycle",
+      phase: "end",
+      sessionKey: "agent:main:telegram:dm:alpha",
+      summary: "TODO: Follow up with the browser flow",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+
+    const sourceTask = resolveOrCreateTaskForInbound({
+      cfg,
+      agentId: "main",
+      sessionKey: "agent:main:telegram:dm:beta",
+      inboundText: "Duplicate task",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    }).task;
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: sourceTask.taskId,
+      kind: "lifecycle.end",
+      stream: "lifecycle",
+      phase: "end",
+      sessionKey: "agent:main:telegram:dm:beta",
+      summary: "TODO: Follow up with the browser flow",
+      surface: { kind: "direct-chat", channel: "telegram" },
+    });
+    appendTaskEvent({
+      cfg,
+      agentId: "main",
+      taskId: sourceTask.taskId,
+      kind: "handoff.control-ui",
+      sessionKey: "agent:main:telegram:dm:beta",
+      summary: "Opened Control UI for duplicate task",
+      surface: { kind: "control-ui" },
+    });
+
+    const result = repairMergeTasks({
+      cfg,
+      agentId: "main",
+      sourceTaskId: sourceTask.taskId,
+      targetTaskId: targetTask.taskId,
+      detail: "dedupe duplicate tasks",
+      surface: { kind: "control-ui", label: "workbench" },
+    });
+
+    expect(result?.deletedTaskId).toBe(sourceTask.taskId);
+    expect(result?.mergedTaskId).toBe(targetTask.taskId);
+    expect(result?.moved.dedupedCommitments).toBe(1);
+    expect(
+      getTask({
+        cfg,
+        agentId: "main",
+        taskId: sourceTask.taskId,
+      }),
+    ).toBeNull();
+    expect(
+      listCommitments({
+        cfg,
+        agentId: "main",
+        taskId: targetTask.taskId,
+      }),
+    ).toHaveLength(1);
+    expect(
+      listTaskEvents({
+        cfg,
+        agentId: "main",
+        taskId: targetTask.taskId,
+        limit: 30,
+      }).some((event) => event.kind === "repair.tasks-merged"),
+    ).toBe(true);
+    expect(
+      getContinuityStore({ cfg, agentId: "main" })
+        .getTaskSessionLinks(targetTask.taskId)
+        .map((link) => link.sessionKey),
+    ).toEqual(
+      expect.arrayContaining(["agent:main:telegram:dm:alpha", "agent:main:telegram:dm:beta"]),
+    );
+  });
+
   it("moves tasks into running when subagents or cron work starts", async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-running-"));
     const cfg = makeConfig(tempDir);
@@ -639,6 +829,99 @@ describe("continuity service", () => {
     expect(paged.total).toBe(2);
     expect(paged.tasks).toHaveLength(1);
     expect(paged.tasks[0]?.taskId).toBe(discordTask.taskId);
+  });
+
+  it("handles large continuity datasets with bounded query payloads", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-continuity-scale-"));
+    const cfg = makeConfig(tempDir);
+    const store = getContinuityStore({ cfg, agentId: "main" });
+    const taskCount = 180;
+    const eventsPerTask = 80;
+    const commitmentsPerTask = 40;
+
+    for (let taskIndex = 0; taskIndex < taskCount; taskIndex += 1) {
+      const taskId = `task-scale-${taskIndex}`;
+      const sessionKey = `agent:main:telegram:dm:user-${taskIndex}`;
+      const timestampBase = taskIndex * 10_000;
+      store.upsertTask({
+        taskId,
+        agentId: "main",
+        status: taskIndex % 3 === 0 ? "waiting-user" : "running",
+        title: `Load test task ${taskIndex}`,
+        summary: "Stress continuity queries",
+        currentSurface: { kind: "control-ui" },
+        sourceSurface: { kind: "direct-chat", channel: "telegram" },
+        latestSessionKey: sessionKey,
+        createdAt: timestampBase,
+        updatedAt: timestampBase + 1,
+      });
+      store.upsertTaskSessionLink({
+        taskId,
+        agentId: "main",
+        sessionKey,
+        relation: "linked",
+        createdAt: timestampBase,
+        updatedAt: timestampBase + 1,
+      });
+
+      for (let eventIndex = 0; eventIndex < eventsPerTask; eventIndex += 1) {
+        store.appendTaskEvent({
+          eventId: `${taskId}-event-${eventIndex}`,
+          taskId,
+          agentId: "main",
+          kind: eventIndex % 5 === 0 ? "handoff.control-ui" : "lifecycle.end",
+          sessionKey,
+          summary: `Event ${eventIndex}`,
+          surface: { kind: "control-ui" },
+          createdAt: timestampBase + 100 + eventIndex,
+        });
+      }
+
+      for (let commitmentIndex = 0; commitmentIndex < commitmentsPerTask; commitmentIndex += 1) {
+        store.upsertCommitment({
+          commitmentId: `${taskId}-commitment-${commitmentIndex}`,
+          taskId,
+          agentId: "main",
+          status: commitmentIndex % 2 === 0 ? "open" : "done",
+          title: `Commitment ${commitmentIndex}`,
+          createdAt: timestampBase + 200 + commitmentIndex,
+          updatedAt: timestampBase + 200 + commitmentIndex,
+          closedAt: commitmentIndex % 2 === 0 ? undefined : timestampBase + 200 + commitmentIndex,
+        });
+      }
+    }
+
+    const hotTaskId = `task-scale-${taskCount - 1}`;
+    const startedAt = performance.now();
+    const tasksResult = queryTasks({
+      cfg,
+      agentId: "main",
+      limit: 50,
+      offset: 0,
+      surfaceKind: "control-ui",
+      channel: "telegram",
+      query: "load test task",
+      sort: "updated-desc",
+    });
+    const events = listTaskEvents({
+      cfg,
+      agentId: "main",
+      taskId: hotTaskId,
+      limit: 40,
+    });
+    const commitments = listCommitments({
+      cfg,
+      agentId: "main",
+      taskId: hotTaskId,
+      limit: 40,
+    });
+    const elapsedMs = performance.now() - startedAt;
+
+    expect(tasksResult.total).toBe(taskCount);
+    expect(tasksResult.tasks).toHaveLength(50);
+    expect(events).toHaveLength(40);
+    expect(commitments).toHaveLength(40);
+    expect(elapsedMs).toBeLessThan(1500);
   });
 
   it("builds continuity summaries and emits structured lifecycle logs", async () => {

@@ -28,6 +28,11 @@ export type TasksWorkbenchProps = {
   actionError: string | null;
   actionMessage: string | null;
   actionBusyKey: string | null;
+  actionsEnabled?: boolean;
+  repairEnabled?: boolean;
+  repairSessionKey: string;
+  repairMergeSourceTaskId: string;
+  repairDetail: string;
   agentOptions: Array<{ id: string; label: string }>;
   onRefresh: () => void;
   onLoadMore: () => void;
@@ -35,6 +40,13 @@ export type TasksWorkbenchProps = {
   onSelectTask: (taskId: string) => void;
   onUpdateCommitment: (taskId: string, commitmentId: string, status: CommitmentStatus) => void;
   onUpdateTaskStatus: (taskId: string, status: TaskStatus) => void;
+  onRepairSessionKeyChange: (value: string) => void;
+  onRepairMergeSourceTaskIdChange: (value: string) => void;
+  onRepairDetailChange: (value: string) => void;
+  onRepairRelinkTask: (taskId: string, sessionKey: string, detail?: string) => void;
+  onRepairMergeTask: (sourceTaskId: string, targetTaskId: string, detail?: string) => void;
+  onRepairMarkTaskOrphan: (taskId: string, detail?: string) => void;
+  onRepairMarkCommitmentOrphan: (taskId: string, commitmentId: string, detail?: string) => void;
   onOpenEventDetails: (content: string, options?: { title?: string }) => void;
   onOpenSession: (sessionKey: string) => void;
 };
@@ -62,6 +74,11 @@ export function renderTasksWorkbench(props: TasksWorkbenchProps) {
   ).length;
   const waitingCount = props.tasks.filter((task) => task.status === "waiting-user").length;
   const hasMore = props.nextOffset != null;
+  const repairEnabled = props.repairEnabled === true;
+  const repairStateValue =
+    selectedTask && typeof selectedTask.metadata?.continuityRepairState === "string"
+      ? selectedTask.metadata.continuityRepairState
+      : null;
 
   return html`
     <section class="card tasks-workbench">
@@ -241,6 +258,129 @@ export function renderTasksWorkbench(props: TasksWorkbenchProps) {
       }
 
       ${
+        selectedTask
+          ? html`
+              <div class="card" style="margin-top: 18px;">
+                <div class="section-header">
+                  <div>
+                    <div class="card-title">${t("Repair tools", "修复工具")}</div>
+                    <div class="card-sub">
+                      ${t(
+                        "Operator-only recovery actions for relinking, merging, and orphan marking.",
+                        "仅供 operator 使用的恢复动作，可做 relink、merge 和 orphan 标记。",
+                      )}
+                    </div>
+                  </div>
+                  <div class="section-header__meta">
+                    <code>${selectedTask.taskId}</code>
+                  </div>
+                </div>
+                ${
+                  repairStateValue
+                    ? html`
+                        <div class="callout muted" style="margin-top: 14px;">
+                          ${t("Current repair state", "当前修复状态")}: <strong>${repairStateValue}</strong>
+                        </div>
+                      `
+                    : nothing
+                }
+                ${
+                  !repairEnabled
+                    ? html`
+                        <div class="callout muted" style="margin-top: 14px;">
+                          ${t(
+                            "Repair actions are currently disabled by gateway feature flags.",
+                            "当前网关 feature flag 已关闭修复动作。",
+                          )}
+                        </div>
+                      `
+                    : html`
+                        <div class="filters tasks-workbench__filters" style="margin-top: 14px;">
+                          <label class="field">
+                            <span>${t("Relink session", "Relink 会话")}</span>
+                            <input
+                              .value=${props.repairSessionKey}
+                              placeholder=${selectedTask.latestSessionKey ?? "agent:main:channel:scope:id"}
+                              @input=${(event: Event) =>
+                                props.onRepairSessionKeyChange(
+                                  (event.target as HTMLInputElement).value,
+                                )}
+                            />
+                          </label>
+                          <label class="field">
+                            <span>${t("Merge source task", "待合并源任务")}</span>
+                            <input
+                              .value=${props.repairMergeSourceTaskId}
+                              placeholder=${t(
+                                "Duplicate task id to merge into the selected task",
+                                "输入要合并进当前任务的重复 task id",
+                              )}
+                              @input=${(event: Event) =>
+                                props.onRepairMergeSourceTaskIdChange(
+                                  (event.target as HTMLInputElement).value,
+                                )}
+                            />
+                          </label>
+                          <label class="field" style="grid-column: 1 / -1;">
+                            <span>${t("Repair note", "修复备注")}</span>
+                            <input
+                              .value=${props.repairDetail}
+                              placeholder=${t(
+                                "Optional note recorded in continuity repair logs",
+                                "可选备注，会记录到 continuity repair 日志",
+                              )}
+                              @input=${(event: Event) =>
+                                props.onRepairDetailChange(
+                                  (event.target as HTMLInputElement).value,
+                                )}
+                            />
+                          </label>
+                        </div>
+                        <div class="tasks-workbench__footer" style="justify-content: flex-start;">
+                          <button
+                            class="btn btn--sm"
+                            type="button"
+                            ?disabled=${Boolean(props.actionBusyKey) || !props.repairSessionKey.trim()}
+                            @click=${() =>
+                              props.onRepairRelinkTask(
+                                selectedTask.taskId,
+                                props.repairSessionKey,
+                                props.repairDetail,
+                              )}
+                          >
+                            <span>${t("Relink selected task", "Relink 当前任务")}</span>
+                          </button>
+                          <button
+                            class="btn btn--sm"
+                            type="button"
+                            ?disabled=${Boolean(props.actionBusyKey) || !props.repairMergeSourceTaskId.trim()}
+                            @click=${() =>
+                              props.onRepairMergeTask(
+                                props.repairMergeSourceTaskId,
+                                selectedTask.taskId,
+                                props.repairDetail,
+                              )}
+                          >
+                            <span>${t("Merge into selected task", "合并进当前任务")}</span>
+                          </button>
+                          <button
+                            class="btn btn--sm"
+                            type="button"
+                            ?disabled=${Boolean(props.actionBusyKey)}
+                            @click=${() =>
+                              props.onRepairMarkTaskOrphan(selectedTask.taskId, props.repairDetail)}
+                          >
+                            <span>${t("Mark task orphan", "标记任务 orphan")}</span>
+                          </button>
+                        </div>
+                      `
+                }
+              </div>
+            `
+          : nothing
+      }
+
+      ${
         !props.loading && props.tasks.length === 0
           ? html`
               <div class="tasks-workbench__empty">
@@ -276,10 +416,14 @@ export function renderTasksWorkbench(props: TasksWorkbenchProps) {
                   actionError: props.actionError,
                   actionMessage: props.actionMessage,
                   actionBusyKey: props.actionBusyKey,
+                  actionsEnabled: props.actionsEnabled,
+                  repairEnabled: props.repairEnabled,
                   onRefresh: props.onRefresh,
                   onSelectTask: props.onSelectTask,
                   onUpdateCommitment: props.onUpdateCommitment,
                   onUpdateTaskStatus: props.onUpdateTaskStatus,
+                  onMarkCommitmentOrphan: (taskId, commitmentId) =>
+                    props.onRepairMarkCommitmentOrphan(taskId, commitmentId, props.repairDetail),
                   onOpenEventDetails: props.onOpenEventDetails,
                 })}
               </div>

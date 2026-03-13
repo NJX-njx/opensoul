@@ -48,6 +48,7 @@ export const TaskRecordSchema = Type.Object(
     createdAt: Type.Integer({ minimum: 0 }),
     updatedAt: Type.Integer({ minimum: 0 }),
     closedAt: Type.Optional(Type.Integer({ minimum: 0 })),
+    metadata: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
   },
   { additionalProperties: false },
 );
@@ -84,6 +85,7 @@ export const TaskCommitmentSchema = Type.Object(
     createdAt: Type.Integer({ minimum: 0 }),
     updatedAt: Type.Integer({ minimum: 0 }),
     closedAt: Type.Optional(Type.Integer({ minimum: 0 })),
+    metadata: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
   },
   { additionalProperties: false },
 );
@@ -153,6 +155,7 @@ export const TasksCommitmentsParamsSchema = Type.Object(
     agentId: Type.Optional(NonEmptyString),
     sessionKey: Type.Optional(Type.String()),
     status: Type.Optional(Type.String()),
+    limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 500 })),
   },
   { additionalProperties: false },
 );
@@ -199,6 +202,86 @@ export const TasksTaskPatchParamsSchema = Type.Object(
 export const TasksTaskPatchResultSchema = Type.Object(
   {
     task: Type.Union([TaskRecordSchema, Type.Null()]),
+  },
+  { additionalProperties: false },
+);
+
+export const TasksRepairRelinkParamsSchema = Type.Object(
+  {
+    taskId: NonEmptyString,
+    agentId: Type.Optional(NonEmptyString),
+    sessionKey: NonEmptyString,
+    detail: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+  },
+  { additionalProperties: false },
+);
+
+export const TasksRepairRelinkResultSchema = Type.Object(
+  {
+    task: Type.Union([TaskRecordSchema, Type.Null()]),
+  },
+  { additionalProperties: false },
+);
+
+export const TasksRepairMergeParamsSchema = Type.Object(
+  {
+    sourceTaskId: NonEmptyString,
+    targetTaskId: NonEmptyString,
+    agentId: Type.Optional(NonEmptyString),
+    detail: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+  },
+  { additionalProperties: false },
+);
+
+export const TasksRepairMergeResultSchema = Type.Object(
+  {
+    task: Type.Union([TaskRecordSchema, Type.Null()]),
+    mergedTaskId: Type.Optional(NonEmptyString),
+    deletedTaskId: Type.Optional(NonEmptyString),
+    moved: Type.Optional(
+      Type.Object(
+        {
+          sessionLinks: Type.Integer({ minimum: 0 }),
+          events: Type.Integer({ minimum: 0 }),
+          commitments: Type.Integer({ minimum: 0 }),
+          dedupedCommitments: Type.Integer({ minimum: 0 }),
+        },
+        { additionalProperties: false },
+      ),
+    ),
+  },
+  { additionalProperties: false },
+);
+
+export const TasksRepairTaskOrphanParamsSchema = Type.Object(
+  {
+    taskId: NonEmptyString,
+    agentId: Type.Optional(NonEmptyString),
+    detail: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+  },
+  { additionalProperties: false },
+);
+
+export const TasksRepairTaskOrphanResultSchema = Type.Object(
+  {
+    task: Type.Union([TaskRecordSchema, Type.Null()]),
+  },
+  { additionalProperties: false },
+);
+
+export const TasksRepairCommitmentOrphanParamsSchema = Type.Object(
+  {
+    taskId: NonEmptyString,
+    commitmentId: NonEmptyString,
+    agentId: Type.Optional(NonEmptyString),
+    detail: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+  },
+  { additionalProperties: false },
+);
+
+export const TasksRepairCommitmentOrphanResultSchema = Type.Object(
+  {
+    commitment: Type.Union([TaskCommitmentSchema, Type.Null()]),
   },
   { additionalProperties: false },
 );

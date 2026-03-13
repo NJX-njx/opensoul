@@ -2,7 +2,15 @@ import type { Command } from "commander";
 import { healthCommand } from "../../commands/health.js";
 import { sessionsCommand } from "../../commands/sessions.js";
 import { statusCommand } from "../../commands/status.js";
-import { tasksExportCommand, tasksImportCommand, tasksPruneCommand } from "../../commands/tasks.js";
+import {
+  tasksExportCommand,
+  tasksImportCommand,
+  tasksPruneCommand,
+  tasksRepairCommitmentOrphanCommand,
+  tasksRepairMergeCommand,
+  tasksRepairRelinkCommand,
+  tasksRepairTaskOrphanCommand,
+} from "../../commands/tasks.js";
 import { setVerbose } from "../../globals.js";
 import { defaultRuntime } from "../../runtime.js";
 import { formatDocsLink } from "../../terminal/links.js";
@@ -147,7 +155,7 @@ export function registerStatusHealthSessionsCommands(program: Command) {
 
   const tasks = program
     .command("tasks")
-    .description("Export, import, and prune task continuity data");
+    .description("Inspect, repair, and lifecycle-manage task continuity data");
 
   tasks
     .command("export")
@@ -206,6 +214,90 @@ export function registerStatusHealthSessionsCommands(program: Command) {
           repairsDays: opts.repairsDays as string | undefined,
           out: opts.out as string | undefined,
           dryRun: Boolean(opts.dryRun),
+          json: Boolean(opts.json),
+        },
+        defaultRuntime,
+      );
+    });
+
+  const repair = tasks.command("repair").description("Repair task continuity state without SQL");
+
+  repair
+    .command("relink")
+    .description("Relink a task to a different session key")
+    .requiredOption("--task <id>", "Task id to relink")
+    .requiredOption("--session <key>", "Session key to attach to the task")
+    .option("--agent <id>", "Agent id (default: resolved default agent)")
+    .option("--detail <text>", "Optional repair note for the repair log")
+    .option("--json", "Output JSON summary", false)
+    .action(async (opts) => {
+      await tasksRepairRelinkCommand(
+        {
+          agentId: opts.agent as string | undefined,
+          taskId: opts.task as string,
+          sessionKey: opts.session as string,
+          detail: opts.detail as string | undefined,
+          json: Boolean(opts.json),
+        },
+        defaultRuntime,
+      );
+    });
+
+  repair
+    .command("merge")
+    .description("Merge a duplicate source task into a target task")
+    .requiredOption("--source-task <id>", "Duplicate/source task id")
+    .requiredOption("--target-task <id>", "Canonical/target task id")
+    .option("--agent <id>", "Agent id (default: resolved default agent)")
+    .option("--detail <text>", "Optional repair note for the repair log")
+    .option("--json", "Output JSON summary", false)
+    .action(async (opts) => {
+      await tasksRepairMergeCommand(
+        {
+          agentId: opts.agent as string | undefined,
+          sourceTaskId: opts.sourceTask as string,
+          targetTaskId: opts.targetTask as string,
+          detail: opts.detail as string | undefined,
+          json: Boolean(opts.json),
+        },
+        defaultRuntime,
+      );
+    });
+
+  repair
+    .command("mark-task-orphan")
+    .description("Mark a task as orphaned for later operator review")
+    .requiredOption("--task <id>", "Task id to mark")
+    .option("--agent <id>", "Agent id (default: resolved default agent)")
+    .option("--detail <text>", "Optional repair note for the repair log")
+    .option("--json", "Output JSON summary", false)
+    .action(async (opts) => {
+      await tasksRepairTaskOrphanCommand(
+        {
+          agentId: opts.agent as string | undefined,
+          taskId: opts.task as string,
+          detail: opts.detail as string | undefined,
+          json: Boolean(opts.json),
+        },
+        defaultRuntime,
+      );
+    });
+
+  repair
+    .command("mark-commitment-orphan")
+    .description("Mark a task commitment as orphaned for later operator review")
+    .requiredOption("--task <id>", "Parent task id")
+    .requiredOption("--commitment <id>", "Commitment id to mark")
+    .option("--agent <id>", "Agent id (default: resolved default agent)")
+    .option("--detail <text>", "Optional repair note for the repair log")
+    .option("--json", "Output JSON summary", false)
+    .action(async (opts) => {
+      await tasksRepairCommitmentOrphanCommand(
+        {
+          agentId: opts.agent as string | undefined,
+          taskId: opts.task as string,
+          commitmentId: opts.commitment as string,
+          detail: opts.detail as string | undefined,
           json: Boolean(opts.json),
         },
         defaultRuntime,

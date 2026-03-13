@@ -449,6 +449,7 @@ export type TaskRecord = {
   createdAt: number;
   updatedAt: number;
   closedAt?: number;
+  metadata?: Record<string, unknown>;
 };
 
 export type TaskEvent = {
@@ -479,6 +480,7 @@ export type TaskCommitment = {
   createdAt: number;
   updatedAt: number;
   closedAt?: number;
+  metadata?: Record<string, unknown>;
 };
 
 export type TasksListResult = {
@@ -501,6 +503,30 @@ export type TasksCommitmentsUpdateResult = {
 
 export type TasksTaskPatchResult = {
   task: TaskRecord | null;
+};
+
+export type TasksRepairRelinkResult = {
+  task: TaskRecord | null;
+};
+
+export type TasksRepairMergeResult = {
+  task: TaskRecord | null;
+  mergedTaskId?: string;
+  deletedTaskId?: string;
+  moved?: {
+    sessionLinks: number;
+    events: number;
+    commitments: number;
+    dedupedCommitments: number;
+  };
+};
+
+export type TasksRepairTaskOrphanResult = {
+  task: TaskRecord | null;
+};
+
+export type TasksRepairCommitmentOrphanResult = {
+  commitment: TaskCommitment | null;
 };
 
 export type SessionsPatchResult = {

@@ -4,12 +4,40 @@ import type { TaskCommitment, TaskEvent, TaskRecord } from "../types.ts";
 import {
   DEFAULT_TASKS_WORKBENCH_FILTERS,
   loadTasksWorkbench,
+  repairTasksWorkbenchMarkCommitmentOrphan,
+  repairTasksWorkbenchRelinkTask,
   type TasksWorkbenchState,
   updateTaskContinuityCommitment,
   updateTasksWorkbenchTaskStatus,
   updateTaskContinuityTaskStatus,
   type TaskContinuityState,
 } from "./tasks.ts";
+
+const CONTINUITY_METHODS = [
+  "tasks.list",
+  "tasks.events",
+  "tasks.commitments",
+  "tasks.task.patch",
+  "tasks.commitments.update",
+  "tasks.repair.relink",
+  "tasks.repair.merge",
+  "tasks.repair.markTaskOrphan",
+  "tasks.repair.markCommitmentOrphan",
+];
+
+function createHello(methods: Array<string> = CONTINUITY_METHODS) {
+  return {
+    type: "hello-ok" as const,
+    protocol: 3,
+    features: {
+      methods,
+      events: [],
+    },
+    auth: {
+      scopes: ["operator.admin"],
+    },
+  };
+}
 
 function createTask(overrides: Partial<TaskRecord> = {}): TaskRecord {
   return {
@@ -57,6 +85,7 @@ function createState(
   return {
     client: { request } as unknown as GatewayBrowserClient,
     connected: true,
+    hello: createHello(),
     sessionKey: "agent:main:main",
     uiLocale: "en",
     taskContinuityLoading: false,
@@ -283,5 +312,149 @@ describe("task continuity controller actions", () => {
     expect(state.tasksWorkbenchTasks[0]?.status).toBe("completed");
     expect(state.tasksWorkbenchActionMessage).toBe("Task closed.");
     expect(state.tasksWorkbenchActionBusyKey).toBeNull();
+  });
+
+  it("degrades task workbench reads when continuity methods are not advertised", async () => {
+    const requestMock = vi.fn(() => Promise.reject(new Error("unexpected request")));
+    const request = requestMock as unknown as GatewayBrowserClient["request"];
+    const state = createState(request, {
+      hello: createHello([]),
+    });
+
+    await loadTasksWorkbench(state);
+
+    expect(requestMock).not.toHaveBeenCalled();
+    expect(state.tasksWorkbenchTasks).toEqual([]);
+    expect(state.tasksWorkbenchError).toBe(
+      "Task continuity is disabled by the current gateway config.",
+    );
+  });
+
+  it("relinks workbench tasks and refreshes the selected row", async () => {
+    const updatedTask = createTask({
+      latestSessionKey: "agent:main:telegram:dm:user-2",
+      updatedAt: 3,
+    });
+    const requestMock = vi.fn((method: string): Promise<unknown> => {
+      if (method === "tasks.repair.relink") {
+        return Promise.resolve({ task: updatedTask });
+      }
+      if (method === "tasks.list") {
+        return Promise.resolve({ tasks: [updatedTask], total: 1, nextOffset: null });
+      }
+      if (method === "tasks.events") {
+        return Promise.resolve({ events: [createEvent()] });
+      }
+      if (method === "tasks.commitments") {
+        return Promise.resolve({ commitments: [createCommitment()] });
+      }
+      return Promise.reject(new Error(`unexpected method: ${method}`));
+    });
+    const request = requestMock as unknown as GatewayBrowserClient["request"];
+    const state = createState(request);
+
+    await repairTasksWorkbenchRelinkTask(
+      state,
+      "task-1",
+      "agent:main:telegram:dm:user-2",
+      "restore the main chat",
+    );
+
+    expect(requestMock).toHaveBeenNthCalledWith(
+      1,
+      "tasks.repair.relink",
+      expect.objectContaining({
+        taskId: "task-1",
+        agentId: "main",
+        sessionKey: "agent:main:telegram:dm:user-2",
+      }),
+    );
+    expect(state.tasksWorkbenchActionMessage).toBe("Task relinked to the new session.");
+    expect(state.tasksWorkbenchTasks[0]?.latestSessionKey).toBe("agent:main:telegram:dm:user-2");
+  });
+
+  it("marks orphan commitments from the workbench and refreshes details", async () => {
+    const repairedCommitment = createCommitment({
+      metadata: {
+        continuityRepairState: "orphan",
+      },
+      updatedAt: 4,
+    });
+    const requestMock = vi.fn((method: string): Promise<unknown> => {
+      if (method === "tasks.repair.markCommitmentOrphan") {
+        return Promise.resolve({ commitment: repairedCommitment });
+      }
+      if (method === "tasks.list") {
+        return Promise.resolve({ tasks: [createTask()], total: 1, nextOffset: null });
+      }
+      if (method === "tasks.events") {
+        return Promise.resolve({ events: [createEvent()] });
+      }
+      if (method === "tasks.commitments") {
+        return Promise.resolve({ commitments: [repairedCommitment] });
+      }
+      return Promise.reject(new Error(`unexpected method: ${method}`));
+    });
+    const request = requestMock as unknown as GatewayBrowserClient["request"];
+    const state = createState(request);
+
+    await repairTasksWorkbenchMarkCommitmentOrphan(
+      state,
+      "task-1",
+      "commit-1",
+      "task was merged elsewhere",
+    );
+
+    expect(requestMock).toHaveBeenNthCalledWith(
+      1,
+      "tasks.repair.markCommitmentOrphan",
+      expect.objectContaining({
+        taskId: "task-1",
+        commitmentId: "commit-1",
+        agentId: "main",
+      }),
+    );
+    expect(state.tasksWorkbenchCommitmentsByTaskId["task-1"]?.[0]?.metadata).toEqual(
+      expect.objectContaining({
+        continuityRepairState: "orphan",
+      }),
+    );
+    expect(state.tasksWorkbenchActionMessage).toBe("Commitment marked as orphan.");
+  });
+
+  it("blocks task continuity actions when UI methods are disabled", async () => {
+    const requestMock = vi.fn(() => Promise.reject(new Error("unexpected request")));
+    const request = requestMock as unknown as GatewayBrowserClient["request"];
+    const state = createState(request, {
+      hello: createHello(["tasks.list", "tasks.events", "tasks.commitments"]),
+    });
+
+    await updateTaskContinuityTaskStatus(state, "task-1", "completed");
+
+    expect(requestMock).not.toHaveBeenCalled();
+    expect(state.taskContinuityActionError).toBe(
+      "Task continuity actions are disabled by the current gateway config.",
+    );
+  });
+
+  it("blocks workbench repair actions when repair methods are disabled", async () => {
+    const requestMock = vi.fn(() => Promise.reject(new Error("unexpected request")));
+    const request = requestMock as unknown as GatewayBrowserClient["request"];
+    const state = createState(request, {
+      hello: createHello([
+        "tasks.list",
+        "tasks.events",
+        "tasks.commitments",
+        "tasks.task.patch",
+        "tasks.commitments.update",
+      ]),
+    });
+
+    await repairTasksWorkbenchRelinkTask(state, "task-1", "agent:main:telegram:dm:user-2");
+
+    expect(requestMock).not.toHaveBeenCalled();
+    expect(state.tasksWorkbenchActionError).toBe(
+      "Task continuity repair tools are disabled by the current gateway config.",
+    );
   });
 });

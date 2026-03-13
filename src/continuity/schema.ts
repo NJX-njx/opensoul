@@ -90,11 +90,17 @@ CREATE TABLE IF NOT EXISTS continuity_repairs (
 CREATE INDEX IF NOT EXISTS idx_tasks_agent_updated
   ON tasks(agent_id, updated_at DESC);
 
+CREATE INDEX IF NOT EXISTS idx_tasks_updated_created
+  ON tasks(updated_at DESC, created_at DESC);
+
 CREATE INDEX IF NOT EXISTS idx_tasks_status_closed
   ON tasks(status, closed_at, updated_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_task_links_session_updated
   ON task_session_links(session_key, updated_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_task_links_session_task_updated
+  ON task_session_links(session_key, task_id, updated_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_task_events_task_created
   ON task_events(task_id, created_at DESC);
@@ -107,6 +113,9 @@ CREATE INDEX IF NOT EXISTS idx_task_events_created
 
 CREATE INDEX IF NOT EXISTS idx_commitments_task_status
   ON commitments(task_id, status, updated_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_commitments_task_updated
+  ON commitments(task_id, updated_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_commitments_status_closed
   ON commitments(status, closed_at, updated_at DESC);

@@ -185,6 +185,9 @@ export type AppViewState = {
   tasksWorkbenchNextOffset: number | null;
   tasksWorkbenchTotal: number;
   tasksWorkbenchFilters: TasksWorkbenchFilters;
+  tasksWorkbenchRepairSessionKey: string;
+  tasksWorkbenchRepairMergeSourceTaskId: string;
+  tasksWorkbenchRepairDetail: string;
   viewingSessionId: string | null;
   usageLoading: boolean;
   usageResult: SessionsUsageResult | null;
@@ -330,6 +333,22 @@ export type AppViewState = {
     status: CommitmentStatus,
   ) => Promise<void>;
   updateTasksWorkbenchTaskStatus: (taskId: string, status: TaskStatus) => Promise<void>;
+  repairTasksWorkbenchRelinkTask: (
+    taskId: string,
+    sessionKey: string,
+    detail?: string,
+  ) => Promise<void>;
+  repairTasksWorkbenchMergeTask: (
+    sourceTaskId: string,
+    targetTaskId: string,
+    detail?: string,
+  ) => Promise<void>;
+  repairTasksWorkbenchMarkTaskOrphan: (taskId: string, detail?: string) => Promise<void>;
+  repairTasksWorkbenchMarkCommitmentOrphan: (
+    taskId: string,
+    commitmentId: string,
+    detail?: string,
+  ) => Promise<void>;
   handleDebugCall: () => Promise<void>;
   handleRunUpdate: () => Promise<void>;
   setPassword: (next: string) => void;

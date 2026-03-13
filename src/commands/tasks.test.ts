@@ -17,7 +17,15 @@ vi.mock("../config/config.js", async (importOriginal) => {
   };
 });
 
-import { tasksExportCommand, tasksImportCommand, tasksPruneCommand } from "./tasks.js";
+import {
+  tasksExportCommand,
+  tasksImportCommand,
+  tasksPruneCommand,
+  tasksRepairCommitmentOrphanCommand,
+  tasksRepairMergeCommand,
+  tasksRepairRelinkCommand,
+  tasksRepairTaskOrphanCommand,
+} from "./tasks.js";
 
 function createRuntime() {
   const logs: Array<string> = [];
@@ -193,5 +201,128 @@ describe("tasks commands", () => {
     expect(await fs.readFile(backupPath, "utf8")).toContain('"task-old"');
     expect(store.getTask("task-old")).toBeNull();
     expect(store.getTask("task-live")?.status).toBe("running");
+  });
+
+  it("runs relink and orphan repair commands through the CLI", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-tasks-repair-"));
+    mocks.config = createConfig(tempDir);
+    const store = getContinuityStore({ cfg: mocks.config, agentId: "main" });
+    store.upsertTask({
+      taskId: "task-repair",
+      agentId: "main",
+      status: "open",
+      title: "Repair this task",
+      latestSessionKey: "agent:main:telegram:dm:old-user",
+      createdAt: 1,
+      updatedAt: 1,
+    });
+    store.upsertCommitment({
+      commitmentId: "commit-repair",
+      taskId: "task-repair",
+      agentId: "main",
+      status: "open",
+      title: "Repair this commitment",
+      createdAt: 1,
+      updatedAt: 1,
+    });
+
+    const relinkRuntime = createRuntime();
+    await tasksRepairRelinkCommand(
+      {
+        agentId: "main",
+        taskId: "task-repair",
+        sessionKey: "agent:main:telegram:dm:new-user",
+        detail: "restore user thread",
+        json: true,
+      },
+      relinkRuntime.runtime,
+    );
+    const relinkSummary = JSON.parse(relinkRuntime.logs[0] ?? "{}") as {
+      task?: { latestSessionKey?: string };
+    };
+    expect(relinkSummary.task?.latestSessionKey).toBe("agent:main:telegram:dm:new-user");
+
+    const orphanTaskRuntime = createRuntime();
+    await tasksRepairTaskOrphanCommand(
+      {
+        agentId: "main",
+        taskId: "task-repair",
+        detail: "lost its canonical session",
+        json: true,
+      },
+      orphanTaskRuntime.runtime,
+    );
+    const orphanTaskSummary = JSON.parse(orphanTaskRuntime.logs[0] ?? "{}") as {
+      task?: { metadata?: { continuityRepairState?: string } };
+    };
+    expect(orphanTaskSummary.task?.metadata?.continuityRepairState).toBe("orphan");
+
+    const orphanCommitmentRuntime = createRuntime();
+    await tasksRepairCommitmentOrphanCommand(
+      {
+        agentId: "main",
+        taskId: "task-repair",
+        commitmentId: "commit-repair",
+        detail: "task merge removed parent signal",
+        json: true,
+      },
+      orphanCommitmentRuntime.runtime,
+    );
+    const orphanCommitmentSummary = JSON.parse(orphanCommitmentRuntime.logs[0] ?? "{}") as {
+      commitment?: { metadata?: { continuityRepairState?: string } };
+    };
+    expect(orphanCommitmentSummary.commitment?.metadata?.continuityRepairState).toBe("orphan");
+  });
+
+  it("merges duplicate tasks through the CLI repair command", async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "opensoul-tasks-repair-merge-"));
+    mocks.config = createConfig(tempDir);
+    const store = getContinuityStore({ cfg: mocks.config, agentId: "main" });
+    store.upsertTask({
+      taskId: "task-target",
+      agentId: "main",
+      status: "running",
+      title: "Canonical task",
+      latestSessionKey: "agent:main:telegram:dm:alpha",
+      createdAt: 1,
+      updatedAt: 3,
+    });
+    store.upsertTask({
+      taskId: "task-source",
+      agentId: "main",
+      status: "open",
+      title: "Duplicate task",
+      latestSessionKey: "agent:main:telegram:dm:beta",
+      createdAt: 2,
+      updatedAt: 2,
+    });
+    store.upsertTaskSessionLink({
+      taskId: "task-source",
+      agentId: "main",
+      sessionKey: "agent:main:telegram:dm:beta",
+      relation: "linked",
+      createdAt: 2,
+      updatedAt: 2,
+    });
+
+    const runtime = createRuntime();
+    await tasksRepairMergeCommand(
+      {
+        agentId: "main",
+        sourceTaskId: "task-source",
+        targetTaskId: "task-target",
+        detail: "dedupe duplicate tasks",
+        json: true,
+      },
+      runtime.runtime,
+    );
+
+    const summary = JSON.parse(runtime.logs[0] ?? "{}") as {
+      result?: { deletedTaskId?: string; moved?: { sessionLinks?: number } };
+    };
+    expect(summary.result?.deletedTaskId).toBe("task-source");
+    expect(summary.result?.moved?.sessionLinks).toBe(1);
+    expect(store.getTask("task-source")).toBeNull();
+    expect(store.getTask("task-target")).toBeTruthy();
   });
 });

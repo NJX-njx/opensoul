@@ -117,6 +117,21 @@ type ListTaskEventsOptions = {
 type ListCommitmentsOptions = {
   taskId: string;
   status?: CommitmentStatus;
+  limit?: number;
+};
+
+type StoreTasksSort = "updated-desc" | "updated-asc" | "created-desc" | "created-asc";
+
+type QueryTasksOptions = {
+  sessionKey?: string;
+  status?: TaskStatus;
+  surfaceKind?: string;
+  channel?: string;
+  query?: string;
+  updatedAfter?: number;
+  sort?: StoreTasksSort;
+  limit?: number;
+  offset?: number;
 };
 
 type MetaEntryRow = {
@@ -292,6 +307,92 @@ function resolveTimestampCutoff(value: number | undefined): number | undefined {
     return undefined;
   }
   return Math.max(0, Math.floor(value));
+}
+
+function resolveOffset(value: number | undefined): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return 0;
+  }
+  return Math.max(0, Math.floor(value));
+}
+
+function escapeLikePattern(value: string): string {
+  return value.replace(/[\\%_]/g, "\\$&");
+}
+
+function buildTasksOrderBy(sort: StoreTasksSort | undefined): string {
+  switch (sort) {
+    case "updated-asc":
+      return "t.updated_at ASC, t.created_at ASC";
+    case "created-desc":
+      return "t.created_at DESC, t.updated_at DESC";
+    case "created-asc":
+      return "t.created_at ASC, t.updated_at ASC";
+    case "updated-desc":
+    default:
+      return "t.updated_at DESC, t.created_at DESC";
+  }
+}
+
+function buildTasksWhereClause(options: QueryTasksOptions): {
+  whereClause: string;
+  values: Array<SQLInputValue>;
+} {
+  const clauses: Array<string> = [];
+  const values: Array<SQLInputValue> = [];
+
+  if (options.sessionKey?.trim()) {
+    clauses.push(
+      `EXISTS (
+         SELECT 1
+         FROM task_session_links l
+         WHERE l.task_id = t.task_id
+           AND l.session_key = ?
+       )`,
+    );
+    values.push(options.sessionKey.trim());
+  }
+
+  if (options.status) {
+    clauses.push("t.status = ?");
+    values.push(options.status);
+  }
+
+  const updatedAfter = resolveTimestampCutoff(options.updatedAfter);
+  if (updatedAfter !== undefined) {
+    clauses.push("t.updated_at >= ?");
+    values.push(updatedAfter);
+  }
+
+  if (options.surfaceKind?.trim()) {
+    clauses.push(
+      `(json_extract(t.current_surface_json, '$.kind') = ? OR json_extract(t.source_surface_json, '$.kind') = ?)`,
+    );
+    values.push(options.surfaceKind.trim(), options.surfaceKind.trim());
+  }
+
+  if (options.channel?.trim()) {
+    clauses.push(
+      `(json_extract(t.current_surface_json, '$.channel') = ? OR json_extract(t.source_surface_json, '$.channel') = ?)`,
+    );
+    values.push(options.channel.trim(), options.channel.trim());
+  }
+
+  if (options.query?.trim()) {
+    const queryPattern = `%${escapeLikePattern(options.query.trim().toLowerCase())}%`;
+    clauses.push(
+      `(LOWER(t.task_id) LIKE ? ESCAPE '\\'
+         OR LOWER(COALESCE(t.title, '')) LIKE ? ESCAPE '\\'
+         OR LOWER(COALESCE(t.summary, '')) LIKE ? ESCAPE '\\'
+         OR LOWER(COALESCE(t.latest_session_key, '')) LIKE ? ESCAPE '\\')`,
+    );
+    values.push(queryPattern, queryPattern, queryPattern, queryPattern);
+  }
+
+  return {
+    whereClause: clauses.length > 0 ? `WHERE ${clauses.join(" AND ")}` : "",
+    values,
+  };
 }
 
 export class ContinuityStore {
@@ -474,6 +575,57 @@ export class ContinuityStore {
       )
       .all() as Array<TaskRow>;
     return rows.map((row) => readTaskRow(row)).filter((row): row is TaskRecord => row != null);
+  }
+
+  queryTasks(options: QueryTasksOptions = {}): { tasks: Array<TaskRecord>; total: number } {
+    const { whereClause, values } = buildTasksWhereClause(options);
+    const totalRow = this.db
+      .prepare(
+        `SELECT COUNT(*) AS count
+         FROM tasks t
+         ${whereClause}`,
+      )
+      .get(...values) as CountRow | undefined;
+    const total = totalRow?.count ?? 0;
+    const offset = resolveOffset(options.offset);
+    const paginationValues = values.slice();
+    const limitClause =
+      typeof options.limit === "number" && Number.isFinite(options.limit)
+        ? "LIMIT ? OFFSET ?"
+        : offset > 0
+          ? "LIMIT -1 OFFSET ?"
+          : "";
+    if (typeof options.limit === "number" && Number.isFinite(options.limit)) {
+      paginationValues.push(resolveLimit(options.limit, 50), offset);
+    } else if (offset > 0) {
+      paginationValues.push(offset);
+    }
+    const rows = this.db
+      .prepare(
+        `SELECT
+           t.task_id,
+           t.agent_id,
+           t.status,
+           t.title,
+           t.summary,
+           t.source_surface_json,
+           t.current_surface_json,
+           t.latest_session_key,
+           t.latest_run_id,
+           t.metadata_json,
+           t.created_at,
+           t.updated_at,
+           t.closed_at
+         FROM tasks t
+         ${whereClause}
+         ORDER BY ${buildTasksOrderBy(options.sort)}
+         ${limitClause}`,
+      )
+      .all(...paginationValues) as Array<TaskRow>;
+    return {
+      tasks: rows.map((row) => readTaskRow(row)).filter((row): row is TaskRecord => row != null),
+      total,
+    };
   }
 
   upsertTask(task: TaskRecord): TaskRecord {
@@ -744,49 +896,39 @@ export class ContinuityStore {
   }
 
   listCommitments(options: ListCommitmentsOptions): Array<CommitmentRecord> {
-    const rows = options.status
-      ? (this.db
-          .prepare(
-            `SELECT
-               commitment_id,
-               task_id,
-               agent_id,
-               status,
-               kind,
-               title,
-               detail,
-               due_at,
-               cron_job_id,
-               metadata_json,
-               created_at,
-               updated_at,
-               closed_at
-             FROM commitments
-             WHERE task_id = ? AND status = ?
-             ORDER BY updated_at DESC`,
-          )
-          .all(options.taskId, options.status) as Array<CommitmentRow>)
-      : (this.db
-          .prepare(
-            `SELECT
-               commitment_id,
-               task_id,
-               agent_id,
-               status,
-               kind,
-               title,
-               detail,
-               due_at,
-               cron_job_id,
-               metadata_json,
-               created_at,
-               updated_at,
-               closed_at
-             FROM commitments
-             WHERE task_id = ?
-             ORDER BY updated_at DESC`,
-          )
-          .all(options.taskId) as Array<CommitmentRow>);
+    const values: Array<SQLInputValue> = [options.taskId];
+    let whereClause = "WHERE task_id = ?";
+    if (options.status) {
+      whereClause += " AND status = ?";
+      values.push(options.status);
+    }
+    const limitClause =
+      typeof options.limit === "number" && Number.isFinite(options.limit) ? "LIMIT ?" : "";
+    if (typeof options.limit === "number" && Number.isFinite(options.limit)) {
+      values.push(resolveLimit(options.limit, 200));
+    }
+    const rows = this.db
+      .prepare(
+        `SELECT
+           commitment_id,
+           task_id,
+           agent_id,
+           status,
+           kind,
+           title,
+           detail,
+           due_at,
+           cron_job_id,
+           metadata_json,
+           created_at,
+           updated_at,
+           closed_at
+         FROM commitments
+         ${whereClause}
+         ORDER BY updated_at DESC
+         ${limitClause}`,
+      )
+      .all(...values) as Array<CommitmentRow>;
     return rows.map(readCommitmentRow);
   }
 

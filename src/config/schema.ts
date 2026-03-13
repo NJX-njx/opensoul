@@ -207,6 +207,11 @@ const FIELD_LABELS: Record<string, string> = {
   "gateway.controlUi.allowInsecureAuth": "Allow Insecure Control UI Auth",
   "gateway.controlUi.dangerouslyDisableDeviceAuth": "Dangerously Disable Control UI Device Auth",
   "gateway.controlUi.continuity": "Control UI Continuity",
+  "gateway.controlUi.continuity.features": "Continuity Feature Flags",
+  "gateway.controlUi.continuity.features.reads": "Enable Continuity Reads",
+  "gateway.controlUi.continuity.features.writes": "Enable Continuity Writes",
+  "gateway.controlUi.continuity.features.handoff": "Enable Continuity Handoff",
+  "gateway.controlUi.continuity.features.uiActions": "Enable Continuity UI Actions",
   "gateway.controlUi.continuity.policy": "Continuity Handoff Policy",
   "gateway.controlUi.continuity.policy.enabled": "Enable Continuity Handoff Policy",
   "gateway.controlUi.continuity.policy.defaultMode": "Default Continuity Handoff Mode",
@@ -459,6 +464,14 @@ const FIELD_HELP: Record<string, string> = {
     "Allow Control UI auth over insecure HTTP (token-only; not recommended).",
   "gateway.controlUi.dangerouslyDisableDeviceAuth":
     "DANGEROUS. Disable Control UI device identity checks (token/password only).",
+  "gateway.controlUi.continuity.features.reads":
+    "Master switch for `tasks.list/get/events/commitments`. When disabled, continuity reads degrade to empty results instead of failing.",
+  "gateway.controlUi.continuity.features.writes":
+    "Master switch for continuity mutation APIs such as task status and commitment updates.",
+  "gateway.controlUi.continuity.features.handoff":
+    "Master switch for automatic continuity handoff into Control UI / Canvas surfaces.",
+  "gateway.controlUi.continuity.features.uiActions":
+    "Hide continuity action buttons in Control UI while keeping the read-only timeline visible.",
   "gateway.controlUi.continuity.policy.enabled":
     "Master switch for automatic direct-chat -> Control UI continuity handoff.",
   "gateway.controlUi.continuity.policy.defaultMode":
@@ -844,6 +857,10 @@ const FIELD_PLACEHOLDERS: Record<string, string> = {
   "gateway.controlUi.basePath": "/opensoul",
   "gateway.controlUi.root": "dist/control-ui",
   "gateway.controlUi.allowedOrigins": "https://control.example.com",
+  "gateway.controlUi.continuity.features.reads": "true",
+  "gateway.controlUi.continuity.features.writes": "true",
+  "gateway.controlUi.continuity.features.handoff": "true",
+  "gateway.controlUi.continuity.features.uiActions": "false",
   "gateway.controlUi.continuity.policy.rules[].agents": "main",
   "gateway.controlUi.continuity.policy.rules[].channels": "telegram",
   "gateway.controlUi.continuity.policy.rules[].accountIds": "work",

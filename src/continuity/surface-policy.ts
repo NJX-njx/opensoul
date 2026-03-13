@@ -19,6 +19,10 @@ const DEFAULT_HANDOFF_COOLDOWN_MS = 10 * 60_000;
 const DEFAULT_ASSISTANT_CHARS_THRESHOLD = 800;
 const DEFAULT_TOOL_EVENTS_THRESHOLD = 4;
 
+function isContinuityHandoffEnabled(cfg: OpenSoulConfig): boolean {
+  return cfg.gateway?.controlUi?.continuity?.features?.handoff !== false;
+}
+
 type SurfacePolicyContext = {
   agentId: string;
   channel?: string;
@@ -314,6 +318,11 @@ export async function evaluateSurfacePolicy(params: {
     };
   }
 
+  if (!isContinuityHandoffEnabled(params.cfg)) {
+    return noneDecision("continuity handoff disabled by config", {
+      policyMatch: { source: "default" },
+    });
+  }
   if (!params.runContext?.handoffEligible) {
     return noneDecision("handoff disabled");
   }

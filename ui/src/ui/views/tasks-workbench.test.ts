@@ -59,6 +59,10 @@ function buildProps(overrides: Partial<TasksWorkbenchProps> = {}): TasksWorkbenc
     actionError: null,
     actionMessage: null,
     actionBusyKey: null,
+    repairEnabled: true,
+    repairSessionKey: "",
+    repairMergeSourceTaskId: "",
+    repairDetail: "",
     agentOptions: [{ id: "main", label: "main" }],
     onRefresh: () => undefined,
     onLoadMore: () => undefined,
@@ -66,6 +70,13 @@ function buildProps(overrides: Partial<TasksWorkbenchProps> = {}): TasksWorkbenc
     onSelectTask: () => undefined,
     onUpdateCommitment: () => undefined,
     onUpdateTaskStatus: () => undefined,
+    onRepairSessionKeyChange: () => undefined,
+    onRepairMergeSourceTaskIdChange: () => undefined,
+    onRepairDetailChange: () => undefined,
+    onRepairRelinkTask: () => undefined,
+    onRepairMergeTask: () => undefined,
+    onRepairMarkTaskOrphan: () => undefined,
+    onRepairMarkCommitmentOrphan: () => undefined,
     onOpenEventDetails: () => undefined,
     onOpenSession: () => undefined,
     ...overrides,
@@ -97,5 +108,48 @@ describe("tasks workbench view", () => {
     expect(container.textContent).toContain("agent:main:telegram:dm:user-1");
     expect(openButton).toBeTruthy();
     expect(loadMoreButton).toBeTruthy();
+  });
+
+  it("renders repair tools for the selected task", async () => {
+    const container = document.createElement("div");
+    render(renderTasksWorkbench(buildProps()), container);
+    await Promise.resolve();
+
+    expect(container.textContent).toContain("Repair tools");
+    expect(container.textContent).toContain("Relink selected task");
+    expect(container.textContent).toContain("Merge into selected task");
+    expect(container.textContent).toContain("Mark task orphan");
+    expect(container.textContent).toContain("Mark orphan");
+  });
+
+  it("keeps the right rail bounded for long timelines", async () => {
+    const container = document.createElement("div");
+    render(
+      renderTasksWorkbench(
+        buildProps({
+          events: Array.from({ length: 30 }, (_, index) =>
+            createEvent({
+              eventId: `evt-${index}`,
+              createdAt: index + 1,
+              summary: `Event ${index}`,
+            }),
+          ),
+          commitments: Array.from({ length: 20 }, (_, index) =>
+            createCommitment({
+              commitmentId: `commit-${index}`,
+              title: `Commitment ${index}`,
+              updatedAt: index + 1,
+            }),
+          ),
+        }),
+      ),
+      container,
+    );
+    await Promise.resolve();
+
+    expect(container.querySelectorAll(".task-continuity-event")).toHaveLength(12);
+    expect(container.querySelectorAll(".task-continuity-commitment")).toHaveLength(8);
+    expect(container.textContent).toContain("Showing the latest 12 events");
+    expect(container.textContent).toContain("Showing the latest 8 commitments");
   });
 });

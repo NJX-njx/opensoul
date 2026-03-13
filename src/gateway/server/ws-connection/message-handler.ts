@@ -57,6 +57,56 @@ import {
 type SubsystemLogger = ReturnType<typeof createSubsystemLogger>;
 
 const DEVICE_SIGNATURE_SKEW_MS = 10 * 60 * 1000;
+const CONTINUITY_READ_METHODS = new Set([
+  "tasks.list",
+  "tasks.get",
+  "tasks.events",
+  "tasks.commitments",
+]);
+const CONTINUITY_WRITE_METHODS = new Set([
+  "tasks.commitments.update",
+  "tasks.task.patch",
+  "tasks.repair.relink",
+  "tasks.repair.merge",
+  "tasks.repair.markTaskOrphan",
+  "tasks.repair.markCommitmentOrphan",
+]);
+
+function resolveContinuityFeatureFlags(cfg: ReturnType<typeof loadConfig>): {
+  reads: boolean;
+  writes: boolean;
+  handoff: boolean;
+  uiActions: boolean;
+} {
+  const features = cfg.gateway?.controlUi?.continuity?.features;
+  return {
+    reads: features?.reads !== false,
+    writes: features?.writes !== false,
+    handoff: features?.handoff !== false,
+    uiActions: features?.uiActions !== false,
+  };
+}
+
+function filterContinuityMethodsForHello(params: {
+  methods: Array<string>;
+  cfg: ReturnType<typeof loadConfig>;
+  clientMode?: string;
+}): Array<string> {
+  const flags = resolveContinuityFeatureFlags(params.cfg);
+  const isUiClient = params.clientMode?.trim().toLowerCase() === "ui";
+  return params.methods.filter((method) => {
+    if (!flags.reads && CONTINUITY_READ_METHODS.has(method)) {
+      return false;
+    }
+    if (!flags.writes && CONTINUITY_WRITE_METHODS.has(method)) {
+      return false;
+    }
+    if (!flags.uiActions && isUiClient && CONTINUITY_WRITE_METHODS.has(method)) {
+      return false;
+    }
+    return true;
+  });
+}
 
 function resolveHostName(hostHeader?: string): string {
   const host = (hostHeader ?? "").trim().toLowerCase();
@@ -843,6 +893,11 @@ export function attachGatewayWsMessageHandler(params: {
           incrementPresenceVersion();
         }
 
+        const advertisedMethods = filterContinuityMethodsForHello({
+          methods: gatewayMethods,
+          cfg: configSnapshot,
+          clientMode: connectParams.client.mode,
+        });
         const snapshot = buildGatewaySnapshot();
         const cachedHealth = getHealthCache();
         if (cachedHealth) {
@@ -858,7 +913,7 @@ export function attachGatewayWsMessageHandler(params: {
             host: os.hostname(),
             connId,
           },
-          features: { methods: gatewayMethods, events },
+          features: { methods: advertisedMethods, events },
           snapshot,
           canvasHostUrl,
           canvasAuthToken: canvasHostUrl
@@ -941,7 +996,7 @@ export function attachGatewayWsMessageHandler(params: {
 
         logWs("out", "hello-ok", {
           connId,
-          methods: gatewayMethods.length,
+          methods: advertisedMethods.length,
           events: events.length,
           presence: snapshot.presence.length,
           stateVersion: snapshot.stateVersion.presence,

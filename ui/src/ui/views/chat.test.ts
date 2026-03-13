@@ -100,6 +100,23 @@ function createTaskContinuityState(
   return {
     client: { request } as unknown as GatewayBrowserClient,
     connected: true,
+    hello: {
+      type: "hello-ok",
+      protocol: 3,
+      features: {
+        methods: [
+          "tasks.list",
+          "tasks.events",
+          "tasks.commitments",
+          "tasks.task.patch",
+          "tasks.commitments.update",
+        ],
+        events: [],
+      },
+      auth: {
+        scopes: ["operator.admin"],
+      },
+    },
     sessionKey: "agent:main:main",
     uiLocale: "en",
     taskContinuityLoading: false,

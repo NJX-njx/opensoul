@@ -134,6 +134,14 @@ import type {
   TasksGetResultSchema,
   TasksListParamsSchema,
   TasksListResultSchema,
+  TasksRepairCommitmentOrphanParamsSchema,
+  TasksRepairCommitmentOrphanResultSchema,
+  TasksRepairMergeParamsSchema,
+  TasksRepairMergeResultSchema,
+  TasksRepairRelinkParamsSchema,
+  TasksRepairRelinkResultSchema,
+  TasksRepairTaskOrphanParamsSchema,
+  TasksRepairTaskOrphanResultSchema,
   TasksTaskPatchParamsSchema,
   TasksTaskPatchResultSchema,
 } from "./tasks.js";
@@ -197,6 +205,18 @@ export type TasksCommitmentsParams = Static<typeof TasksCommitmentsParamsSchema>
 export type TasksCommitmentsResult = Static<typeof TasksCommitmentsResultSchema>;
 export type TasksCommitmentsUpdateParams = Static<typeof TasksCommitmentsUpdateParamsSchema>;
 export type TasksCommitmentsUpdateResult = Static<typeof TasksCommitmentsUpdateResultSchema>;
+export type TasksRepairRelinkParams = Static<typeof TasksRepairRelinkParamsSchema>;
+export type TasksRepairRelinkResult = Static<typeof TasksRepairRelinkResultSchema>;
+export type TasksRepairMergeParams = Static<typeof TasksRepairMergeParamsSchema>;
+export type TasksRepairMergeResult = Static<typeof TasksRepairMergeResultSchema>;
+export type TasksRepairTaskOrphanParams = Static<typeof TasksRepairTaskOrphanParamsSchema>;
+export type TasksRepairTaskOrphanResult = Static<typeof TasksRepairTaskOrphanResultSchema>;
+export type TasksRepairCommitmentOrphanParams = Static<
+  typeof TasksRepairCommitmentOrphanParamsSchema
+>;
+export type TasksRepairCommitmentOrphanResult = Static<
+  typeof TasksRepairCommitmentOrphanResultSchema
+>;
 export type TasksTaskPatchParams = Static<typeof TasksTaskPatchParamsSchema>;
 export type TasksTaskPatchResult = Static<typeof TasksTaskPatchResultSchema>;
 export type ConfigGetParams = Static<typeof ConfigGetParamsSchema>;

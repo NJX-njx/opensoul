@@ -56,6 +56,42 @@ After `pnpm build`, you can run the packaged CLI directly:
 node opensoul.mjs gateway --port 18789 --verbose
 ```
 
+## Continuity rollout and rollback
+
+Task continuity can now be rolled out or degraded by config instead of forcing an all-or-nothing rollback.
+The fastest rollback path is `gateway.controlUi.continuity.features` in `~/.opensoul/opensoul.json`:
+
+```json5
+{
+  gateway: {
+    controlUi: {
+      continuity: {
+        features: {
+          reads: true,
+          writes: true,
+          handoff: true,
+          uiActions: true,
+        },
+      },
+    },
+  },
+}
+```
+
+Use the flags like this:
+
+- `reads: false` hides continuity timelines/workbench data by degrading `tasks.*` reads to empty results.
+- `writes: false` rejects task / commitment mutations while leaving the rest of the Gateway up.
+- `handoff: false` stops automatic Control UI / Canvas handoff without disabling other continuity data.
+- `uiActions: false` keeps continuity visible in Control UI but removes action buttons, useful for read-only incident mode.
+
+Recommended rollback order during incidents:
+
+1. Turn off `handoff` if richer-surface routing is noisy.
+2. Turn off `uiActions` if operators should inspect continuity without mutating it.
+3. Turn off `writes` if continuity state itself looks suspect.
+4. Turn off `reads` only if continuity queries are the problem and you need the UI fully quiet.
+
 ## Stable workflow (macOS app first)
 
 1. Install + launch **OpenSoul.app** (menu bar).
